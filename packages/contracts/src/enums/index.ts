@@ -43,6 +43,7 @@ export const ThirdPartyProvider = {
   GETUI: 'getui',
   ALI_SMS: 'ali-sms',
   ALI_REALNAME: 'ali-realname',
+  WXLOGIN: 'wxlogin',
   MINIO: 'minio',
 } as const;
 export type ThirdPartyProviderValue = (typeof ThirdPartyProvider)[keyof typeof ThirdPartyProvider];

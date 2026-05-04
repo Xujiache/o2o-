@@ -9,6 +9,7 @@ import { type GetuiAdapter, GetuiMockAdapter, GetuiRealAdapter } from './adapter
 import { type RealnameAdapter, RealnameMockAdapter, RealnameRealAdapter } from './adapters/realname.adapter';
 import { type SmsAdapter, SmsMockAdapter, SmsRealAdapter } from './adapters/sms.adapter';
 import { MinioStorageAdapter, MockStorageAdapter, type StorageAdapter } from './adapters/storage.adapter';
+import { type WxLoginAdapter, WxLoginMockAdapter, WxLoginRealAdapter } from './adapters/wxlogin.adapter';
 import { type WxpayAdapter, WxpayMockAdapter, WxpayRealAdapter } from './adapters/wxpay.adapter';
 
 export const INTEGRATION_GATEWAY = Symbol('INTEGRATION_GATEWAY');
@@ -28,6 +29,7 @@ export class IntegrationGatewayService implements OnModuleInit {
   readonly getui: GetuiAdapter;
   readonly sms: SmsAdapter;
   readonly realname: RealnameAdapter;
+  readonly wxlogin: WxLoginAdapter;
 
   constructor(@Inject(ConfigService) private readonly config: ConfigService) {
     const mode = config.get<AppConfig['integration']>('integration')?.mode ?? 'mock';
@@ -71,6 +73,10 @@ export class IntegrationGatewayService implements OnModuleInit {
         accessKeyId: process.env.ALI_REALNAME_ACCESS_KEY_ID ?? '',
         accessKeySecret: process.env.ALI_REALNAME_ACCESS_KEY_SECRET ?? '',
       });
+      this.wxlogin = new WxLoginRealAdapter({
+        appId: process.env.WX_LOGIN_APP_ID ?? '',
+        appSecret: process.env.WX_LOGIN_APP_SECRET ?? '',
+      });
     } else {
       this.amap = new AmapMockAdapter();
       this.wxpay = new WxpayMockAdapter();
@@ -78,6 +84,7 @@ export class IntegrationGatewayService implements OnModuleInit {
       this.getui = new GetuiMockAdapter();
       this.sms = new SmsMockAdapter();
       this.realname = new RealnameMockAdapter();
+      this.wxlogin = new WxLoginMockAdapter();
     }
 
     this.logger.log(`integration mode=${mode}, storage=${this.storage.constructor.name}`);

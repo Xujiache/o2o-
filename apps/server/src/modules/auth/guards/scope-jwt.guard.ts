@@ -1,12 +1,25 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Optional,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Header, type Scope, ScopeTokenHeader } from '@o2o/contracts';
 import type { Request } from 'express';
+import type Redis from 'ioredis';
 
 import { IS_PUBLIC } from '../../../common/decorators/public.decorator';
 import { setCtxField } from '../../../common/utils/als';
+import { REDIS_CLIENT } from '../../../config/redis.module';
 import { AuthService } from '../auth.service';
-import type { CurrentPrincipal } from '../types';
+import type { CurrentPrincipal, JwtPayload } from '../types';
+
+/** Redis key 前缀:已注销/吊销的 jti(TTL=accessToken 剩余) */
+export const JTI_REVOKED_PREFIX = 'jti:revoked:';
 
 const ALL_SCOPES: Scope[] = ['customer', 'merchant', 'rider', 'admin'];
 
@@ -24,9 +37,10 @@ export abstract class ScopeJwtGuard implements CanActivate {
   constructor(
     protected readonly reflector: Reflector,
     protected readonly authService: AuthService,
+    @Optional() @Inject(REDIS_CLIENT) protected readonly redis?: Redis,
   ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  canActivate(context: ExecutionContext): boolean | Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, [context.getHandler(), context.getClass()]);
     if (isPublic) return true;
 
@@ -50,15 +64,34 @@ export abstract class ScopeJwtGuard implements CanActivate {
       throw new ForbiddenException('token scope mismatch');
     }
 
+    return this.applyPayload(req, payload);
+  }
+
+  protected applyPayload(req: Request, payload: JwtPayload): boolean | Promise<boolean> {
+    if (payload.jti && this.redis) {
+      return this.redis.exists(`${JTI_REVOKED_PREFIX}${payload.jti}`).then((revoked) => {
+        if (revoked > 0) {
+          throw new UnauthorizedException('token revoked');
+        }
+        this.setPrincipal(req, payload);
+        return true;
+      });
+    }
+    this.setPrincipal(req, payload);
+    return true;
+  }
+
+  private setPrincipal(req: Request, payload: JwtPayload): void {
     const principal: CurrentPrincipal = {
       scope: this.scope,
       principalId: payload.sub,
       roles: payload.roles ?? [],
+      jti: payload.jti,
+      exp: payload.exp,
     };
     (req as Request & { user?: CurrentPrincipal }).user = principal;
     setCtxField('scope', this.scope);
     setCtxField('principalId', payload.sub);
-    return true;
   }
 }
 

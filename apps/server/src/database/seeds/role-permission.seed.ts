@@ -65,6 +65,27 @@ const PERMISSIONS: PermRow[] = [
     parentCode: 'admin:menu:integrations',
     sort: 1,
   },
+  // Stage 1 — 用户端公共/本人作用域
+  { code: 'customer:public', name: '用户端公开接口', scope: 'public', type: 'data', sort: 200 },
+  { code: 'customer:self', name: '用户访问本人数据', scope: 'customer', type: 'data', sort: 210 },
+  // Stage 1 — 平台 Web 用户管理
+  { code: 'admin:menu:customers', name: '用户管理菜单', scope: 'admin', type: 'menu', sort: 200 },
+  {
+    code: 'admin:customers:view',
+    name: '用户列表/详情/实名记录查看',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:customers',
+    sort: 1,
+  },
+  {
+    code: 'admin:customers:disable',
+    name: '用户启用/禁用',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:customers',
+    sort: 2,
+  },
 ];
 
 export async function seedRolesAndPermissions(
@@ -123,6 +144,12 @@ export async function seedRolesAndPermissions(
     ['CUSTOMER', 'principal:file:upload'],
     ['MERCHANT', 'principal:file:upload'],
     ['RIDER', 'principal:file:upload'],
+    // Stage 1 — 用户基本权限
+    ['CUSTOMER', 'customer:self'],
+    // AUDITOR 可以查看用户(只读),不能禁用
+    ['AUDITOR', 'admin:menu:customers'],
+    ['AUDITOR', 'admin:customers:view'],
+    // SUPER_ADMIN 全量已通过 ...PERMISSIONS.map 覆盖,无需重复
   ];
 
   let bindings = 0;

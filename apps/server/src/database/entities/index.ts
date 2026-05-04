@@ -10,3 +10,12 @@ export * from './third-party-config.entity';
 export * from './idempotency-record.entity';
 export * from './domain-event.entity';
 export * from './integration-request-log.entity';
+// Stage 1 — 用户账号地址 8 张表
+export * from './customer-user.entity';
+export * from './customer-profile.entity';
+export * from './customer-address.entity';
+export * from './realname-record.entity';
+export * from './sms-code.entity';
+export * from './login-device.entity';
+export * from './message-setting.entity';
+export * from './risk-user-tag.entity';

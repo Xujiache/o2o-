@@ -38,10 +38,17 @@ function buildBus() {
 }
 
 describe('DomainEventBus', () => {
-  it('5 类事件 publish 后落表 + 触发对应订阅器', async () => {
+  it('Stage 0 五类事件 publish 后落表 + 触发对应订阅器', async () => {
     const { bus, emitter, repo } = buildBus();
+    const stage0Events = [
+      EventName.ConfigChanged,
+      EventName.PermissionChanged,
+      EventName.FileUploaded,
+      EventName.ThirdPartyCallbackReceived,
+      EventName.AuditLogCreated,
+    ];
     const calls: Array<{ name: string; payload: unknown }> = [];
-    for (const ev of Object.values(EventName)) {
+    for (const ev of stage0Events) {
       emitter.on(ev, (p) => calls.push({ name: ev, payload: p }));
     }
 
@@ -58,7 +65,7 @@ describe('DomainEventBus', () => {
     await bus.publish(EventName.AuditLogCreated, audit, { bizType: EventName.AuditLogCreated });
 
     expect(calls).toHaveLength(5);
-    expect(calls.map((c) => c.name).sort()).toEqual(Object.values(EventName).sort());
+    expect(calls.map((c) => c.name).sort()).toEqual([...stage0Events].sort());
     expect(repo.rows.size).toBe(5);
     for (const row of repo.rows.values()) {
       expect(row.status).toBe('done');

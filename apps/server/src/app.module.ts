@@ -21,15 +21,22 @@ import { MongooseModule } from './config/mongoose.module';
 import { REDIS_CLIENT, RedisModule } from './config/redis.module';
 import { IdempotencyRecord } from './database/entities';
 import { EventsModule } from './events/events.module';
+import { AddressModule } from './modules/address/address.module';
+import { AdminUserModule } from './modules/admin-user/admin-user.module';
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CommonConfigModule } from './modules/common-config/common-config.module';
+import { CustomerAuthModule } from './modules/customer-auth/customer-auth.module';
 import { DictModule } from './modules/dict/dict.module';
 import { FileModule } from './modules/file/file.module';
 import { GatewayModule } from './modules/gateway/gateway.module';
 import { IntegrationGatewayModule } from './modules/integration-gateway/integration-gateway.module';
+import { MessageSettingModule } from './modules/message-setting/message-setting.module';
+import { RealnameModule } from './modules/realname/realname.module';
 import { RiskModule } from './modules/risk/risk.module';
+import { SmsModule } from './modules/sms/sms.module';
 import { SystemModule } from './modules/system/system.module';
+import { UserProfileModule } from './modules/user-profile/user-profile.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 
 @Module({
@@ -68,6 +75,13 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     RiskModule,
     SchedulerModule,
     EventsModule,
+    SmsModule,
+    UserProfileModule,
+    MessageSettingModule,
+    CustomerAuthModule,
+    AddressModule,
+    RealnameModule,
+    AdminUserModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

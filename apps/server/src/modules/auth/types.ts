@@ -19,4 +19,8 @@ export interface CurrentPrincipal {
   scope: Scope;
   principalId: string;
   roles: string[];
+  /** 当前 access token jti(供 logout 写黑名单) */
+  jti?: string;
+  /** 当前 access token 过期时间(秒,Unix epoch),供 logout 计算黑名单 TTL */
+  exp?: number;
 }

@@ -9,6 +9,12 @@ export const EventName = {
   FileUploaded: 'domain.file.uploaded',
   ThirdPartyCallbackReceived: 'domain.third-party.callback.received',
   AuditLogCreated: 'domain.audit-log.created',
+  // Stage 1 — 用户账号 5 个事件(沿用 domain.<biz>.<verb> 风格)
+  CustomerRegistered: 'domain.customer.registered',
+  CustomerLoggedIn: 'domain.customer.logged-in',
+  CustomerRealnameVerified: 'domain.customer.realname-verified',
+  CustomerAddressChanged: 'domain.customer.address-changed',
+  CustomerAccountDisabled: 'domain.customer.account-disabled',
 } as const;
 
 export type EventName = (typeof EventName)[keyof typeof EventName];
@@ -47,10 +53,49 @@ export interface AuditLogCreatedPayload {
   targetId: string | null;
 }
 
+// === Stage 1 — 用户账号事件 payload ===
+
+export interface CustomerRegisteredPayload {
+  userId: string;
+  mobile: string;
+  registerSource: 'mobile' | 'wechat';
+  deviceId?: string;
+}
+
+export interface CustomerLoggedInPayload {
+  userId: string;
+  deviceId: string;
+  ip: string;
+  city?: string;
+  scene: 'login' | 'wechat-login' | 'refresh';
+}
+
+export interface CustomerRealnameVerifiedPayload {
+  userId: string;
+  verifiedAt: number;
+}
+
+export interface CustomerAddressChangedPayload {
+  userId: string;
+  addressId: string;
+  action: 'create' | 'update' | 'set-default';
+}
+
+export interface CustomerAccountDisabledPayload {
+  userId: string;
+  operatorId: string;
+  reason: string;
+}
+
 export type EventPayloadMap = {
   [EventName.ConfigChanged]: ConfigChangedPayload;
   [EventName.PermissionChanged]: PermissionChangedPayload;
   [EventName.FileUploaded]: FileUploadedPayload;
   [EventName.ThirdPartyCallbackReceived]: ThirdPartyCallbackReceivedPayload;
   [EventName.AuditLogCreated]: AuditLogCreatedPayload;
+  [EventName.CustomerRegistered]: CustomerRegisteredPayload;
+  [EventName.CustomerLoggedIn]: CustomerLoggedInPayload;
+  [EventName.CustomerRealnameVerified]: CustomerRealnameVerifiedPayload;
+  [EventName.CustomerAddressChanged]: CustomerAddressChangedPayload;
+  [EventName.CustomerAccountDisabled]: CustomerAccountDisabledPayload;
 };

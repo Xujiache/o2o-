@@ -10,7 +10,11 @@ import { AdminJwtGuard } from '../modules/auth/guards/scope-jwt.guard';
 import { AuditLogArchiveJob } from './jobs/audit-log-archive.job';
 import type { BaseJob } from './jobs/base-job';
 import { ConfigCacheRefreshJob } from './jobs/config-cache-refresh.job';
+import { DefaultAddressUniquenessJob } from './jobs/default-address-uniqueness.job';
 import { ExpiredCleanupJob } from './jobs/expired-cleanup.job';
+import { LoginAnomalyDetectionJob } from './jobs/login-anomaly-detection.job';
+import { RealnameRetryJob } from './jobs/realname-retry.job';
+import { SmsCodeExpiredCleanupJob } from './jobs/sms-code-expired-cleanup.job';
 import { ThirdPartyRetryJob } from './jobs/third-party-retry.job';
 
 @ApiTags('admin-scheduler-dev')
@@ -25,12 +29,20 @@ export class SchedulerController {
     private readonly auditLogArchive: AuditLogArchiveJob,
     private readonly thirdPartyRetry: ThirdPartyRetryJob,
     private readonly configCacheRefresh: ConfigCacheRefreshJob,
+    private readonly smsCodeExpiredCleanup: SmsCodeExpiredCleanupJob,
+    private readonly loginAnomalyDetection: LoginAnomalyDetectionJob,
+    private readonly realnameRetry: RealnameRetryJob,
+    private readonly defaultAddressUniqueness: DefaultAddressUniquenessJob,
   ) {
     this.jobsByName = {
       [expiredCleanup.name]: expiredCleanup,
       [auditLogArchive.name]: auditLogArchive,
       [thirdPartyRetry.name]: thirdPartyRetry,
       [configCacheRefresh.name]: configCacheRefresh,
+      [smsCodeExpiredCleanup.name]: smsCodeExpiredCleanup,
+      [loginAnomalyDetection.name]: loginAnomalyDetection,
+      [realnameRetry.name]: realnameRetry,
+      [defaultAddressUniqueness.name]: defaultAddressUniqueness,
     };
   }
 
