@@ -1,0 +1,65 @@
+{
+  "name": "O2O 骑手端",
+  "appid": "__UNI__O2ORIDR",
+  "description": "O2O 骑手端(Android APP / iOS APP;H5 仅用于开发调试)",
+  "versionName": "0.0.1",
+  "versionCode": "1",
+  "transformPx": false,
+  "app-plus": {
+    "usingComponents": true,
+    "nvueStyleCompiler": "uni-app",
+    "compilerVersion": 3,
+    "splashscreen": {
+      "alwaysShowBeforeRender": true,
+      "waiting": true,
+      "autoclose": true,
+      "delay": 0
+    },
+    "modules": {
+      "Geolocation": {},
+      "Maps": {},
+      "Push": {}
+    },
+    "distribute": {
+      "android": {
+        "permissions": [
+          "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_BACKGROUND_LOCATION\"/>",
+          "<uses-permission android:name=\"android.permission.FOREGROUND_SERVICE\"/>",
+          "<uses-permission android:name=\"android.permission.FOREGROUND_SERVICE_LOCATION\"/>",
+          "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
+          "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+          "<uses-permission android:name=\"android.permission.RECEIVE_BOOT_COMPLETED\"/>",
+          "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
+          "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>",
+          "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>",
+          "<uses-permission android:name=\"android.permission.CAMERA\"/>"
+        ]
+      },
+      "ios": {
+        "privacyDescription": {
+          "NSLocationWhenInUseUsageDescription": "用于显示当前位置与配送中导航",
+          "NSLocationAlwaysAndWhenInUseUsageDescription": "用于配送过程中后台轨迹上报",
+          "NSLocationAlwaysUsageDescription": "用于配送过程中后台轨迹上报",
+          "NSCameraUsageDescription": "用于上传配送凭证",
+          "NSPhotoLibraryUsageDescription": "用于上传配送凭证"
+        },
+        "UIBackgroundModes": ["location", "fetch", "remote-notification"]
+      }
+    }
+  },
+  "h5": {
+    "title": "O2O 骑手端(开发调试)",
+    "router": {
+      "mode": "hash",
+      "base": "/"
+    },
+    "devServer": {
+      "port": 8082,
+      "https": false
+    }
+  },
+  "vueVersion": "3"
+}

@@ -1,0 +1,41 @@
+{
+  "pages": [
+    {
+      "path": "pages/launch/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "O2O 商家端"
+      }
+    },
+    {
+      "path": "pages/audit/pending",
+      "style": {
+        "navigationBarTitleText": "审核中"
+      }
+    },
+    {
+      "path": "pages/error/forbidden",
+      "style": {
+        "navigationBarTitleText": "无权限"
+      }
+    },
+    {
+      "path": "pages/error/network",
+      "style": {
+        "navigationBarTitleText": "网络错误"
+      }
+    },
+    {
+      "path": "pages/error/maintenance",
+      "style": {
+        "navigationBarTitleText": "系统维护中"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "O2O 商家端",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F5F5F5"
+  }
+}

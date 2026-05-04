@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  validate:
+    name: install / build-shared / typecheck / lint / test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared packages (contracts / api-client / ui-kit)
+        run: pnpm --filter @o2o/contracts --filter @o2o/api-client --filter @o2o/ui-kit build
+
+      - name: Typecheck (all workspaces)
+        run: pnpm -r typecheck
+
+      - name: Lint (workspaces with lint script)
+        run: pnpm -r lint
+
+      - name: Test (workspaces with test script)
+        run: pnpm -r test

@@ -1,0 +1,12 @@
+node_modules
+dist
+build
+coverage
+unpackage
+.next
+.nuxt
+.output
+.turbo
+pnpm-lock.yaml
+项目阶段规划
+__pycache__

@@ -1,0 +1,68 @@
+# O2O 后端镜像(NestJS 单体) — 多阶段构建
+# 用法:
+#   docker build -f deploy/Dockerfile.server -t o2o/server:dev --build-arg PNPM_VERSION=9.12.0 .
+# 运行所需 env:见 .env.example;最小集 = MYSQL_* / REDIS_* / MONGO_URI / JWT_*_SECRET / STORAGE_*
+
+ARG NODE_VERSION=20
+ARG PNPM_VERSION=9.12.0
+
+# ---------- Stage 1: deps & build ----------
+FROM node:${NODE_VERSION}-alpine AS builder
+
+ENV PNPM_HOME=/root/.pnpm
+ENV PATH=$PNPM_HOME:$PATH
+
+RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
+
+WORKDIR /workspace
+
+# 先拷 package 元数据,以便缓存 install 层
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json .npmrc* ./
+COPY apps/server/package.json apps/server/
+COPY packages/contracts/package.json packages/contracts/
+COPY packages/api-client/package.json packages/api-client/
+COPY packages/ui-kit/package.json packages/ui-kit/
+
+# 仅安装 server + 共享包链路所需依赖(忽略 4 端前端)
+RUN pnpm install --frozen-lockfile \
+      --filter @o2o/server... \
+      --filter @o2o/contracts \
+      --filter @o2o/api-client \
+      --filter @o2o/ui-kit
+
+# 拷源码并构建
+COPY packages/contracts ./packages/contracts
+COPY packages/api-client ./packages/api-client
+COPY packages/ui-kit ./packages/ui-kit
+COPY apps/server ./apps/server
+
+RUN pnpm --filter @o2o/contracts --filter @o2o/api-client --filter @o2o/ui-kit build \
+ && pnpm --filter @o2o/server build
+
+# 生产依赖修剪(不包含 devDeps)
+RUN pnpm --filter @o2o/server... --prod deploy /tmp/runtime
+
+# ---------- Stage 2: runtime ----------
+FROM node:${NODE_VERSION}-alpine AS runtime
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+WORKDIR /app
+
+# tini 处理 PID 1 信号,避免 SIGTERM 不被 NestJS 听到
+RUN apk add --no-cache tini curl
+
+# 拷生产依赖与 dist
+COPY --from=builder /tmp/runtime/node_modules ./node_modules
+COPY --from=builder /workspace/apps/server/dist ./dist
+COPY --from=builder /workspace/apps/server/package.json ./package.json
+
+EXPOSE 3000
+
+# 健康检查走 /api/v1/pub/health
+HEALTHCHECK --interval=20s --timeout=3s --start-period=20s --retries=3 \
+  CMD curl -fsS "http://127.0.0.1:${PORT}/api/v1/pub/health" || exit 1
+
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["node", "dist/main.js"]

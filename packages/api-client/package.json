@@ -1,0 +1,37 @@
+{
+  "name": "@o2o/api-client",
+  "version": "0.0.1",
+  "private": true,
+  "description": "O2O 4 端共享 HTTP 客户端封装(axios + 抽象 adapter,Uni-app 端各自注入 uni.request)",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./axios": {
+      "types": "./dist/axios-client.d.ts",
+      "default": "./dist/axios-client.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@o2o/contracts": "workspace:*",
+    "axios": "^1.7.7"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.2"
+  }
+}

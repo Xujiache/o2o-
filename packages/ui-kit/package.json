@@ -1,0 +1,28 @@
+{
+  "name": "@o2o/ui-kit",
+  "version": "0.0.1",
+  "private": true,
+  "description": "O2O 4 端可能复用的小组件(状态标签/金额格式化等);Stage 0 占位,后续阶段按需补充",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "test": "echo \"no tests yet\"",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@o2o/contracts": "workspace:*"
+  }
+}

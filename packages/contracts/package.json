@@ -1,0 +1,33 @@
+{
+  "name": "@o2o/contracts",
+  "version": "0.0.1",
+  "private": true,
+  "description": "O2O 平台共享契约:错误码、状态枚举、响应类型、请求头常量",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./status": {
+      "types": "./dist/status/index.d.ts",
+      "default": "./dist/status/index.js"
+    },
+    "./enums": {
+      "types": "./dist/enums/index.d.ts",
+      "default": "./dist/enums/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "test": "echo \"no tests yet\"",
+    "clean": "rimraf dist"
+  }
+}

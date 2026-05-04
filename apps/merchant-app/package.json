@@ -1,0 +1,35 @@
+{
+  "name": "@o2o/merchant-app",
+  "version": "0.0.1",
+  "private": true,
+  "description": "O2O 商家端 Uni-app(仅 Android APP / iOS APP,禁止 Web/小程序)",
+  "scripts": {
+    "dev": "uni -p app",
+    "dev:app": "uni -p app",
+    "build": "uni build -p app",
+    "build:app": "uni build -p app",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@dcloudio/uni-app": "vue3",
+    "@dcloudio/uni-app-plus": "vue3",
+    "@dcloudio/uni-components": "vue3",
+    "@o2o/contracts": "workspace:*",
+    "vue": "3.4.21"
+  },
+  "devDependencies": {
+    "@dcloudio/types": "^3.4.8",
+    "@dcloudio/uni-cli-shared": "vue3",
+    "@dcloudio/uni-stacktracey": "vue3",
+    "@dcloudio/vite-plugin-uni": "vue3",
+    "@types/node": "^22.7.4",
+    "@vue/runtime-core": "3.4.21",
+    "@vue/tsconfig": "^0.5.1",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.8",
+    "vitest": "^2.1.2",
+    "vue-tsc": "^2.1.6"
+  }
+}

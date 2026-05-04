@@ -1,0 +1,78 @@
+{
+  "name": "O2O 用户端",
+  "appid": "__UNI__O2OCUST",
+  "description": "O2O 外卖与跑腿用户端(微信小程序 / Android / iOS / H5)",
+  "versionName": "0.0.1",
+  "versionCode": "1",
+  "transformPx": false,
+  "app-plus": {
+    "usingComponents": true,
+    "nvueStyleCompiler": "uni-app",
+    "compilerVersion": 3,
+    "splashscreen": {
+      "alwaysShowBeforeRender": true,
+      "waiting": true,
+      "autoclose": true,
+      "delay": 0
+    },
+    "modules": {
+      "Geolocation": {},
+      "Maps": {}
+    },
+    "distribute": {
+      "android": {
+        "permissions": [
+          "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>",
+          "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+          "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>",
+          "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>",
+          "<uses-permission android:name=\"android.permission.CAMERA\"/>"
+        ]
+      },
+      "ios": {
+        "privacyDescription": {
+          "NSLocationWhenInUseUsageDescription": "用于显示附近的商家与配送范围",
+          "NSCameraUsageDescription": "用于拍摄上传头像与售后凭证",
+          "NSPhotoLibraryUsageDescription": "用于上传头像与售后凭证"
+        }
+      }
+    }
+  },
+  "mp-weixin": {
+    "appid": "wx0000000000000000",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "minified": true
+    },
+    "usingComponents": true,
+    "permission": {
+      "scope.userLocation": {
+        "desc": "用于显示附近的商家与配送范围"
+      }
+    },
+    "requiredPrivateInfos": ["getLocation", "chooseLocation"]
+  },
+  "h5": {
+    "title": "O2O 用户端",
+    "router": {
+      "mode": "hash",
+      "base": "/"
+    },
+    "devServer": {
+      "port": 8081,
+      "https": false
+    },
+    "sdkConfigs": {
+      "maps": {
+        "amap": {
+          "key": "PLACEHOLDER_AMAP_KEY",
+          "securityJsCode": "",
+          "serviceHost": ""
+        }
+      }
+    }
+  },
+  "vueVersion": "3"
+}

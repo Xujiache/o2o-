@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+coverage
+unpackage
+.next
+.nuxt
+.output
+.turbo
+*.min.js
+项目阶段规划
+docs
+deploy
+__pycache__

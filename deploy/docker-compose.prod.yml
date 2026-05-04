@@ -1,0 +1,26 @@
+# O2O 生产编排占位 — 完整版本在阶段 11 编写。
+# 阶段 0 仅声明意图与最小骨架,以便 CI 检查 yaml 合法性。
+#
+# 阶段 11 会在此基础上补齐:
+#   - 反向代理(nginx/traefik)+ TLS 证书
+#   - 多副本 server(behind LB)+ 健康检查 + 滚动更新
+#   - MySQL/Redis/Mongo 改用外部托管或带备份卷的有状态容器
+#   - MinIO 改 S3 兼容外部存储
+#   - 日志聚合(loki/promtail)与指标采集(prometheus exporter)
+#   - 定时备份与告警
+
+services:
+  server:
+    image: o2o/server:${O2O_SERVER_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.server
+    restart: unless-stopped
+    env_file:
+      - path: ./.env.prod
+        required: false
+    ports:
+      - '3000:3000'
+    # depends_on / volumes / healthcheck / logging / 网络隔离 留给阶段 11
+
+# 网络与持久化卷在阶段 11 定义
