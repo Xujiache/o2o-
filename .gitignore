@@ -1,0 +1,7 @@
+.cursor/
+agent-transcripts/
+__pycache__/
+*.pyc
+*.log
+*.tmp
+*.bak
