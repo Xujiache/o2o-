@@ -4,26 +4,30 @@
   "private": true,
   "description": "O2O 平台共享契约:错误码、状态枚举、响应类型、请求头常量",
   "main": "./dist/index.js",
+  "module": "./dist/esm/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "import": "./dist/esm/index.js",
+      "require": "./dist/index.js"
     },
     "./status": {
       "types": "./dist/status/index.d.ts",
-      "default": "./dist/status/index.js"
+      "import": "./dist/esm/status/index.js",
+      "require": "./dist/status/index.js"
     },
     "./enums": {
       "types": "./dist/enums/index.d.ts",
-      "default": "./dist/enums/index.js"
+      "import": "./dist/esm/enums/index.js",
+      "require": "./dist/enums/index.js"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.esm.json",
     "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts",

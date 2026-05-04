@@ -1,45 +1,89 @@
 <script setup lang="ts">
-/** 登录占位页:阶段 0 仅占位,实际登录流程在阶段 1 实现 */
-function back(): void {
-  uni.reLaunch({ url: '/pages/launch/index' });
+import { computed, ref } from 'vue';
+
+import MobileInput from '@/components/common/MobileInput.vue';
+import { useAuthStore } from '@/stores/auth';
+
+const auth = useAuthStore();
+const mobile = ref('');
+const sending = ref(false);
+const errorMsg = ref('');
+
+const canSend = computed(() => /^1[3-9]\d{9}$/.test(mobile.value) && !sending.value);
+
+async function onSendSms(): Promise<void> {
+  errorMsg.value = '';
+  sending.value = true;
+  try {
+    await auth.sendSms(mobile.value, 'login');
+    uni.navigateTo({ url: `/pages/login/verify?mobile=${mobile.value}` });
+  } catch (err) {
+    errorMsg.value = err instanceof Error ? err.message : '验证码发送失败';
+  } finally {
+    sending.value = false;
+  }
+}
+
+function onWechat(): void {
+  uni.navigateTo({ url: '/pages/login/wechat' });
 }
 </script>
 
 <template>
-  <view class="page">
-    <view class="page__title">登录</view>
-    <text class="page__desc">阶段 0 仅占位,完整登录流程在阶段 1 接入(短信/微信/Apple)。</text>
-    <button class="page__btn" disabled>登录(占位)</button>
-    <button class="page__btn page__btn--ghost" @click="back">返回首页</button>
+  <view class="login">
+    <view class="login__title">手机号登录</view>
+    <text class="login__hint">未注册手机号将自动创建账号</text>
+
+    <MobileInput v-model="mobile" />
+
+    <button class="login__btn" :disabled="!canSend" @click="onSendSms">
+      {{ sending ? '发送中...' : '获取验证码' }}
+    </button>
+
+    <text v-if="errorMsg" class="login__error">{{ errorMsg }}</text>
+
+    <view class="login__divider">其他登录方式</view>
+    <button class="login__btn login__btn--ghost" @click="onWechat">微信授权登录</button>
   </view>
 </template>
 
 <style scoped>
-.page {
-  padding: 64rpx 32rpx;
+.login {
+  padding: 80rpx 48rpx;
   display: flex;
   flex-direction: column;
-  gap: 32rpx;
-  align-items: center;
+  gap: 24rpx;
 }
-.page__title {
-  font-size: 40rpx;
+.login__title {
+  font-size: 48rpx;
   font-weight: 600;
 }
-.page__desc {
+.login__hint {
   font-size: 26rpx;
-  color: #666;
-  text-align: center;
+  color: #888;
 }
-.page__btn {
-  width: 80%;
+.login__btn {
+  margin-top: 32rpx;
   background: #4c84ff;
   color: #fff;
   border-radius: 12rpx;
 }
-.page__btn--ghost {
+.login__btn[disabled] {
+  background: #c5d4ff;
+}
+.login__btn--ghost {
   background: #fff;
   color: #4c84ff;
   border: 1rpx solid #4c84ff;
+}
+.login__error {
+  color: #ff4d4f;
+  font-size: 26rpx;
+}
+.login__divider {
+  text-align: center;
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 32rpx;
 }
 </style>

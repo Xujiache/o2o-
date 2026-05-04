@@ -21,6 +21,16 @@ export default defineConfig(({ mode }) => {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
       },
     },
+    optimizeDeps: {
+      // 强制 vite 预打包 @o2o/contracts(CJS dist)→ ESM,解决 named import 静态分析失败
+      include: ['@o2o/contracts'],
+    },
+    build: {
+      commonjsOptions: {
+        // 允许 ESM/CJS 混合模块的命名导出穿透(packages/contracts 用 tsc CJS 输出)
+        transformMixedEsModules: true,
+      },
+    },
     server: {
       host: '0.0.0.0',
       port: Number(env.VITE_DEV_PORT ?? 8083),
