@@ -55,7 +55,19 @@
     { "path": "pages/food/order/detail", "style": { "navigationBarTitleText": "订单详情" } },
     { "path": "pages/food/order/track", "style": { "navigationBarTitleText": "配送轨迹" } },
     { "path": "pages/food/review/submit", "style": { "navigationBarTitleText": "评价订单" } },
-    { "path": "pages/me/aftersales-stub", "style": { "navigationBarTitleText": "售后申请" } }
+    { "path": "pages/me/aftersales-stub", "style": { "navigationBarTitleText": "售后申请" } },
+    { "path": "pages/errand/home/index", "style": { "navigationBarTitleText": "跑腿服务" } },
+    { "path": "pages/errand/form/buy", "style": { "navigationBarTitleText": "代买" } },
+    { "path": "pages/errand/form/deliver", "style": { "navigationBarTitleText": "代送" } },
+    { "path": "pages/errand/form/help", "style": { "navigationBarTitleText": "代办" } },
+    { "path": "pages/errand/form/custom", "style": { "navigationBarTitleText": "自定义需求" } },
+    { "path": "pages/errand/quote/index", "style": { "navigationBarTitleText": "跑腿报价" } },
+    { "path": "pages/errand/confirm/index", "style": { "navigationBarTitleText": "确认订单" } },
+    { "path": "pages/errand/order/list", "style": { "navigationBarTitleText": "跑腿订单" } },
+    { "path": "pages/errand/order/detail", "style": { "navigationBarTitleText": "订单详情" } },
+    { "path": "pages/errand/track/index", "style": { "navigationBarTitleText": "配送轨迹" } },
+    { "path": "pages/errand/address-picker/index", "style": { "navigationBarTitleText": "选择地址" } },
+    { "path": "pages/errand/image-upload/index", "style": { "navigationBarTitleText": "上传图片" } }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
