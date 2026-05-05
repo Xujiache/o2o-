@@ -5,8 +5,17 @@ import type Redis from 'ioredis';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 
 import { REDIS_CLIENT } from '../../config/redis.module';
-import { FoodOrder, OrderTimeline, PaymentOrder, ProductSku, StockLock, StockRecord } from '../../database/entities';
-import type { PaymentOrderChannel } from '../../database/entities/payment-order.entity';
+import {
+  ErrandOrder,
+  ErrandTimeline,
+  FoodOrder,
+  OrderTimeline,
+  PaymentOrder,
+  ProductSku,
+  StockLock,
+  StockRecord,
+} from '../../database/entities';
+import type { PaymentOrderBizType, PaymentOrderChannel } from '../../database/entities/payment-order.entity';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
 import { IntegrationGatewayService } from '../integration-gateway/integration-gateway.service';
@@ -26,6 +35,7 @@ export class PaymentService {
   constructor(
     @InjectRepository(FoodOrder) private readonly orderRepo: Repository<FoodOrder>,
     @InjectRepository(PaymentOrder) private readonly payRepo: Repository<PaymentOrder>,
+    @InjectRepository(ErrandOrder) private readonly errandOrderRepo: Repository<ErrandOrder>,
     private readonly gateway: IntegrationGatewayService,
     private readonly dataSource: DataSource,
     private readonly eventBus: DomainEventBus,
@@ -33,33 +43,17 @@ export class PaymentService {
   ) {}
 
   async prepay(customerId: string, dto: PrepayDto): Promise<PrepayVo> {
-    // 1. 校验订单(本人 + WAIT_PAY)
-    const order = await this.orderRepo.findOne({ where: { foodOrderId: dto.orderId } });
-    if (!order || order.customerId !== customerId) {
-      throw new NotFoundException({
-        code: ErrorCode.DATA_NOT_FOUND,
-        detail: 'ORDER_NOT_FOUND',
-        message: '订单不存在',
-      });
-    }
-    if (order.status !== 'WAIT_PAY') {
-      throw new UnprocessableEntityException({
-        code: ErrorCode.STATUS_INVALID,
-        detail: 'ORDER_NOT_PAYABLE',
-        message: '当前订单状态无法支付',
-      });
-    }
-    if (Number(order.expireAt) < Date.now()) {
-      throw new UnprocessableEntityException({
-        code: ErrorCode.STATUS_INVALID,
-        detail: 'ORDER_EXPIRED',
-        message: '订单已超时',
-      });
-    }
+    // 1. 校验订单(本人 + WAIT_PAY)— 按 bizType 路由到不同订单表
+    const orderInfo = await this.fetchOrderForPrepay(dto.bizType, dto.orderId, customerId);
 
     // 2. 复用同 channel 未过期 pending 支付单(idempotent on retries)
     const existing = await this.payRepo.findOne({
-      where: { bizType: 'FOOD', bizId: dto.orderId, payChannel: dto.payChannel, status: 'pending' },
+      where: {
+        bizType: dto.bizType,
+        bizId: dto.orderId,
+        payChannel: dto.payChannel,
+        status: 'pending',
+      },
     });
     let paymentOrder: PaymentOrder;
     if (existing && Number(existing.expireAt) > Date.now()) {
@@ -69,13 +63,13 @@ export class PaymentService {
       const payOrderNo = this.generatePayOrderNo();
       const ins = await this.payRepo.insert({
         payOrderNo,
-        bizType: 'FOOD',
+        bizType: dto.bizType,
         bizId: dto.orderId,
         payChannel: dto.payChannel,
-        payableAmount: order.payableAmount,
+        payableAmount: orderInfo.payableAmount,
         status: 'pending',
         retryCount: 0,
-        expireAt: order.expireAt,
+        expireAt: orderInfo.expireAt,
         createdAt: String(now),
         updatedAt: String(now),
       });
@@ -89,7 +83,7 @@ export class PaymentService {
     const payParams = await this.callAdapter(dto.payChannel, {
       outTradeNo: paymentOrder.payOrderNo,
       amountCents: Number(paymentOrder.payableAmount),
-      description: `food order ${dto.orderId}`,
+      description: `${dto.bizType.toLowerCase()} order ${dto.orderId}`,
       notifyUrl,
     });
 
@@ -99,6 +93,62 @@ export class PaymentService {
       payParams,
       expireAt: Number(paymentOrder.expireAt),
     };
+  }
+
+  private async fetchOrderForPrepay(
+    bizType: PaymentOrderBizType,
+    orderId: string,
+    customerId: string,
+  ): Promise<{ payableAmount: string; expireAt: string }> {
+    if (bizType === 'FOOD') {
+      const order = await this.orderRepo.findOne({ where: { foodOrderId: orderId } });
+      if (!order || order.customerId !== customerId) {
+        throw new NotFoundException({
+          code: ErrorCode.DATA_NOT_FOUND,
+          detail: 'ORDER_NOT_FOUND',
+          message: '订单不存在',
+        });
+      }
+      if (order.status !== 'WAIT_PAY') {
+        throw new UnprocessableEntityException({
+          code: ErrorCode.STATUS_INVALID,
+          detail: 'ORDER_NOT_PAYABLE',
+          message: '当前订单状态无法支付',
+        });
+      }
+      if (Number(order.expireAt) < Date.now()) {
+        throw new UnprocessableEntityException({
+          code: ErrorCode.STATUS_INVALID,
+          detail: 'ORDER_EXPIRED',
+          message: '订单已超时',
+        });
+      }
+      return { payableAmount: order.payableAmount, expireAt: order.expireAt };
+    }
+    // ERRAND
+    const errand = await this.errandOrderRepo.findOne({ where: { errandOrderId: orderId } });
+    if (!errand || errand.customerId !== customerId) {
+      throw new NotFoundException({
+        code: ErrorCode.DATA_NOT_FOUND,
+        detail: 'ORDER_NOT_FOUND',
+        message: '订单不存在',
+      });
+    }
+    if (errand.status !== 'WAIT_PAY') {
+      throw new UnprocessableEntityException({
+        code: ErrorCode.STATUS_INVALID,
+        detail: 'ORDER_NOT_PAYABLE',
+        message: '当前订单状态无法支付',
+      });
+    }
+    if (Number(errand.expireAt) < Date.now()) {
+      throw new UnprocessableEntityException({
+        code: ErrorCode.STATUS_INVALID,
+        detail: 'ORDER_EXPIRED',
+        message: '订单已超时',
+      });
+    }
+    return { payableAmount: errand.payableAmount, expireAt: errand.expireAt };
   }
 
   private async callAdapter(
@@ -183,64 +233,11 @@ export class PaymentService {
         },
       );
 
-      // food_order WAIT_PAY → PAID_WAIT_MERCHANT
-      const order = await em.getRepository(FoodOrder).findOne({ where: { foodOrderId: payment.bizId } });
-      if (!order) {
-        throw new NotFoundException({
-          code: ErrorCode.DATA_NOT_FOUND,
-          detail: 'ORDER_NOT_FOUND',
-          message: '订单不存在',
-        });
+      if (payment.bizType === 'FOOD') {
+        await this.applyFoodPaid(em, payment, parsed.paidAmountCents, now, channel);
+      } else {
+        await this.applyErrandPaid(em, payment, parsed.paidAmountCents, now);
       }
-      if (order.status !== 'WAIT_PAY') {
-        // 已被 15min job 提前关单 — 不应继续推进,但 payment 已 success,记录事实即可
-        return;
-      }
-      await em.getRepository(FoodOrder).update(
-        { foodOrderId: payment.bizId },
-        {
-          status: 'PAID_WAIT_MERCHANT',
-          payStatus: 'paid',
-          paidAt: String(now),
-          paidAmount: String(parsed.paidAmountCents),
-          updatedAt: String(now),
-        },
-      );
-
-      // stock_lock active → consumed + sku.stock -= q + sku.stock_locked -= q + stock_record
-      const locks = await em.getRepository(StockLock).find({ where: { orderId: payment.bizId, status: 'active' } });
-      for (const lock of locks) {
-        await em
-          .getRepository(StockLock)
-          .update({ stockLockId: lock.stockLockId }, { status: 'consumed', releasedAt: String(now) });
-        await em.getRepository(ProductSku).decrement({ skuId: lock.skuId }, 'stock', lock.quantity);
-        await em.getRepository(ProductSku).decrement({ skuId: lock.skuId }, 'stockLocked', lock.quantity);
-        // 读取最新 stock 写流水
-        const sku = await em.getRepository(ProductSku).findOne({ where: { skuId: lock.skuId } });
-        await em.getRepository(StockRecord).insert({
-          productId: String(sku?.productId ?? '0'),
-          skuId: lock.skuId,
-          quantityChange: -lock.quantity,
-          reason: 'ORDER_PAID',
-          operatorId: 'system',
-          operatorType: 'system',
-          stockBefore: (sku?.stock ?? 0) + lock.quantity,
-          stockAfter: sku?.stock ?? 0,
-          createdAt: String(now),
-        });
-      }
-
-      // timeline WAIT_PAY → PAID_WAIT_MERCHANT
-      await em.getRepository(OrderTimeline).insert({
-        orderId: payment.bizId,
-        bizType: 'FOOD',
-        fromStatus: 'WAIT_PAY',
-        toStatus: 'PAID_WAIT_MERCHANT',
-        actorType: 'system',
-        actorId: 'callback',
-        reason: `${channel} callback`,
-        createdAt: String(now),
-      });
     });
 
     // 5. 发事件
@@ -249,7 +246,7 @@ export class PaymentService {
       {
         payOrderId: payment.paymentOrderId,
         payOrderNo: payment.payOrderNo,
-        bizType: 'FOOD',
+        bizType: payment.bizType,
         bizId: payment.bizId,
         payChannel: channel,
         paidAmount: String(parsed.paidAmountCents),
@@ -258,21 +255,137 @@ export class PaymentService {
       { bizType: 'payment', bizId: payment.paymentOrderId },
     );
 
-    const order = await this.orderRepo.findOne({ where: { foodOrderId: payment.bizId } });
-    if (order && order.status === 'PAID_WAIT_MERCHANT') {
-      await this.eventBus.publish(
-        EventName.FoodOrderPaid,
-        {
-          orderId: payment.bizId,
-          customerId: order.customerId,
-          storeId: order.storeId,
-          paidAmount: String(parsed.paidAmountCents),
-          paidAt: now,
-        },
-        { bizType: 'food-order', bizId: payment.bizId },
-      );
+    if (payment.bizType === 'FOOD') {
+      const order = await this.orderRepo.findOne({ where: { foodOrderId: payment.bizId } });
+      if (order && order.status === 'PAID_WAIT_MERCHANT') {
+        await this.eventBus.publish(
+          EventName.FoodOrderPaid,
+          {
+            orderId: payment.bizId,
+            customerId: order.customerId,
+            storeId: order.storeId,
+            paidAmount: String(parsed.paidAmountCents),
+            paidAt: now,
+          },
+          { bizType: 'food-order', bizId: payment.bizId },
+        );
+      }
+    } else {
+      const errand = await this.errandOrderRepo.findOne({ where: { errandOrderId: payment.bizId } });
+      if (errand && errand.status === 'PAID') {
+        await this.eventBus.publish(
+          EventName.ErrandPaid,
+          {
+            orderId: payment.bizId,
+            customerId: errand.customerId,
+            paidAmount: String(parsed.paidAmountCents),
+            paidAt: now,
+          },
+          { bizType: 'errand-order', bizId: payment.bizId },
+        );
+      }
     }
 
     return { ok: true };
+  }
+
+  private async applyFoodPaid(
+    em: EntityManager,
+    payment: PaymentOrder,
+    paidAmountCents: number,
+    now: number,
+    channel: PaymentOrderChannel,
+  ): Promise<void> {
+    // food_order WAIT_PAY → PAID_WAIT_MERCHANT
+    const order = await em.getRepository(FoodOrder).findOne({ where: { foodOrderId: payment.bizId } });
+    if (!order) {
+      throw new NotFoundException({
+        code: ErrorCode.DATA_NOT_FOUND,
+        detail: 'ORDER_NOT_FOUND',
+        message: '订单不存在',
+      });
+    }
+    if (order.status !== 'WAIT_PAY') {
+      // 已被 15min job 提前关单 — 不应继续推进,但 payment 已 success,记录事实即可
+      return;
+    }
+    await em.getRepository(FoodOrder).update(
+      { foodOrderId: payment.bizId },
+      {
+        status: 'PAID_WAIT_MERCHANT',
+        payStatus: 'paid',
+        paidAt: String(now),
+        paidAmount: String(paidAmountCents),
+        updatedAt: String(now),
+      },
+    );
+    // stock_lock active → consumed + sku.stock -= q + sku.stock_locked -= q + stock_record
+    const locks = await em.getRepository(StockLock).find({ where: { orderId: payment.bizId, status: 'active' } });
+    for (const lock of locks) {
+      await em
+        .getRepository(StockLock)
+        .update({ stockLockId: lock.stockLockId }, { status: 'consumed', releasedAt: String(now) });
+      await em.getRepository(ProductSku).decrement({ skuId: lock.skuId }, 'stock', lock.quantity);
+      await em.getRepository(ProductSku).decrement({ skuId: lock.skuId }, 'stockLocked', lock.quantity);
+      const sku = await em.getRepository(ProductSku).findOne({ where: { skuId: lock.skuId } });
+      await em.getRepository(StockRecord).insert({
+        productId: String(sku?.productId ?? '0'),
+        skuId: lock.skuId,
+        quantityChange: -lock.quantity,
+        reason: 'ORDER_PAID',
+        operatorId: 'system',
+        operatorType: 'system',
+        stockBefore: (sku?.stock ?? 0) + lock.quantity,
+        stockAfter: sku?.stock ?? 0,
+        createdAt: String(now),
+      });
+    }
+    await em.getRepository(OrderTimeline).insert({
+      orderId: payment.bizId,
+      bizType: 'FOOD',
+      fromStatus: 'WAIT_PAY',
+      toStatus: 'PAID_WAIT_MERCHANT',
+      actorType: 'system',
+      actorId: 'callback',
+      reason: `${channel} callback`,
+      createdAt: String(now),
+    });
+  }
+
+  private async applyErrandPaid(
+    em: EntityManager,
+    payment: PaymentOrder,
+    paidAmountCents: number,
+    now: number,
+  ): Promise<void> {
+    const errand = await em.getRepository(ErrandOrder).findOne({ where: { errandOrderId: payment.bizId } });
+    if (!errand) {
+      throw new NotFoundException({
+        code: ErrorCode.DATA_NOT_FOUND,
+        detail: 'ERRAND_ORDER_NOT_FOUND',
+        message: '跑腿订单不存在',
+      });
+    }
+    if (errand.status !== 'WAIT_PAY') {
+      // 已被 15min job 关单 — payment 已 success,不再推进,直接返
+      return;
+    }
+    await em.getRepository(ErrandOrder).update(
+      { errandOrderId: payment.bizId },
+      {
+        status: 'PAID',
+        payStatus: 'paid',
+        paidAmount: String(paidAmountCents),
+        paidAt: String(now),
+        updatedAt: String(now),
+      },
+    );
+    await em.getRepository(ErrandTimeline).insert({
+      errandOrderId: payment.bizId,
+      eventType: 'PAID',
+      payload: { paidAmount: paidAmountCents, payOrderId: payment.paymentOrderId },
+      operator: 'system',
+      createdAt: String(now),
+    });
   }
 }

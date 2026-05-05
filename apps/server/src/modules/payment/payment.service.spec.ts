@@ -165,7 +165,20 @@ function buildService(w: World): PaymentService {
     }),
   } as unknown as jest.Mocked<DomainEventBus>;
 
-  return new PaymentService(orderRepo, payRepo, gateway, dataSource, eventBus, w.redis as unknown as never);
+  // stage 6: 注入 ErrandOrder repo(测试时只用 FOOD 路径,空 stub 即可)
+  const errandOrderRepo = {
+    findOne: jest.fn(async () => null),
+  } as unknown as Repository<import('../../database/entities').ErrandOrder>;
+
+  return new PaymentService(
+    orderRepo,
+    payRepo,
+    errandOrderRepo,
+    gateway,
+    dataSource,
+    eventBus,
+    w.redis as unknown as never,
+  );
 }
 
 function makeWorld(): World {

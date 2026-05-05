@@ -39,6 +39,8 @@ import { CommonConfigModule } from './modules/common-config/common-config.module
 import { CouponModule } from './modules/coupon/coupon.module';
 import { CustomerAuthModule } from './modules/customer-auth/customer-auth.module';
 import { DictModule } from './modules/dict/dict.module';
+import { ErrandDispatchModule } from './modules/errand-dispatch/errand-dispatch.module';
+import { ErrandOrderModule } from './modules/errand-order/errand-order.module';
 import { ErrandPricingModule } from './modules/errand-pricing/errand-pricing.module';
 import { ErrandTypeModule } from './modules/errand-type/errand-type.module';
 import { FileModule } from './modules/file/file.module';
@@ -148,6 +150,8 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     ErrandTypeModule,
     ProhibitedItemModule,
     ErrandPricingModule,
+    ErrandOrderModule,
+    ErrandDispatchModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
