@@ -193,9 +193,16 @@ function buildService(
   };
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const stub: any = { findOne: jest.fn(async () => null), find: jest.fn(async () => []), update: jest.fn() };
+  /* eslint-enable @typescript-eslint/no-explicit-any */
   return new ErrandOrderService(
     quoteRepo,
     orderRepo,
+    stub,
+    stub,
+    stub,
+    stub,
     typeSvc,
     pricingSvc,
     prohibitedSvc,

@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { ErrorCode } from '@o2o/contracts';
 import type Redis from 'ioredis';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
 
 import { REDIS_CLIENT } from '../../config/redis.module';
 import {
@@ -17,8 +17,10 @@ import {
   ErrandOrderDetail,
   ErrandPriceSnapshot,
   ErrandQuote,
+  ErrandTask,
   ErrandTimeline,
   type ErrandAddressSnapshot,
+  type ErrandOrderUrgentLevel,
   type ErrandPriceSnapshotPayload,
 } from '../../database/entities';
 import { DomainEventBus } from '../../events/domain-event-bus';
@@ -30,12 +32,24 @@ import { PaymentService } from '../payment/payment.service';
 import { ProhibitedItemService } from '../prohibited-item/prohibited-item.service';
 
 import type {
+  CancelErrandDto,
+  CancelErrandVo,
   ErrandAddressDto,
+  ErrandOrderDetailVo,
+  ErrandOrderListItemVo,
+  ErrandOrderListVo,
+  ErrandTimelineItemVo,
+  ErrandTrackVo,
+  ListErrandQueryDto,
   ProhibitedWarningVo,
   QuoteErrandDto,
   QuoteVo,
+  RemarkErrandDto,
+  RemarkErrandVo,
   SubmitErrandDto,
   SubmitErrandVo,
+  UrgentErrandDto,
+  UrgentErrandVo,
 } from './errand-order.dto';
 
 const QUOTE_TTL_SECONDS = 300; // 5 min
@@ -48,6 +62,13 @@ export class ErrandOrderService {
   constructor(
     @InjectRepository(ErrandQuote) private readonly quoteRepo: Repository<ErrandQuote>,
     @InjectRepository(ErrandOrder) private readonly orderRepo: Repository<ErrandOrder>,
+    @InjectRepository(ErrandOrderDetail)
+    private readonly detailRepo: Repository<ErrandOrderDetail>,
+    @InjectRepository(ErrandAttachment)
+    private readonly attachmentRepo: Repository<ErrandAttachment>,
+    @InjectRepository(ErrandTimeline)
+    private readonly timelineRepo: Repository<ErrandTimeline>,
+    @InjectRepository(ErrandTask) private readonly taskRepo: Repository<ErrandTask>,
     private readonly typeSvc: ErrandTypeService,
     private readonly pricingSvc: ErrandPricingService,
     private readonly prohibitedSvc: ProhibitedItemService,
@@ -321,6 +342,386 @@ export class ErrandOrderService {
       status: 'WAIT_PAY',
       expireAt,
     };
+  }
+
+  // ===== 列表 (T11) =====
+
+  async list(customerId: string, query: ListErrandQueryDto): Promise<ErrandOrderListVo> {
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 10;
+    const qb = this.orderRepo.createQueryBuilder('o').where('o.customer_id = :cid', { cid: customerId });
+
+    const status = query.status ?? 'ALL';
+    if (status === 'WAIT_PAY') qb.andWhere('o.status = :s', { s: 'WAIT_PAY' });
+    else if (status === 'IN_PROGRESS')
+      qb.andWhere('o.status IN (:...s)', {
+        s: ['PAID', 'DISPATCHING', 'ASSIGNED', 'PICKED_UP', 'DELIVERED'],
+      });
+    else if (status === 'COMPLETED') qb.andWhere('o.status = :s', { s: 'COMPLETED' });
+    else if (status === 'CANCELLED') qb.andWhere('o.status = :s', { s: 'CANCELLED' });
+
+    const total = await qb.getCount();
+    const rows = await qb
+      .orderBy('o.created_at', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getMany();
+
+    // 批量取 detail(简化:仅取地址)
+    const orderIds = rows.map((r) => r.errandOrderId);
+    const details = orderIds.length > 0 ? await this.detailRepo.find({ where: { errandOrderId: In(orderIds) } }) : [];
+    const detailMap = new Map(details.map((d) => [d.errandOrderId, d]));
+
+    const list: ErrandOrderListItemVo[] = rows.map((r) => {
+      const d = detailMap.get(r.errandOrderId);
+      return {
+        orderId: r.errandOrderId,
+        orderNo: r.orderNo,
+        typeCode: r.typeCode,
+        status: r.status,
+        payableAmount: r.payableAmount,
+        urgentLevel: r.urgentLevel,
+        pickupAddress: d?.pickupAddress?.address ?? null,
+        deliveryAddress: d?.deliveryAddress?.address ?? '',
+        expireAt: Number(r.expireAt),
+        createdAt: Number(r.createdAt),
+      };
+    });
+
+    return { list, total, page, pageSize };
+  }
+
+  // ===== 详情 (T12) =====
+
+  async detail(customerId: string, orderId: string): Promise<ErrandOrderDetailVo> {
+    const order = await this.findOwnOrder(customerId, orderId);
+    const detail = await this.detailRepo.findOne({ where: { errandOrderId: orderId } });
+    const attachments = await this.attachmentRepo.find({
+      where: { errandOrderId: orderId },
+      order: { sort: 'ASC' },
+    });
+    const timelineRows = await this.timelineRepo.find({
+      where: { errandOrderId: orderId },
+      order: { createdAt: 'ASC' },
+    });
+    const task = await this.taskRepo.findOne({ where: { errandOrderId: orderId } });
+
+    const timeline: ErrandTimelineItemVo[] = timelineRows.map((t) => ({
+      eventType: t.eventType,
+      createdAt: Number(t.createdAt),
+      operator: t.operator,
+      payload: t.payload,
+    }));
+
+    return {
+      orderId: order.errandOrderId,
+      orderNo: order.orderNo,
+      typeCode: order.typeCode,
+      status: order.status,
+      payableAmount: order.payableAmount,
+      urgentLevel: order.urgentLevel,
+      pickupAddress: detail?.pickupAddress?.address ?? null,
+      deliveryAddress: detail?.deliveryAddress?.address ?? '',
+      expireAt: Number(order.expireAt),
+      createdAt: Number(order.createdAt),
+      baseFee: order.baseFee,
+      distanceFee: order.distanceFee,
+      urgentFee: order.urgentFee,
+      distanceMeters: detail?.distanceMeters ?? 0,
+      weight: detail?.weight ?? null,
+      budget: order.budget,
+      reservedTime: order.reservedTime != null ? Number(order.reservedTime) : null,
+      itemDesc: detail?.itemDesc ?? null,
+      taskDesc: detail?.taskDesc ?? null,
+      remark: detail?.remark ?? null,
+      pickupAddressDetail: (detail?.pickupAddress ?? null) as Record<string, unknown> | null,
+      deliveryAddressDetail: (detail?.deliveryAddress ?? {}) as Record<string, unknown>,
+      attachmentFileIds: attachments.map((a) => a.fileId),
+      timeline,
+      actions: this.computeActions(order.status),
+      rider: task?.riderId ? { riderId: task.riderId, status: task.status } : null,
+      paidAt: order.paidAt != null ? Number(order.paidAt) : null,
+    };
+  }
+
+  private computeActions(status: ErrandOrder['status']): string[] {
+    if (status === 'WAIT_PAY') return ['pay', 'cancel'];
+    if (status === 'PAID' || status === 'DISPATCHING') return ['urgent', 'remark', 'track'];
+    if (status === 'ASSIGNED' || status === 'PICKED_UP') return ['urgent', 'remark', 'track'];
+    if (status === 'DELIVERED') return ['confirm', 'track'];
+    if (status === 'COMPLETED') return ['repurchase'];
+    return []; // CANCELLED
+  }
+
+  // ===== 用户主动取消 (T13) =====
+
+  async cancel(customerId: string, orderId: string, dto: CancelErrandDto): Promise<CancelErrandVo> {
+    const order = await this.findOwnOrder(customerId, orderId);
+    if (order.status !== 'WAIT_PAY') {
+      throw new UnprocessableEntityException({
+        code: ErrorCode.STATUS_INVALID,
+        detail: 'CANCEL_NOT_ALLOWED',
+        message: `当前状态(${order.status})不可主动取消`,
+      });
+    }
+
+    const now = Date.now();
+    await this.dataSource.transaction(async (em: EntityManager) => {
+      await em.getRepository(ErrandOrder).update(
+        { errandOrderId: orderId },
+        {
+          status: 'CANCELLED',
+          cancelledAt: String(now),
+          cancelledBy: 'customer',
+          cancelReason: dto.reason ?? 'CUSTOMER_CANCEL',
+          updatedAt: String(now),
+        },
+      );
+      await em.getRepository(ErrandTimeline).insert({
+        errandOrderId: orderId,
+        eventType: 'CANCELLED',
+        payload: {
+          cancelledBy: 'customer',
+          reason: dto.reason ?? 'CUSTOMER_CANCEL',
+        },
+        operator: 'customer',
+        createdAt: String(now),
+      });
+    });
+
+    return { orderId, status: 'CANCELLED' };
+  }
+
+  // ===== 加急 (T14) =====
+
+  async urgent(customerId: string, orderId: string, dto: UrgentErrandDto): Promise<UrgentErrandVo> {
+    const order = await this.findOwnOrder(customerId, orderId);
+    if (!['PAID', 'DISPATCHING', 'ASSIGNED'].includes(order.status)) {
+      throw new UnprocessableEntityException({
+        code: ErrorCode.STATUS_INVALID,
+        detail: 'URGENT_NOT_ALLOWED',
+        message: `当前状态(${order.status})不可加急`,
+      });
+    }
+    if (order.urgentLevel === dto.urgentLevel) {
+      throw new UnprocessableEntityException({
+        code: ErrorCode.STATUS_INVALID,
+        detail: 'URGENT_LEVEL_UNCHANGED',
+        message: '加急档位未变化',
+      });
+    }
+    // 不允许降级:standard < fast < express
+    const ranks: Record<ErrandOrderUrgentLevel, number> = {
+      standard: 0,
+      fast: 1,
+      express: 2,
+    };
+    if (ranks[dto.urgentLevel] <= ranks[order.urgentLevel]) {
+      throw new UnprocessableEntityException({
+        code: ErrorCode.STATUS_INVALID,
+        detail: 'URGENT_DOWNGRADE_NOT_ALLOWED',
+        message: '加急档位仅可上调',
+      });
+    }
+    // 重算
+    const detail = await this.detailRepo.findOne({ where: { errandOrderId: orderId } });
+    const recalc = await this.pricingSvc.calc({
+      distanceMeters: detail?.distanceMeters ?? 0,
+      urgentLevel: dto.urgentLevel,
+      weightKg: detail?.weight ? Number(detail.weight) : null,
+    });
+    const newUrgentFee = BigInt(recalc.urgentFee);
+
+    // confirmFee 防漂移(仅校验差额,允许 ±0)
+    const oldUrgent = BigInt(order.urgentFee);
+    const diff = newUrgentFee - oldUrgent;
+    if (BigInt(dto.confirmFee) !== diff) {
+      throw new UnprocessableEntityException({
+        code: ErrorCode.STATUS_INVALID,
+        detail: 'CONFIRM_FEE_MISMATCH',
+        message: `加急差额校验失败 expected=${diff} actual=${dto.confirmFee}`,
+      });
+    }
+
+    const now = Date.now();
+    await this.dataSource.transaction(async (em: EntityManager) => {
+      await em.getRepository(ErrandOrder).update(
+        { errandOrderId: orderId },
+        {
+          urgentFee: recalc.urgentFee,
+          urgentLevel: dto.urgentLevel,
+          payableAmount: recalc.payableAmount,
+          updatedAt: String(now),
+        },
+      );
+      await em.getRepository(ErrandTimeline).insert({
+        errandOrderId: orderId,
+        eventType: 'PRICE_INCREASED',
+        payload: {
+          oldUrgentLevel: order.urgentLevel,
+          newUrgentLevel: dto.urgentLevel,
+          oldUrgentFee: order.urgentFee,
+          newUrgentFee: recalc.urgentFee,
+          source: 'customer',
+        },
+        operator: 'customer',
+        createdAt: String(now),
+      });
+    });
+
+    await this.eventBus.publish(
+      EventName.ErrandPriceIncreased,
+      {
+        orderId,
+        customerId,
+        oldUrgentLevel: order.urgentLevel,
+        newUrgentLevel: dto.urgentLevel,
+        oldPayable: order.payableAmount,
+        newPayable: recalc.payableAmount,
+        source: 'customer',
+        changedAt: now,
+      },
+      { bizType: 'errand-order', bizId: orderId },
+    );
+
+    return {
+      orderId,
+      urgentFee: recalc.urgentFee,
+      urgentLevel: dto.urgentLevel,
+      status: order.status,
+      payableAmount: recalc.payableAmount,
+    };
+  }
+
+  // ===== 补充备注 (T15) =====
+
+  async remark(customerId: string, orderId: string, dto: RemarkErrandDto): Promise<RemarkErrandVo> {
+    const order = await this.findOwnOrder(customerId, orderId);
+    if (['CANCELLED', 'COMPLETED'].includes(order.status)) {
+      throw new UnprocessableEntityException({
+        code: ErrorCode.STATUS_INVALID,
+        detail: 'REMARK_NOT_ALLOWED',
+        message: `当前状态(${order.status})不可补充备注`,
+      });
+    }
+
+    const now = Date.now();
+    await this.dataSource.transaction(async (em: EntityManager) => {
+      await em
+        .getRepository(ErrandOrderDetail)
+        .update({ errandOrderId: orderId }, { remark: dto.remark, updatedAt: String(now) });
+      if (dto.attachments && dto.attachments.length > 0) {
+        const existingMax = await em
+          .getRepository(ErrandAttachment)
+          .createQueryBuilder('a')
+          .where('a.errand_order_id = :id', { id: orderId })
+          .orderBy('a.sort', 'DESC')
+          .getOne();
+        const startSort = (existingMax?.sort ?? -1) + 1;
+        for (let i = 0; i < dto.attachments.length; i++) {
+          await em.getRepository(ErrandAttachment).insert({
+            errandOrderId: orderId,
+            fileId: dto.attachments[i]!,
+            sort: startSort + i,
+            createdAt: String(now),
+          });
+        }
+      }
+      await em.getRepository(ErrandTimeline).insert({
+        errandOrderId: orderId,
+        eventType: 'REMARK_ADDED',
+        payload: {
+          remark: dto.remark,
+          attachmentCount: dto.attachments?.length ?? 0,
+        },
+        operator: 'customer',
+        createdAt: String(now),
+      });
+      await em.getRepository(ErrandOrder).update({ errandOrderId: orderId }, { updatedAt: String(now) });
+    });
+
+    await this.eventBus.publish(
+      EventName.ErrandRemarkAdded,
+      {
+        orderId,
+        customerId,
+        remark: dto.remark,
+        attachmentCount: dto.attachments?.length ?? 0,
+        addedAt: now,
+      },
+      { bizType: 'errand-order', bizId: orderId },
+    );
+
+    return {
+      orderId,
+      latestRemark: dto.remark,
+      updatedAt: now,
+    };
+  }
+
+  // ===== 轨迹 (T16) =====
+
+  async track(customerId: string, orderId: string): Promise<ErrandTrackVo> {
+    const order = await this.findOwnOrder(customerId, orderId);
+    const task = await this.taskRepo.findOne({ where: { errandOrderId: orderId } });
+
+    if (!task || !['ASSIGNED', 'PICKED_UP', 'DELIVERED'].includes(task.status)) {
+      // 还没有骑手接单
+      return {
+        orderId,
+        status: order.status,
+        riderLocation: null,
+        route: null,
+        trackPoints: [],
+        eta: null,
+      };
+    }
+
+    const pickup = task.pickupAddress;
+    const delivery = task.deliveryAddress;
+    if (!pickup || pickup.lng == null || pickup.lat == null || delivery.lng == null || delivery.lat == null) {
+      return {
+        orderId,
+        status: order.status,
+        riderLocation: null,
+        route: null,
+        trackPoints: [],
+        eta: null,
+      };
+    }
+
+    const route = await this.gateway.amap.route(
+      { lng: pickup.lng, lat: pickup.lat },
+      { lng: delivery.lng, lat: delivery.lat },
+    );
+
+    return {
+      orderId,
+      status: order.status,
+      // stage 6 简化:无骑手实时位置追踪,以取货点近似
+      riderLocation: { lng: pickup.lng, lat: pickup.lat },
+      route: { totalDistanceMeters: route.totalDistanceMeters, etaMs: route.etaMs },
+      trackPoints: route.points.map((p) => ({
+        lng: p.lng,
+        lat: p.lat,
+        distanceFromStart: p.distanceFromStart,
+      })),
+      eta: Date.now() + route.etaMs,
+    };
+  }
+
+  // ===== 工具 =====
+
+  private async findOwnOrder(customerId: string, orderId: string): Promise<ErrandOrder> {
+    const order = await this.orderRepo.findOne({ where: { errandOrderId: orderId } });
+    if (!order || order.customerId !== customerId) {
+      throw new NotFoundException({
+        code: ErrorCode.DATA_NOT_FOUND,
+        detail: 'ERRAND_ORDER_NOT_FOUND',
+        message: '跑腿订单不存在',
+      });
+    }
+    return order;
   }
 
   // —— 内部工具 ——

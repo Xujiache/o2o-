@@ -7,6 +7,7 @@ import {
   ErrandOrderDetail,
   ErrandPriceSnapshot,
   ErrandQuote,
+  ErrandTask,
   ErrandTimeline,
 } from '../../database/entities';
 import { ErrandPricingModule } from '../errand-pricing/errand-pricing.module';
@@ -27,6 +28,7 @@ import { ErrandOrderService } from './errand-order.service';
       ErrandAttachment,
       ErrandPriceSnapshot,
       ErrandTimeline,
+      ErrandTask,
     ]),
     ErrandTypeModule,
     ErrandPricingModule,
