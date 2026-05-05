@@ -106,6 +106,18 @@ export class FoodOrder {
   @Column({ name: 'completed_at', type: 'bigint', nullable: true })
   completedAt!: string | null;
 
+  @Column({ name: 'accepted_at', type: 'bigint', nullable: true })
+  acceptedAt!: string | null;
+
+  @Column({ name: 'expected_ready_at', type: 'bigint', nullable: true })
+  expectedReadyAt!: string | null;
+
+  @Column({ name: 'ready_at', type: 'bigint', nullable: true })
+  readyAt!: string | null;
+
+  @Column({ name: 'reject_reason', type: 'varchar', length: 255, nullable: true })
+  rejectReason!: string | null;
+
   @Column({ name: 'created_at', type: 'bigint' })
   createdAt!: string;
 

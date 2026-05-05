@@ -195,6 +195,34 @@ const PERMISSIONS: PermRow[] = [
     parentCode: 'admin:menu:errand-orders',
     sort: 1,
   },
+  // Stage 7 — 平台 Web 商家售后/结算/提现监控
+  { code: 'admin:menu:after-sales', name: '售后订单菜单', scope: 'admin', type: 'menu', sort: 620 },
+  {
+    code: 'admin:after-sales:view',
+    name: '售后订单查询',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:after-sales',
+    sort: 1,
+  },
+  { code: 'admin:menu:settlements', name: '结算单菜单', scope: 'admin', type: 'menu', sort: 630 },
+  {
+    code: 'admin:settlements:view',
+    name: '结算单查询',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:settlements',
+    sort: 1,
+  },
+  { code: 'admin:menu:withdrawals', name: '提现单菜单', scope: 'admin', type: 'menu', sort: 640 },
+  {
+    code: 'admin:withdrawals:view',
+    name: '提现单查询',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:withdrawals',
+    sort: 1,
+  },
 ];
 
 export async function seedRolesAndPermissions(
@@ -276,6 +304,13 @@ export async function seedRolesAndPermissions(
     ['AUDITOR', 'admin:food-orders:view'],
     ['AUDITOR', 'admin:menu:errand-orders'],
     ['AUDITOR', 'admin:errand-orders:view'],
+    // Stage 7 — AUDITOR 可见售后/结算/提现(只读)
+    ['AUDITOR', 'admin:menu:after-sales'],
+    ['AUDITOR', 'admin:after-sales:view'],
+    ['AUDITOR', 'admin:menu:settlements'],
+    ['AUDITOR', 'admin:settlements:view'],
+    ['AUDITOR', 'admin:menu:withdrawals'],
+    ['AUDITOR', 'admin:withdrawals:view'],
     // SUPER_ADMIN 全量已通过 ...PERMISSIONS.map 覆盖
   ];
 

@@ -66,3 +66,11 @@ export * from './prohibited-item.entity';
 export * from './errand-timeline.entity';
 export * from './errand-pricing.entity';
 export * from './errand-type.entity';
+// Stage 7 — 商家端订单售后结算 7 张新表
+export * from './after-sale.entity';
+export * from './after-sale-evidence.entity';
+export * from './merchant-order-action-log.entity';
+export * from './review-reply.entity';
+export * from './merchant-statistics-snapshot.entity';
+export * from './merchant-settlement.entity';
+export * from './merchant-withdrawal.entity';

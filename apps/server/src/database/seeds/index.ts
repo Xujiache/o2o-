@@ -9,6 +9,7 @@ import { seedErrorCodes } from './error-code.seed';
 import { seedPlatformCategories } from './platform-category.seed';
 import { seedProhibitedItems } from './prohibited-item.seed';
 import { seedRolesAndPermissions } from './role-permission.seed';
+import { seedStage7SysConfig } from './sys-config-stage7.seed';
 import { seedSysConfig } from './sys-config.seed';
 import { seedThirdPartyConfig } from './third-party-config.seed';
 
@@ -50,6 +51,10 @@ export async function runSeeds(ds: DataSource): Promise<void> {
 
   const prohibitedCount = await seedProhibitedItems(ds);
   console.info(`[seed] prohibited_item: ${prohibitedCount}`);
+
+  // Stage 7 — 商家端订单售后结算配置
+  const stage7CfgCount = await seedStage7SysConfig(ds);
+  console.info(`[seed] sys_config (stage 7): ${stage7CfgCount}`);
 
   console.info('[seed] done');
 }

@@ -49,6 +49,16 @@ export const EventName = {
   ErrandPriceIncreased: 'domain.errand-order.price-increased',
   ErrandNoRiderCancelled: 'domain.errand-order.no-rider-cancelled',
   ErrandRemarkAdded: 'domain.errand-order.remark-added',
+  // Stage 7 — 商家端订单售后结算 9 个事件(7 规划 + 2 c 端扩展)
+  MerchantOrderPushed: 'domain.merchant-order.pushed',
+  MerchantOrderAccepted: 'domain.merchant-order.accepted',
+  MerchantOrderRejected: 'domain.merchant-order.rejected',
+  FoodReadyForPickup: 'domain.food-order.ready-for-pickup',
+  AfterSaleApplied: 'domain.after-sale.applied',
+  AfterSaleReviewedByMerchant: 'domain.after-sale.reviewed-by-merchant',
+  OrderReviewSubmitted: 'domain.order-review.submitted',
+  MerchantSettlementGenerated: 'domain.merchant-settlement.generated',
+  MerchantWithdrawRequested: 'domain.merchant-withdrawal.requested',
 } as const;
 
 export type EventName = (typeof EventName)[keyof typeof EventName];
@@ -368,6 +378,87 @@ export interface ErrandRemarkAddedPayload {
   addedAt: number;
 }
 
+// === Stage 7 — 商家端订单售后结算事件 payload ===
+
+export interface MerchantOrderPushedPayload {
+  orderId: string;
+  storeId: string;
+  merchantId: string;
+  payableAmountCents: string;
+  pushedAt: number;
+}
+
+export interface MerchantOrderAcceptedPayload {
+  orderId: string;
+  storeId: string;
+  merchantId: string;
+  expectedReadyAt: number | null;
+  acceptedAt: number;
+}
+
+export interface MerchantOrderRejectedPayload {
+  orderId: string;
+  storeId: string;
+  merchantId: string;
+  rejectReason: string;
+  rejectedAt: number;
+}
+
+export interface FoodReadyForPickupPayload {
+  orderId: string;
+  storeId: string;
+  merchantId: string;
+  readyAt: number;
+}
+
+export interface AfterSaleAppliedPayload {
+  afterSaleId: string;
+  orderId: string;
+  storeId: string;
+  merchantId: string;
+  customerId: string;
+  amountCents: string;
+  reason: string;
+  appliedAt: number;
+}
+
+export interface AfterSaleReviewedByMerchantPayload {
+  afterSaleId: string;
+  orderId: string;
+  storeId: string;
+  decision: 'APPROVE' | 'REJECT';
+  rejectReason: string | null;
+  reviewedAt: number;
+}
+
+export interface OrderReviewSubmittedPayload {
+  reviewId: string;
+  orderId: string;
+  storeId: string;
+  merchantId: string;
+  customerId: string;
+  rating: number;
+  submittedAt: number;
+}
+
+export interface MerchantSettlementGeneratedPayload {
+  settlementId: string;
+  storeId: string;
+  merchantId: string;
+  periodStart: number;
+  periodEnd: number;
+  netCents: string;
+  generatedAt: number;
+}
+
+export interface MerchantWithdrawRequestedPayload {
+  withdrawalId: string;
+  storeId: string;
+  merchantId: string;
+  amountCents: string;
+  requestedAt: number;
+}
+
 export type EventPayloadMap = {
   [EventName.ConfigChanged]: ConfigChangedPayload;
   [EventName.PermissionChanged]: PermissionChangedPayload;
@@ -408,4 +499,13 @@ export type EventPayloadMap = {
   [EventName.ErrandPriceIncreased]: ErrandPriceIncreasedPayload;
   [EventName.ErrandNoRiderCancelled]: ErrandNoRiderCancelledPayload;
   [EventName.ErrandRemarkAdded]: ErrandRemarkAddedPayload;
+  [EventName.MerchantOrderPushed]: MerchantOrderPushedPayload;
+  [EventName.MerchantOrderAccepted]: MerchantOrderAcceptedPayload;
+  [EventName.MerchantOrderRejected]: MerchantOrderRejectedPayload;
+  [EventName.FoodReadyForPickup]: FoodReadyForPickupPayload;
+  [EventName.AfterSaleApplied]: AfterSaleAppliedPayload;
+  [EventName.AfterSaleReviewedByMerchant]: AfterSaleReviewedByMerchantPayload;
+  [EventName.OrderReviewSubmitted]: OrderReviewSubmittedPayload;
+  [EventName.MerchantSettlementGenerated]: MerchantSettlementGeneratedPayload;
+  [EventName.MerchantWithdrawRequested]: MerchantWithdrawRequestedPayload;
 };
