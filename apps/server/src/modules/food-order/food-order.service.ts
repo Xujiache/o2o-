@@ -12,7 +12,9 @@ import {
   FoodOrder,
   FoodOrderItem,
   OrderPriceSnapshot,
+  OrderReview,
   OrderTimeline,
+  PaymentOrder,
   Product,
   ProductSku,
   StockLock,
@@ -22,7 +24,20 @@ import type { OrderPriceSnapshotPayload } from '../../database/entities/order-pr
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
 
-import { type PreviewOrderDto, type PreviewVo, type SubmitOrderDto, type SubmitOrderVo } from './food-order.dto';
+import {
+  type CancelOrderDto,
+  type CancelOrderVo,
+  type FoodOrderDetailVo,
+  type FoodOrderListPageVo,
+  type ListOrdersQueryDto,
+  type PreviewOrderDto,
+  type PreviewVo,
+  type ReviewOrderDto,
+  type ReviewOrderVo,
+  type SubmitOrderDto,
+  type SubmitOrderVo,
+  type TimelineEntryVo,
+} from './food-order.dto';
 
 const PREVIEW_TTL_SECONDS = 300;
 const ESTIMATED_DELIVERY_MINUTES = 40;
@@ -39,6 +54,10 @@ export class FoodOrderService {
     @InjectRepository(ProductSku) private readonly skuRepo: Repository<ProductSku>,
     @InjectRepository(OrderPriceSnapshot) private readonly snapshotRepo: Repository<OrderPriceSnapshot>,
     @InjectRepository(FoodOrder) private readonly orderRepo: Repository<FoodOrder>,
+    @InjectRepository(FoodOrderItem) private readonly orderItemRepo: Repository<FoodOrderItem>,
+    @InjectRepository(OrderTimeline) private readonly timelineRepo: Repository<OrderTimeline>,
+    @InjectRepository(OrderReview) private readonly reviewRepo: Repository<OrderReview>,
+    @InjectRepository(PaymentOrder) private readonly paymentRepo: Repository<PaymentOrder>,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly dataSource: DataSource,
     private readonly eventBus: DomainEventBus,
@@ -369,6 +388,266 @@ export class FoodOrderService {
       payableAmount: payload.payableAmount,
       expireAt,
     };
+  }
+
+  // === T12 list/detail ===
+
+  async list(customerId: string, query: ListOrdersQueryDto): Promise<FoodOrderListPageVo> {
+    const pageNo = query.pageNo ?? 1;
+    const pageSize = query.pageSize ?? 20;
+    let qb = this.orderRepo.createQueryBuilder('o').where('o.customer_id = :cid', { cid: customerId });
+    if (query.status) qb = qb.andWhere('o.status = :st', { st: query.status });
+    qb = qb.orderBy('o.created_at', 'DESC');
+    const total = await qb.getCount();
+    const orders = await qb
+      .skip((pageNo - 1) * pageSize)
+      .take(pageSize)
+      .getMany();
+
+    const orderIds = orders.map((o) => o.foodOrderId);
+    const items = orderIds.length ? await this.orderItemRepo.find({ where: { foodOrderId: In(orderIds) } }) : [];
+    const itemsByOrder = new Map<string, FoodOrderItem[]>();
+    for (const it of items) {
+      const arr = itemsByOrder.get(it.foodOrderId) ?? [];
+      arr.push(it);
+      itemsByOrder.set(it.foodOrderId, arr);
+    }
+
+    return {
+      pageNo,
+      pageSize,
+      total,
+      list: orders.map((o) => {
+        const its = itemsByOrder.get(o.foodOrderId) ?? [];
+        const first = its[0];
+        const totalQty = its.reduce((acc, x) => acc + x.quantity, 0);
+        const itemsBrief = first
+          ? `${first.skuSnapshot.name ?? '商品'}${its.length > 1 ? ` 等 ${its.length} 件` : ` × ${first.quantity}`}（共 ${totalQty} 件）`
+          : '';
+        return {
+          orderId: o.foodOrderId,
+          orderNo: o.orderNo,
+          status: o.status,
+          payStatus: o.payStatus,
+          storeId: o.storeId,
+          goodsAmount: o.goodsAmount,
+          payableAmount: o.payableAmount,
+          itemsBrief,
+          expireAt: Number(o.expireAt),
+          createdAt: Number(o.createdAt),
+        };
+      }),
+    };
+  }
+
+  async detail(customerId: string, orderId: string): Promise<FoodOrderDetailVo> {
+    const order = await this.orderRepo.findOne({ where: { foodOrderId: orderId } });
+    if (!order || order.customerId !== customerId) {
+      throw new NotFoundException({
+        code: ErrorCode.DATA_NOT_FOUND,
+        detail: 'ORDER_NOT_FOUND',
+        message: '订单不存在',
+      });
+    }
+    const items = await this.orderItemRepo.find({ where: { foodOrderId: orderId } });
+    const timelineRows = await this.timelineRepo.find({ where: { orderId } });
+    timelineRows.sort((a, b) => Number(a.createdAt) - Number(b.createdAt));
+    const timeline: TimelineEntryVo[] = timelineRows.map((t) => ({
+      fromStatus: t.fromStatus,
+      toStatus: t.toStatus,
+      actorType: t.actorType,
+      reason: t.reason,
+      createdAt: Number(t.createdAt),
+    }));
+    const payment = await this.paymentRepo.findOne({
+      where: { bizType: 'FOOD', bizId: orderId },
+    });
+    const actions: string[] = [];
+    if (order.status === 'WAIT_PAY') {
+      actions.push('pay', 'cancel');
+    }
+    if (order.status === 'COMPLETED') {
+      const reviewed = await this.reviewRepo.findOne({ where: { orderId } });
+      if (!reviewed) actions.push('review');
+    }
+    return {
+      orderId: order.foodOrderId,
+      orderNo: order.orderNo,
+      status: order.status,
+      payStatus: order.payStatus,
+      storeId: order.storeId,
+      goodsAmount: order.goodsAmount,
+      deliveryFee: order.deliveryFee,
+      discountAmount: order.discountAmount,
+      payableAmount: order.payableAmount,
+      addressSnapshot: order.addressSnapshot,
+      expireAt: Number(order.expireAt),
+      paidAt: order.paidAt ? Number(order.paidAt) : null,
+      cancelledAt: order.cancelledAt ? Number(order.cancelledAt) : null,
+      cancelledBy: order.cancelledBy,
+      cancelledReason: order.cancelledReason,
+      createdAt: Number(order.createdAt),
+      items: items.map((it) => ({
+        skuId: it.skuId,
+        name: it.skuSnapshot.name ?? '',
+        spec: it.skuSnapshot.spec ?? null,
+        iconUrl: it.skuSnapshot.iconUrl ?? null,
+        quantity: it.quantity,
+        unitPrice: it.unitPrice,
+        subTotal: it.subTotal,
+      })),
+      timeline,
+      payment: payment
+        ? {
+            payOrderId: payment.paymentOrderId,
+            payOrderNo: payment.payOrderNo,
+            payChannel: payment.payChannel,
+            status: payment.status,
+          }
+        : null,
+      actions,
+    };
+  }
+
+  // === T13 cancel ===
+
+  async cancel(customerId: string, orderId: string, dto: CancelOrderDto): Promise<CancelOrderVo> {
+    const order = await this.orderRepo.findOne({ where: { foodOrderId: orderId } });
+    if (!order || order.customerId !== customerId) {
+      throw new NotFoundException({
+        code: ErrorCode.DATA_NOT_FOUND,
+        detail: 'ORDER_NOT_FOUND',
+        message: '订单不存在',
+      });
+    }
+    if (order.status !== 'WAIT_PAY') {
+      throw new UnprocessableEntityException({
+        code: ErrorCode.STATUS_INVALID,
+        detail: 'INVALID_TRANSITION',
+        message: `${order.status} → CANCELLED 不允许`,
+      });
+    }
+    const now = Date.now();
+    const reason = dto.reason ?? 'CUSTOMER_CANCEL';
+    const releasedItems: Array<{ skuId: string; quantity: number }> = [];
+
+    await this.dataSource.transaction(async (em: EntityManager) => {
+      await em.getRepository(FoodOrder).update(
+        { foodOrderId: orderId },
+        {
+          status: 'CANCELLED',
+          cancelledAt: String(now),
+          cancelledBy: 'customer',
+          cancelledReason: reason,
+          updatedAt: String(now),
+        },
+      );
+      const locks = await em.getRepository(StockLock).find({ where: { orderId, status: 'active' } });
+      for (const lock of locks) {
+        await em
+          .getRepository(StockLock)
+          .update({ stockLockId: lock.stockLockId }, { status: 'released', releasedAt: String(now) });
+        await em.getRepository(ProductSku).decrement({ skuId: lock.skuId }, 'stockLocked', lock.quantity);
+        releasedItems.push({ skuId: lock.skuId, quantity: lock.quantity });
+      }
+      await em.getRepository(OrderTimeline).insert({
+        orderId,
+        bizType: 'FOOD',
+        fromStatus: 'WAIT_PAY',
+        toStatus: 'CANCELLED',
+        actorType: 'customer',
+        actorId: customerId,
+        reason,
+        createdAt: String(now),
+      });
+    });
+
+    await this.eventBus.publish(
+      EventName.FoodOrderCancelled,
+      {
+        orderId,
+        customerId,
+        reason,
+        cancelledBy: 'customer',
+        cancelledAt: now,
+      },
+      { bizType: 'food-order', bizId: orderId },
+    );
+    if (releasedItems.length) {
+      await this.eventBus.publish(
+        EventName.StockReleased,
+        {
+          orderId,
+          items: releasedItems,
+          reason: 'CUSTOMER_CANCEL',
+          releasedAt: now,
+        },
+        { bizType: 'food-order', bizId: orderId },
+      );
+    }
+
+    return { orderId, status: 'CANCELLED', cancelledAt: now };
+  }
+
+  // === T14 review ===
+
+  async review(customerId: string, orderId: string, dto: ReviewOrderDto): Promise<ReviewOrderVo> {
+    const order = await this.orderRepo.findOne({ where: { foodOrderId: orderId } });
+    if (!order || order.customerId !== customerId) {
+      throw new NotFoundException({
+        code: ErrorCode.DATA_NOT_FOUND,
+        detail: 'ORDER_NOT_FOUND',
+        message: '订单不存在',
+      });
+    }
+    if (order.status !== 'COMPLETED') {
+      throw new UnprocessableEntityException({
+        code: ErrorCode.STATUS_INVALID,
+        detail: 'NOT_COMPLETED',
+        message: '当前订单无法评价',
+      });
+    }
+    const completedAt = order.completedAt ? Number(order.completedAt) : Number(order.updatedAt);
+    if (Date.now() - completedAt > 30 * 24 * 60 * 60 * 1000) {
+      throw new UnprocessableEntityException({
+        code: ErrorCode.STATUS_INVALID,
+        detail: 'REVIEW_EXPIRED',
+        message: '评价已过期(超过 30 天)',
+      });
+    }
+    const existing = await this.reviewRepo.findOne({ where: { orderId } });
+    if (existing) {
+      throw new UnprocessableEntityException({
+        code: ErrorCode.STATUS_INVALID,
+        detail: 'ALREADY_REVIEWED',
+        message: '订单已评价',
+      });
+    }
+    const now = Date.now();
+    const ins = await this.reviewRepo.insert({
+      orderId,
+      customerId,
+      storeId: order.storeId,
+      rating: dto.rating,
+      content: dto.content ?? null,
+      imageFileIds: dto.images ?? null,
+      anonymous: dto.anonymous ? 1 : 0,
+      createdAt: String(now),
+    });
+    const reviewId = String(ins.identifiers[0]?.orderReviewId ?? '');
+    await this.eventBus.publish(
+      EventName.FoodReviewCreated,
+      {
+        reviewId,
+        orderId,
+        customerId,
+        storeId: order.storeId,
+        rating: dto.rating,
+        createdAt: now,
+      },
+      { bizType: 'order-review', bizId: reviewId },
+    );
+    return { reviewId, createdAt: now };
   }
 
   /** orderNo = `${yyyyMMdd}${redis incr daily 6位}`,Redis 不可用时回退到时间戳后 6 位 */

@@ -4,16 +4,24 @@ import {
   ArrayMaxSize,
   ArrayMinSize,
   IsArray,
+  IsBoolean,
   IsIn,
   IsInt,
   IsOptional,
   IsString,
   Length,
+  Max,
   Min,
   ValidateNested,
 } from 'class-validator';
 
-import type { FoodOrderDeliveryType } from '../../database/entities/food-order.entity';
+import type {
+  FoodOrderCancelledBy,
+  FoodOrderDeliveryType,
+  FoodOrderPayStatus,
+  FoodOrderStatus,
+} from '../../database/entities/food-order.entity';
+import type { OrderTimelineActorType } from '../../database/entities/order-timeline.entity';
 
 export class PreviewItemDto {
   @ApiProperty()
@@ -103,4 +111,144 @@ export class SubmitOrderVo {
   @ApiProperty() @Expose() orderNo!: string;
   @ApiProperty() @Expose() payableAmount!: string;
   @ApiProperty() @Expose() expireAt!: number;
+}
+
+// === T12 list/detail ===
+
+export class ListOrdersQueryDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  status?: FoodOrderStatus;
+
+  @ApiProperty({ required: false, default: 1 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  pageNo?: number;
+
+  @ApiProperty({ required: false, default: 20 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  pageSize?: number;
+}
+
+export class FoodOrderListItemVo {
+  @ApiProperty() @Expose() orderId!: string;
+  @ApiProperty() @Expose() orderNo!: string;
+  @ApiProperty() @Expose() status!: FoodOrderStatus;
+  @ApiProperty() @Expose() payStatus!: FoodOrderPayStatus;
+  @ApiProperty() @Expose() storeId!: string;
+  @ApiProperty() @Expose() goodsAmount!: string;
+  @ApiProperty() @Expose() payableAmount!: string;
+  @ApiProperty({ description: '商品概要(取首条 sku 名 + n 件)' }) @Expose() itemsBrief!: string;
+  @ApiProperty() @Expose() expireAt!: number;
+  @ApiProperty() @Expose() createdAt!: number;
+}
+
+export class FoodOrderListPageVo {
+  @ApiProperty() @Expose() pageNo!: number;
+  @ApiProperty() @Expose() pageSize!: number;
+  @ApiProperty() @Expose() total!: number;
+  @ApiProperty({ type: [FoodOrderListItemVo] }) @Expose() list!: FoodOrderListItemVo[];
+}
+
+export class TimelineEntryVo {
+  @ApiProperty({ required: false }) @Expose() fromStatus?: FoodOrderStatus | null;
+  @ApiProperty() @Expose() toStatus!: FoodOrderStatus;
+  @ApiProperty() @Expose() actorType!: OrderTimelineActorType;
+  @ApiProperty({ required: false }) @Expose() reason?: string | null;
+  @ApiProperty() @Expose() createdAt!: number;
+}
+
+export class FoodOrderItemVo {
+  @ApiProperty() @Expose() skuId!: string;
+  @ApiProperty() @Expose() name!: string;
+  @ApiProperty({ required: false }) @Expose() spec?: string | null;
+  @ApiProperty({ required: false }) @Expose() iconUrl?: string | null;
+  @ApiProperty() @Expose() quantity!: number;
+  @ApiProperty() @Expose() unitPrice!: string;
+  @ApiProperty() @Expose() subTotal!: string;
+}
+
+export class FoodOrderPaymentBriefVo {
+  @ApiProperty() @Expose() payOrderId!: string;
+  @ApiProperty() @Expose() payOrderNo!: string;
+  @ApiProperty() @Expose() payChannel!: string;
+  @ApiProperty() @Expose() status!: string;
+}
+
+export class FoodOrderDetailVo {
+  @ApiProperty() @Expose() orderId!: string;
+  @ApiProperty() @Expose() orderNo!: string;
+  @ApiProperty() @Expose() status!: FoodOrderStatus;
+  @ApiProperty() @Expose() payStatus!: FoodOrderPayStatus;
+  @ApiProperty() @Expose() storeId!: string;
+  @ApiProperty() @Expose() goodsAmount!: string;
+  @ApiProperty() @Expose() deliveryFee!: string;
+  @ApiProperty() @Expose() discountAmount!: string;
+  @ApiProperty() @Expose() payableAmount!: string;
+  @ApiProperty() @Expose() addressSnapshot!: unknown;
+  @ApiProperty() @Expose() expireAt!: number;
+  @ApiProperty({ required: false }) @Expose() paidAt?: number | null;
+  @ApiProperty({ required: false }) @Expose() cancelledAt?: number | null;
+  @ApiProperty({ required: false }) @Expose() cancelledBy?: FoodOrderCancelledBy | null;
+  @ApiProperty({ required: false }) @Expose() cancelledReason?: string | null;
+  @ApiProperty() @Expose() createdAt!: number;
+  @ApiProperty({ type: [FoodOrderItemVo] }) @Expose() items!: FoodOrderItemVo[];
+  @ApiProperty({ type: [TimelineEntryVo] }) @Expose() timeline!: TimelineEntryVo[];
+  @ApiProperty({ required: false }) @Expose() payment?: FoodOrderPaymentBriefVo | null;
+  @ApiProperty({ description: '可点击的下一步动作', type: [String] }) @Expose() actions!: string[];
+}
+
+// === T13 cancel ===
+
+export class CancelOrderDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  @Length(0, 255)
+  reason?: string;
+}
+
+export class CancelOrderVo {
+  @ApiProperty() @Expose() orderId!: string;
+  @ApiProperty() @Expose() status!: FoodOrderStatus;
+  @ApiProperty() @Expose() cancelledAt!: number;
+}
+
+// === T14 review ===
+
+export class ReviewOrderDto {
+  @ApiProperty({ description: '1-5' })
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(5)
+  rating!: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  @Length(0, 500)
+  content?: string;
+
+  @ApiProperty({ required: false, default: false })
+  @IsOptional()
+  @IsBoolean()
+  anonymous?: boolean;
+
+  @ApiProperty({ required: false, type: [String] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(9)
+  images?: string[];
+}
+
+export class ReviewOrderVo {
+  @ApiProperty() @Expose() reviewId!: string;
+  @ApiProperty() @Expose() createdAt!: number;
 }

@@ -35,6 +35,7 @@ import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CartModule } from './modules/cart/cart.module';
 import { CommonConfigModule } from './modules/common-config/common-config.module';
+import { CouponModule } from './modules/coupon/coupon.module';
 import { CustomerAuthModule } from './modules/customer-auth/customer-auth.module';
 import { DictModule } from './modules/dict/dict.module';
 import { FileModule } from './modules/file/file.module';
@@ -62,6 +63,7 @@ import { StockModule } from './modules/stock/stock.module';
 import { StoreModule } from './modules/store/store.module';
 import { StoreQueryModule } from './modules/store-query/store-query.module';
 import { SystemModule } from './modules/system/system.module';
+import { TrackQueryModule } from './modules/track-query/track-query.module';
 import { UserProfileModule } from './modules/user-profile/user-profile.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 
@@ -135,6 +137,8 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     CartModule,
     FoodOrderModule,
     PaymentModule,
+    CouponModule,
+    TrackQueryModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
