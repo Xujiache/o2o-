@@ -36,26 +36,7 @@ export class AdminUserController {
     return this.service.listCustomers(query);
   }
 
-  @Get(':id')
-  @RequirePermission('admin:customers:view')
-  @ApiOperation({ summary: '用户详情(含资料/最近设备/风控标签)' })
-  @ApiOkResponse({ type: CustomerDetailVo })
-  async detail(@Param('id') id: string): Promise<CustomerDetailVo> {
-    return this.service.getCustomerDetail(id);
-  }
-
-  @Get(':id/realname-records')
-  @RequirePermission('admin:customers:view')
-  @ApiOperation({ summary: '用户实名记录分页' })
-  @ApiOkResponse({ type: RealnameRecordPageVo })
-  async realnameRecords(
-    @Param('id') id: string,
-    @Query('pageNo') pageNo?: number,
-    @Query('pageSize') pageSize?: number,
-  ): Promise<RealnameRecordPageVo> {
-    return this.service.listRealnameRecords(id, Number(pageNo) || 1, Number(pageSize) || 20);
-  }
-
+  // 注意:具体路径段必须在动态 :id 之前注册,否则会被 :id 吞掉。
   @Get('disable-records')
   @RequirePermission('admin:customers:view')
   @ApiOperation({ summary: '账号禁用启用流水(stage 4 account_disable_record)' })
@@ -87,6 +68,26 @@ export class AdminUserController {
         createdAt: row.createdAt,
       })),
     };
+  }
+
+  @Get(':id')
+  @RequirePermission('admin:customers:view')
+  @ApiOperation({ summary: '用户详情(含资料/最近设备/风控标签)' })
+  @ApiOkResponse({ type: CustomerDetailVo })
+  async detail(@Param('id') id: string): Promise<CustomerDetailVo> {
+    return this.service.getCustomerDetail(id);
+  }
+
+  @Get(':id/realname-records')
+  @RequirePermission('admin:customers:view')
+  @ApiOperation({ summary: '用户实名记录分页' })
+  @ApiOkResponse({ type: RealnameRecordPageVo })
+  async realnameRecords(
+    @Param('id') id: string,
+    @Query('pageNo') pageNo?: number,
+    @Query('pageSize') pageSize?: number,
+  ): Promise<RealnameRecordPageVo> {
+    return this.service.listRealnameRecords(id, Number(pageNo) || 1, Number(pageSize) || 20);
   }
 
   @Post(':id/status')

@@ -135,6 +135,36 @@ describe('AdminAuthService', () => {
       expect(key).toBeTruthy();
       expect(redis.store.get(key!)).toMatch(/^[a-z0-9]+$/);
     });
+
+    it('连续两次 createCaptcha → captchaId 不同', async () => {
+      const a = await svc.createCaptcha();
+      const b = await svc.createCaptcha();
+      expect(a.captchaId).not.toBe(b.captchaId);
+      expect(redis.store.size).toBe(2);
+    });
+
+    it('captcha text 长度 4(svg-captcha size=4)', async () => {
+      await svc.createCaptcha();
+      const key = [...redis.store.keys()][0]!;
+      expect(redis.store.get(key)!.length).toBe(4);
+    });
+
+    it('captchaId 为 uuid v4 格式', async () => {
+      const r = await svc.createCaptcha();
+      expect(r.captchaId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    });
+
+    it('svgImage 含 <svg> 闭合标签', async () => {
+      const r = await svc.createCaptcha();
+      expect(r.svgImage).toContain('</svg>');
+    });
+
+    it('captcha text 仅包含小写字母 / 数字(toLowerCase 后)', async () => {
+      for (let i = 0; i < 5; i++) await svc.createCaptcha();
+      for (const v of redis.store.values()) {
+        expect(v).toMatch(/^[a-z0-9]+$/);
+      }
+    });
   });
 
   describe('login', () => {
@@ -209,6 +239,24 @@ describe('AdminAuthService', () => {
       expect(admins[0]!.loginFailedCount).toBe(0);
       expect(Number(admins[0]!.lastLoginAt)).toBeGreaterThanOrEqual(before);
     });
+
+    it('第二次成功登录 → lastLoginAt 返上一次时间(非 0)', async () => {
+      const r1 = await svc.login({
+        username: 'super_admin',
+        password: 'O2o@2026-Admin',
+        captcha: 'dev',
+        captchaId: 'any',
+      });
+      const firstLoginTs = Number(admins[0]!.lastLoginAt);
+      void r1;
+      const r2 = await svc.login({
+        username: 'super_admin',
+        password: 'O2o@2026-Admin',
+        captcha: 'dev',
+        captchaId: 'any',
+      });
+      expect(r2.lastLoginAt).toBe(firstLoginTs);
+    });
   });
 
   describe('refresh', () => {
@@ -229,6 +277,29 @@ describe('AdminAuthService', () => {
     it('refresh 不存在 → UNAUTHORIZED', async () => {
       await expect(svc.refresh('no-such')).rejects.toThrow(UnauthorizedException);
     });
+
+    it('refresh + deviceId 不匹配 → UNAUTHORIZED', async () => {
+      const r1 = await svc.login({
+        username: 'super_admin',
+        password: 'O2o@2026-Admin',
+        captcha: 'dev',
+        captchaId: 'any',
+        deviceId: 'pc-1',
+      });
+      await expect(svc.refresh(r1.refreshToken, 'pc-2')).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('refresh 时 admin disabled → STATUS_INVALID', async () => {
+      const r1 = await svc.login({
+        username: 'super_admin',
+        password: 'O2o@2026-Admin',
+        captcha: 'dev',
+        captchaId: 'any',
+      });
+      // 模拟 admin 在线期间被禁用
+      admins[0]!.status = 'disabled';
+      await expect(svc.refresh(r1.refreshToken)).rejects.toThrow(UnprocessableEntityException);
+    });
   });
 
   describe('logout', () => {
@@ -246,6 +317,55 @@ describe('AdminAuthService', () => {
       const refreshKeys = [...redis.store.keys()].filter((k) => k.startsWith('admin:refresh:'));
       expect(refreshKeys).toHaveLength(0);
       void r;
+    });
+
+    it('logout 不带 jti → 仅删 refresh,不写黑名单', async () => {
+      await svc.login({
+        username: 'super_admin',
+        password: 'O2o@2026-Admin',
+        captcha: 'dev',
+        captchaId: 'any',
+      });
+      await svc.logout('40001', null, null);
+      const refreshKeys = [...redis.store.keys()].filter((k) => k.startsWith('admin:refresh:'));
+      expect(refreshKeys).toHaveLength(0);
+      const blacklistKeys = [...redis.store.keys()].filter((k) => k.startsWith('jti:revoked:'));
+      expect(blacklistKeys).toHaveLength(0);
+    });
+
+    it('logout 重复调用 → 幂等不抛错', async () => {
+      await svc.login({
+        username: 'super_admin',
+        password: 'O2o@2026-Admin',
+        captcha: 'dev',
+        captchaId: 'any',
+      });
+      await svc.logout('40001', 'jti-1', Math.floor(Date.now() / 1000) + 7200);
+      await expect(svc.logout('40001', 'jti-1', Math.floor(Date.now() / 1000) + 7200)).resolves.toBeUndefined();
+    });
+
+    it('logout 仅清自己的 refresh,不影响其他 admin', async () => {
+      // 两个 admin 各自 login(super_admin + 把 auditor1 临时设为 active)
+      admins[1]!.status = 'active';
+      const r1 = await svc.login({
+        username: 'super_admin',
+        password: 'O2o@2026-Admin',
+        captcha: 'dev',
+        captchaId: 'any',
+      });
+      const r2 = await svc.login({
+        username: 'auditor1',
+        password: 'AuditorPwd1',
+        captcha: 'dev',
+        captchaId: 'any',
+      });
+      void r1;
+      // 仅 logout 40002
+      await svc.logout('40002', 'jti-auditor', Math.floor(Date.now() / 1000) + 7200);
+      // r1 的 refresh 仍能用
+      await expect(svc.refresh(r1.refreshToken)).resolves.toMatchObject({ adminToken: 'admin-token-mock' });
+      // r2 的 refresh 已失效
+      await expect(svc.refresh(r2.refreshToken)).rejects.toThrow(UnauthorizedException);
     });
   });
 });

@@ -132,6 +132,75 @@ describe('Stage 4 subscribers', () => {
     expect(audit.writeAudit).toHaveBeenCalledWith(expect.objectContaining({ targetType: 'third-party-config' }));
   });
 
+  it('AdminLoggedInSubscriber → ip + deviceId 透传到 audit_log', async () => {
+    const audit = fakeAudit();
+    const sub = new AdminLoggedInSubscriber(audit);
+    await sub.handle({
+      adminUserId: '40001',
+      username: 'super_admin',
+      loggedInAt: 1,
+      ip: '192.168.1.1',
+      deviceId: 'admin-pc-1',
+    });
+    expect(audit.writeAudit).toHaveBeenCalledWith(
+      expect.objectContaining({ ip: '192.168.1.1', deviceId: 'admin-pc-1' }),
+    );
+  });
+
+  it('RoleChangedSubscriber → 角色无管理员关联仍写 audit(affectedAdmins=0)', async () => {
+    const adminRepo = {
+      createQueryBuilder: jest.fn(() => ({
+        where: jest.fn().mockReturnThis(),
+        getMany: jest.fn(async () => [] as AdminUser[]),
+      })),
+    } as unknown as Repository<AdminUser>;
+    const redis = new FakeRedis();
+    const audit = fakeAudit();
+    const sub = new RoleChangedSubscriber(adminRepo, redis as unknown as never, audit);
+    await sub.handle({
+      roleId: '99',
+      roleCode: 'EMPTY_ROLE',
+      oldPermissionCodes: [],
+      newPermissionCodes: ['x'],
+      operatorAdminId: 'admin-1',
+      changedAt: 1700000000,
+    });
+    expect(redis.store.size).toBe(0);
+    expect(audit.writeAudit).toHaveBeenCalledWith(
+      expect.objectContaining({ targetType: 'sys-role-permission', targetId: '99' }),
+    );
+  });
+
+  it('MerchantAuditedSubscriber approved 路径 → afterStatus=approved 不写 rejectReason', async () => {
+    const audit = fakeAudit();
+    const sub = new MerchantAuditedSubscriber(audit);
+    await sub.handle({
+      applicationId: '5',
+      merchantId: '500',
+      auditResult: 'approved',
+      operatorAdminId: 'admin-1',
+      auditedAt: 0,
+    });
+    expect(audit.writeAudit).toHaveBeenCalledWith(
+      expect.objectContaining({ afterStatus: 'approved', summary: expect.stringContaining('approved') }),
+    );
+  });
+
+  it('RiderAuditedSubscriber rejected 路径 → summary 含 rejectReason', async () => {
+    const audit = fakeAudit();
+    const sub = new RiderAuditedSubscriber(audit);
+    await sub.handle({
+      applicationId: '6',
+      auditResult: 'rejected',
+      rejectReason: '健康证过期',
+      operatorAdminId: 'admin-1',
+      auditedAt: 0,
+    });
+    expect(audit.writeAudit).toHaveBeenCalledWith(
+      expect.objectContaining({ afterStatus: 'rejected', summary: expect.stringContaining('健康证过期') }),
+    );
+  });
+
   it('event names 配齐', () => {
     expect(EventName.AdminLoggedIn).toBe('domain.admin.logged-in');
     expect(EventName.RoleChanged).toBe('domain.role.changed');

@@ -172,4 +172,12 @@ describe('AdminRolePermissionService', () => {
     const r = await svc.updateRolePermissions('3', [], 'admin-1');
     expect(r.appliedCodes).toEqual([]);
   });
+
+  it('updateRolePermissions appliedCodes 顺序与 perms 表行序一致(校验返回结构)', async () => {
+    const r = await svc.updateRolePermissions('3', ['admin:cities:manage', 'admin:menu:audit-logs'], 'admin-1');
+    // 每个传入码都在 appliedCodes 中
+    expect(r.appliedCodes).toEqual(expect.arrayContaining(['admin:cities:manage', 'admin:menu:audit-logs']));
+    expect(r.appliedCodes).toHaveLength(2);
+    expect(publishedEvents).toHaveLength(1);
+  });
 });

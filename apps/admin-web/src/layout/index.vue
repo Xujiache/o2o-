@@ -32,6 +32,12 @@ const menus = computed<MenuItem[]>(() => {
     }));
 });
 
+const lastLoginText = computed<string>(() => {
+  const ts = userStore.lastLoginAt;
+  if (!ts) return '';
+  return `上次登录:${new Date(ts).toLocaleString()}`;
+});
+
 function logout(): void {
   userStore.logout();
   void router.replace('/login');
@@ -58,6 +64,7 @@ function logout(): void {
       <el-header class="bg-white flex items-center justify-between px-4 border-b border-gray-200">
         <div>{{ $route.meta.title }}</div>
         <div class="flex items-center gap-3">
+          <span v-if="lastLoginText" class="text-xs text-gray-400">{{ lastLoginText }}</span>
           <span class="text-sm text-gray-600">
             {{ userStore.principal?.principalId }} ({{ userStore.principal?.roles.join(',') }})
           </span>

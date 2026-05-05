@@ -97,4 +97,12 @@ describe('AdminThirdPartyConfigService', () => {
     const r = await svc.update('ali-realname', { secret: '' }, 'admin-1');
     expect(r.changedFields).toEqual([]);
   });
+
+  it('detail 单 provider → secret 脱敏返,encryptedSecret 不外漏', async () => {
+    const r = await svc.detail('ali-realname');
+    expect(r.provider).toBe('ali-realname');
+    expect(r.secretMasked).toBe('ori***345');
+    expect(JSON.stringify(r)).not.toContain('aes256$');
+    expect(JSON.stringify(r)).not.toContain('original-secret');
+  });
 });

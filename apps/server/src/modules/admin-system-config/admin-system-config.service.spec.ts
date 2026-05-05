@@ -81,4 +81,11 @@ describe('AdminSystemConfigService', () => {
       }),
     ]);
   });
+
+  it('update 后 updatedAt 刷新且行内容反映新值', async () => {
+    const before = Number(configs[0]!.updatedAt);
+    const r = await svc.update('order.takeaway.wait_pay_minutes', '60', 'admin-1');
+    expect(Number(r.updatedAt)).toBeGreaterThan(before);
+    expect(configs[0]!.configValue).toBe('60');
+  });
 });

@@ -3,9 +3,11 @@
  * 登录页(stage 4):用户名 + 密码 + svg-captcha。
  * mock 模式 captcha 输入 'dev' 跳过校验(便于开发联调)。
  */
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+
+import { ErrorCode } from '@o2o/contracts';
 
 import { fetchCaptcha, login } from '@/api/admin-auth';
 import { useUserStore } from '@/stores/user';
@@ -43,13 +45,23 @@ async function submit(): Promise<void> {
       captchaId: captchaId.value,
     });
     if (r.code !== '0' || !r.data) {
-      ElMessage.error(r.message || '登录失败');
+      // 后端 STATUS_INVALID 涵盖账号锁定 / 已禁用 — 关键状态用 modal 提示;其它走轻量 toast
+      if (r.code === ErrorCode.STATUS_INVALID) {
+        const isLocked = r.message?.includes('锁定') ?? false;
+        await ElMessageBox.alert(r.message || '账号状态异常', isLocked ? '账号已锁定' : '账号不可用', {
+          confirmButtonText: '我知道了',
+          type: 'error',
+        }).catch(() => undefined);
+      } else {
+        ElMessage.error(r.message || '登录失败');
+      }
       await reloadCaptcha();
       captcha.value = '';
       return;
     }
     userStore.onLoginSuccess(r.data);
-    ElMessage.success(`欢迎,${r.data.displayName}`);
+    const lastLoginText = r.data.lastLoginAt ? `上次登录 ${new Date(r.data.lastLoginAt).toLocaleString()}` : '首次登录';
+    ElMessage.success(`欢迎,${r.data.displayName} — ${lastLoginText}`);
     const redirect = (route.query.redirect as string) || '/workbench';
     void router.replace(redirect);
   } finally {

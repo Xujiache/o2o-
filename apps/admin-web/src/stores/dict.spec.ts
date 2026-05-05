@@ -58,4 +58,19 @@ describe('dict store', () => {
     const r = await s.loadPermissionTree();
     expect(r.groups).toHaveLength(1);
   });
+
+  it('loadCities force=true 强制重拉', async () => {
+    const s = useDictStore();
+    await s.loadCities();
+    const before = s.cities;
+    await s.loadCities(true);
+    expect(s.cities).not.toBe(before); // 替换为新 entry
+  });
+
+  it('未知 status / accountStatus / operatorType → 原值 fallback', () => {
+    const s = useDictStore();
+    expect(s.auditStatusLabel('xxx')).toBe('xxx');
+    expect(s.accountStatusLabel('yyy')).toBe('yyy');
+    expect(s.operatorTypeLabel('zzz')).toBe('zzz');
+  });
 });

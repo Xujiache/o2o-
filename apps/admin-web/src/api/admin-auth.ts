@@ -34,12 +34,32 @@ export interface LoginVo {
   lastLoginAt: number;
 }
 
+export interface RefreshReq {
+  refreshToken: string;
+  deviceId?: string;
+}
+
+export interface RefreshVo {
+  adminToken: string;
+  refreshToken: string;
+}
+
 export function fetchCaptcha(): Promise<ApiResponse<CaptchaVo>> {
   return request<CaptchaVo>({ url: AdminAuthEndpoints.Captcha, method: 'GET', toastOnBizError: false });
 }
 
 export function login(body: LoginReq): Promise<ApiResponse<LoginVo>> {
   return request<LoginVo>({ url: AdminAuthEndpoints.Login, method: 'POST', data: body, toastOnBizError: false });
+}
+
+export function refresh(body: RefreshReq): Promise<ApiResponse<RefreshVo>> {
+  return request<RefreshVo>({
+    url: AdminAuthEndpoints.Refresh,
+    method: 'POST',
+    data: body,
+    toastOnBizError: false,
+    skipAuthRefresh: true,
+  });
 }
 
 export function logout(): Promise<ApiResponse<{ ok: boolean }>> {
