@@ -78,4 +78,26 @@ describe('RiderTaskPoolService', () => {
   it('rider 不存在 → NotFound', async () => {
     await expect(svc.listAvailable('999', {})).rejects.toBeInstanceOf(NotFoundException);
   });
+
+  it('approved+online 但无 service area → 返空数组', async () => {
+    areas.length = 0;
+    const r = await svc.listAvailable('1', {});
+    expect(r.items).toEqual([]);
+    expect(r.total).toBe(0);
+  });
+
+  it('query 透传 bizType 不影响骨架行为(本阶段返空)', async () => {
+    const r = await svc.listAvailable('1', { bizType: 'takeaway' });
+    expect(r.items).toEqual([]);
+  });
+
+  it('query 透传 radius 不影响骨架行为', async () => {
+    const r = await svc.listAvailable('1', { radius: 5000 });
+    expect(r.items).toEqual([]);
+  });
+
+  it('query 分页参数透传不影响骨架行为', async () => {
+    const r = await svc.listAvailable('1', { page: 1, size: 20 });
+    expect(r.total).toBe(0);
+  });
 });
