@@ -42,6 +42,13 @@ export const EventName = {
   FoodOrderCancelled: 'domain.food-order.cancelled',
   StockReleased: 'domain.stock.released',
   FoodReviewCreated: 'domain.food-review.created',
+  // Stage 6 — 用户端跑腿交易闭环 6 个事件
+  ErrandQuoteCreated: 'domain.errand-quote.created',
+  ErrandOrderCreated: 'domain.errand-order.created',
+  ErrandPaid: 'domain.errand-order.paid',
+  ErrandPriceIncreased: 'domain.errand-order.price-increased',
+  ErrandNoRiderCancelled: 'domain.errand-order.no-rider-cancelled',
+  ErrandRemarkAdded: 'domain.errand-order.remark-added',
 } as const;
 
 export type EventName = (typeof EventName)[keyof typeof EventName];
@@ -306,6 +313,61 @@ export interface FoodReviewCreatedPayload {
   createdAt: number;
 }
 
+// === Stage 6 — 用户端跑腿交易闭环事件 payload ===
+
+export interface ErrandQuoteCreatedPayload {
+  quoteId: string;
+  customerId: string;
+  typeCode: 'BUY' | 'DELIVER' | 'HELP' | 'CUSTOM';
+  payableAmount: string;
+  expireAt: number;
+  createdAt: number;
+}
+
+export interface ErrandOrderCreatedPayload {
+  orderId: string;
+  orderNo: string;
+  customerId: string;
+  typeCode: 'BUY' | 'DELIVER' | 'HELP' | 'CUSTOM';
+  payableAmount: string;
+  expireAt: number;
+  createdAt: number;
+}
+
+export interface ErrandPaidPayload {
+  orderId: string;
+  customerId: string;
+  paidAmount: string;
+  paidAt: number;
+}
+
+export interface ErrandPriceIncreasedPayload {
+  orderId: string;
+  customerId: string;
+  oldUrgentLevel: 'standard' | 'fast' | 'express';
+  newUrgentLevel: 'standard' | 'fast' | 'express';
+  oldPayable: string;
+  newPayable: string;
+  source: 'customer' | 'system';
+  changedAt: number;
+}
+
+export interface ErrandNoRiderCancelledPayload {
+  orderId: string;
+  customerId: string;
+  payOrderId: string | null;
+  refundAmount: string;
+  cancelledAt: number;
+}
+
+export interface ErrandRemarkAddedPayload {
+  orderId: string;
+  customerId: string;
+  remark: string;
+  attachmentCount: number;
+  addedAt: number;
+}
+
 export type EventPayloadMap = {
   [EventName.ConfigChanged]: ConfigChangedPayload;
   [EventName.PermissionChanged]: PermissionChangedPayload;
@@ -340,4 +402,10 @@ export type EventPayloadMap = {
   [EventName.FoodOrderCancelled]: FoodOrderCancelledPayload;
   [EventName.StockReleased]: StockReleasedPayload;
   [EventName.FoodReviewCreated]: FoodReviewCreatedPayload;
+  [EventName.ErrandQuoteCreated]: ErrandQuoteCreatedPayload;
+  [EventName.ErrandOrderCreated]: ErrandOrderCreatedPayload;
+  [EventName.ErrandPaid]: ErrandPaidPayload;
+  [EventName.ErrandPriceIncreased]: ErrandPriceIncreasedPayload;
+  [EventName.ErrandNoRiderCancelled]: ErrandNoRiderCancelledPayload;
+  [EventName.ErrandRemarkAdded]: ErrandRemarkAddedPayload;
 };

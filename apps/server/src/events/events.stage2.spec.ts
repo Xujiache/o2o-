@@ -21,7 +21,7 @@ describe('Stage 2 EventName 扩展', () => {
     for (const e of stage2) expect(e.startsWith('domain.')).toBe(true);
   });
 
-  it('Object.values(EventName) 共 33 个(stage 0 五 + stage 1 五 + stage 2 六 + stage 3 五 + stage 4 六 + stage 5 六)', () => {
-    expect(Object.values(EventName)).toHaveLength(33);
+  it('Object.values(EventName) 共 39 个(stage 0 五 + stage 1 五 + stage 2 六 + stage 3 五 + stage 4 六 + stage 5 六 + stage 6 六)', () => {
+    expect(Object.values(EventName)).toHaveLength(39);
   });
 });

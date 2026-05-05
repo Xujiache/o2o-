@@ -3,8 +3,11 @@ import type { DataSource } from 'typeorm';
 import { seedAdminUser } from './admin-user.seed';
 import { seedCitySites } from './city-site.seed';
 import { seedDicts } from './dict.seed';
+import { seedErrandPricing } from './errand-pricing.seed';
+import { seedErrandTypes } from './errand-type.seed';
 import { seedErrorCodes } from './error-code.seed';
 import { seedPlatformCategories } from './platform-category.seed';
+import { seedProhibitedItems } from './prohibited-item.seed';
 import { seedRolesAndPermissions } from './role-permission.seed';
 import { seedSysConfig } from './sys-config.seed';
 import { seedThirdPartyConfig } from './third-party-config.seed';
@@ -37,6 +40,16 @@ export async function runSeeds(ds: DataSource): Promise<void> {
 
   const catCount = await seedPlatformCategories(ds);
   console.info(`[seed] platform_category: ${catCount}`);
+
+  // Stage 6 — 跑腿配置种子
+  const errandTypeCount = await seedErrandTypes(ds);
+  console.info(`[seed] errand_type: ${errandTypeCount}`);
+
+  const errandPricingCount = await seedErrandPricing(ds);
+  console.info(`[seed] errand_pricing: ${errandPricingCount}`);
+
+  const prohibitedCount = await seedProhibitedItems(ds);
+  console.info(`[seed] prohibited_item: ${prohibitedCount}`);
 
   console.info('[seed] done');
 }

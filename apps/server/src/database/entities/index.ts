@@ -55,3 +55,14 @@ export * from './coupon-lock.entity';
 export * from './stock-lock.entity';
 export * from './order-timeline.entity';
 export * from './order-review.entity';
+// Stage 6 — 用户端跑腿交易闭环 10 张表(8 业务 + errand_type/errand_pricing 2 配置)
+export * from './errand-order.entity';
+export * from './errand-order-detail.entity';
+export * from './errand-quote.entity';
+export * from './errand-attachment.entity';
+export * from './errand-price-snapshot.entity';
+export * from './errand-task.entity';
+export * from './prohibited-item.entity';
+export * from './errand-timeline.entity';
+export * from './errand-pricing.entity';
+export * from './errand-type.entity';
