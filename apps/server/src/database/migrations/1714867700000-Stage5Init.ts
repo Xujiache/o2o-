@@ -201,9 +201,16 @@ export class Stage5Init1714867700000 implements MigrationInterface {
         KEY \`idx_order_review_customer\` (\`customer_id\`, \`created_at\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单评价(主评)'
     `);
+
+    // product_sku 扩展:加 stock_locked 列(订单提交时预占,支付成功扣减真库存)
+    await qr.query(`
+      ALTER TABLE \`product_sku\`
+        ADD COLUMN \`stock_locked\` INT NOT NULL DEFAULT 0
+    `);
   }
 
   async down(qr: QueryRunner): Promise<void> {
+    await qr.query('ALTER TABLE `product_sku` DROP COLUMN `stock_locked`');
     await qr.query('DROP TABLE IF EXISTS `order_review`');
     await qr.query('DROP TABLE IF EXISTS `order_timeline`');
     await qr.query('DROP TABLE IF EXISTS `stock_lock`');

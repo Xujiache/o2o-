@@ -19,6 +19,10 @@ export class ProductSku {
   @Column({ type: 'int', default: 0 })
   stock!: number;
 
+  /** stage 5 加:订单提交后预占的库存数量,callback 成功后扣减 stock 并清零 */
+  @Column({ name: 'stock_locked', type: 'int', default: 0 })
+  stockLocked!: number;
+
   @Column({ name: 'created_at', type: 'bigint' })
   createdAt!: string;
 

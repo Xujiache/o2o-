@@ -37,6 +37,7 @@ import { CommonConfigModule } from './modules/common-config/common-config.module
 import { CustomerAuthModule } from './modules/customer-auth/customer-auth.module';
 import { DictModule } from './modules/dict/dict.module';
 import { FileModule } from './modules/file/file.module';
+import { FoodHomeModule } from './modules/food-home/food-home.module';
 import { GatewayModule } from './modules/gateway/gateway.module';
 import { IntegrationGatewayModule } from './modules/integration-gateway/integration-gateway.module';
 import { MerchantAuthModule } from './modules/merchant-auth/merchant-auth.module';
@@ -44,6 +45,7 @@ import { MerchantOnboardingModule } from './modules/merchant-onboarding/merchant
 import { MerchantPromotionModule } from './modules/merchant-promotion/merchant-promotion.module';
 import { MessageSettingModule } from './modules/message-setting/message-setting.module';
 import { ProductModule } from './modules/product/product.module';
+import { ProductQueryModule } from './modules/product-query/product-query.module';
 import { PublicStoreReadonlyModule } from './modules/public-store-readonly/public-store-readonly.module';
 import { RealnameModule } from './modules/realname/realname.module';
 import { RiderAuthModule } from './modules/rider-auth/rider-auth.module';
@@ -55,6 +57,7 @@ import { RiskModule } from './modules/risk/risk.module';
 import { SmsModule } from './modules/sms/sms.module';
 import { StockModule } from './modules/stock/stock.module';
 import { StoreModule } from './modules/store/store.module';
+import { StoreQueryModule } from './modules/store-query/store-query.module';
 import { SystemModule } from './modules/system/system.module';
 import { UserProfileModule } from './modules/user-profile/user-profile.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
@@ -122,6 +125,10 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     AdminSystemConfigModule,
     AdminThirdPartyConfigModule,
     AdminRolePermissionModule,
+    // Stage 5 — 用户端外卖交易闭环
+    FoodHomeModule,
+    StoreQueryModule,
+    ProductQueryModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
