@@ -134,6 +134,17 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/views/categories/errand.vue'),
         meta: { title: '跑腿类目', menu: true, icon: 'Van', permission: 'admin:menu:categories' },
       },
+      // Stage 5 — 外卖订单监控
+      {
+        path: 'admin/food-orders',
+        component: () => import('@/views/food-orders/index.vue'),
+        meta: {
+          title: '外卖订单',
+          menu: true,
+          icon: 'Bowl',
+          permission: 'admin:menu:food-orders',
+        },
+      },
     ],
   },
   {
