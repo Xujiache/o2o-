@@ -42,7 +42,20 @@
       "style": {
         "navigationBarTitleText": "页面错误"
       }
-    }
+    },
+    { "path": "pages/food/home/index", "style": { "navigationBarTitleText": "外卖首页" } },
+    { "path": "pages/food/city-picker/index", "style": { "navigationBarTitleText": "城市切换" } },
+    { "path": "pages/food/search/index", "style": { "navigationBarTitleText": "搜索" } },
+    { "path": "pages/food/store/detail", "style": { "navigationBarTitleText": "店铺详情" } },
+    { "path": "pages/food/cart/index", "style": { "navigationBarTitleText": "购物车" } },
+    { "path": "pages/food/order/confirm", "style": { "navigationBarTitleText": "确认订单" } },
+    { "path": "pages/payment/cashier", "style": { "navigationBarTitleText": "支付收银台" } },
+    { "path": "pages/payment/result", "style": { "navigationBarTitleText": "支付结果" } },
+    { "path": "pages/food/order/list", "style": { "navigationBarTitleText": "我的订单" } },
+    { "path": "pages/food/order/detail", "style": { "navigationBarTitleText": "订单详情" } },
+    { "path": "pages/food/order/track", "style": { "navigationBarTitleText": "配送轨迹" } },
+    { "path": "pages/food/review/submit", "style": { "navigationBarTitleText": "评价订单" } },
+    { "path": "pages/me/aftersales-stub", "style": { "navigationBarTitleText": "售后申请" } }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
