@@ -145,6 +145,17 @@ export const routes: RouteRecordRaw[] = [
           permission: 'admin:menu:food-orders',
         },
       },
+      // Stage 6 — 跑腿订单监控
+      {
+        path: 'admin/errand-orders',
+        component: () => import('@/views/errand-orders/index.vue'),
+        meta: {
+          title: '跑腿订单',
+          menu: true,
+          icon: 'Van',
+          permission: 'admin:menu:errand-orders',
+        },
+      },
     ],
   },
   {
