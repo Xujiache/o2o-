@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import {
+  ErrandTask,
   FoodOrder,
   RiderAccount,
   RiderApplication,
@@ -15,7 +16,15 @@ import { RiderTaskPoolService } from './rider-task-pool.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([RiderAccount, RiderApplication, RiderStatus, RiderServiceArea, FoodOrder, Store]),
+    TypeOrmModule.forFeature([
+      RiderAccount,
+      RiderApplication,
+      RiderStatus,
+      RiderServiceArea,
+      FoodOrder,
+      Store,
+      ErrandTask,
+    ]),
   ],
   controllers: [RiderTaskPoolController],
   providers: [RiderTaskPoolService],

@@ -6,6 +6,9 @@ import {
   AccountDisableRecord,
   CustomerAddress,
   CustomerUser,
+  ErrandOrder,
+  ErrandTask,
+  ErrandTimeline,
   FoodOrder,
   IdempotencyRecord,
   IntegrationRequestLog,
@@ -29,6 +32,8 @@ import {
 } from '../database/entities';
 import { EventsModule } from '../events/events.module';
 import { AuthEntitiesModule } from '../modules/auth/auth-entities.module';
+import { ErrandDispatchModule } from '../modules/errand-dispatch/errand-dispatch.module';
+import { IntegrationGatewayModule } from '../modules/integration-gateway/integration-gateway.module';
 
 import { DistributedLockService } from './distributed-lock.service';
 import { AuditLogArchiveJob } from './jobs/audit-log-archive.job';
@@ -40,10 +45,13 @@ import { ExpiredCleanupJob } from './jobs/expired-cleanup.job';
 import { LicenseExpiryReminderJob } from './jobs/license-expiry-reminder.job';
 import { LoginAnomalyDetectionJob } from './jobs/login-anomaly-detection.job';
 import { MerchantAcceptTimeoutCancelJob } from './jobs/merchant-accept-timeout-cancel.job';
+import { NoRiderCancelJob } from './jobs/no-rider-cancel.job';
+import { NoRiderPriceIncreaseJob } from './jobs/no-rider-price-increase.job';
 import { PaymentCallbackRetryJob } from './jobs/payment-callback-retry.job';
 import { PromoEndJob } from './jobs/promo-end.job';
 import { PromoStartJob } from './jobs/promo-start.job';
 import { RealnameRetryJob } from './jobs/realname-retry.job';
+import { ReservedErrandDispatchJob } from './jobs/reserved-errand-dispatch.job';
 import { ReservedOrderDispatchJob } from './jobs/reserved-order-dispatch.job';
 import { RiderAuditTimeoutReminderJob } from './jobs/rider-audit-timeout-reminder.job';
 import { RiderHealthCertExpiryReminderJob } from './jobs/rider-health-cert-expiry-reminder.job';
@@ -53,6 +61,7 @@ import { SmsCodeExpiredCleanupJob } from './jobs/sms-code-expired-cleanup.job';
 import { SoldOutAutoOffShelfJob } from './jobs/sold-out-auto-off-shelf.job';
 import { StockAlertScanJob } from './jobs/stock-alert-scan.job';
 import { ThirdPartyRetryJob } from './jobs/third-party-retry.job';
+import { WaitPayTimeoutCloseErrandJob } from './jobs/wait-pay-timeout-close-errand.job';
 import { WaitPayTimeoutCloseJob } from './jobs/wait-pay-timeout-close.job';
 import { SchedulerController } from './scheduler.controller';
 
@@ -90,8 +99,14 @@ import { SchedulerController } from './scheduler.controller';
       StockLock,
       OrderTimeline,
       ProductSku,
+      // Stage 6
+      ErrandOrder,
+      ErrandTask,
+      ErrandTimeline,
     ]),
     EventsModule,
+    IntegrationGatewayModule,
+    ErrandDispatchModule,
   ],
   controllers: [SchedulerController],
   providers: [
@@ -125,6 +140,11 @@ import { SchedulerController } from './scheduler.controller';
     MerchantAcceptTimeoutCancelJob,
     PaymentCallbackRetryJob,
     ReservedOrderDispatchJob,
+    // Stage 6
+    WaitPayTimeoutCloseErrandJob,
+    NoRiderPriceIncreaseJob,
+    NoRiderCancelJob,
+    ReservedErrandDispatchJob,
   ],
   exports: [ConfigCacheRefreshJob],
 })

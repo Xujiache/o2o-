@@ -25,6 +25,7 @@ import { AddressModule } from './modules/address/address.module';
 import { AdminAuthModule } from './modules/admin-auth/admin-auth.module';
 import { AdminCategoryModule } from './modules/admin-category/admin-category.module';
 import { AdminCityModule } from './modules/admin-city/admin-city.module';
+import { AdminErrandOrderModule } from './modules/admin-errand-order/admin-errand-order.module';
 import { AdminFoodOrderModule } from './modules/admin-food-order/admin-food-order.module';
 import { AdminMerchantModule } from './modules/admin-merchant/admin-merchant.module';
 import { AdminRiderModule } from './modules/admin-rider/admin-rider.module';
@@ -152,6 +153,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     ErrandPricingModule,
     ErrandOrderModule,
     ErrandDispatchModule,
+    AdminErrandOrderModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

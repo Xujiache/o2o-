@@ -185,6 +185,16 @@ const PERMISSIONS: PermRow[] = [
     parentCode: 'admin:menu:food-orders',
     sort: 1,
   },
+  // Stage 6 — 平台 Web 跑腿订单监控
+  { code: 'admin:menu:errand-orders', name: '跑腿订单菜单', scope: 'admin', type: 'menu', sort: 610 },
+  {
+    code: 'admin:errand-orders:view',
+    name: '跑腿订单查询',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:errand-orders',
+    sort: 1,
+  },
 ];
 
 export async function seedRolesAndPermissions(
@@ -264,6 +274,8 @@ export async function seedRolesAndPermissions(
     // Stage 5 — AUDITOR 可见外卖订单(只读)
     ['AUDITOR', 'admin:menu:food-orders'],
     ['AUDITOR', 'admin:food-orders:view'],
+    ['AUDITOR', 'admin:menu:errand-orders'],
+    ['AUDITOR', 'admin:errand-orders:view'],
     // SUPER_ADMIN 全量已通过 ...PERMISSIONS.map 覆盖
   ];
 

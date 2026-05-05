@@ -79,7 +79,17 @@ describe('RiderTaskPoolService', () => {
       })),
     } as unknown as jest.Mocked<Repository<Store>>;
 
-    svc = new RiderTaskPoolService(riderRepo, appRepo, statusRepo, areaRepo, foodOrderRepo, storeRepo);
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const errandTaskRepo: any = {
+      createQueryBuilder: jest.fn(() => ({
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        getMany: jest.fn(async () => []),
+      })),
+    };
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+    svc = new RiderTaskPoolService(riderRepo, appRepo, statusRepo, areaRepo, foodOrderRepo, storeRepo, errandTaskRepo);
   });
 
   it('approved+online+有 service area → 无 READY_FOR_PICKUP 时返空', async () => {
