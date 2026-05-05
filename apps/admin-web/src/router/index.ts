@@ -156,6 +156,37 @@ export const routes: RouteRecordRaw[] = [
           permission: 'admin:menu:errand-orders',
         },
       },
+      // Stage 7 — 商家售后/结算/提现监控
+      {
+        path: 'admin/after-sales',
+        component: () => import('@/views/after-sales/index.vue'),
+        meta: {
+          title: '售后订单',
+          menu: true,
+          icon: 'Refresh',
+          permission: 'admin:menu:after-sales',
+        },
+      },
+      {
+        path: 'admin/settlements',
+        component: () => import('@/views/settlements/index.vue'),
+        meta: {
+          title: '结算单',
+          menu: true,
+          icon: 'Money',
+          permission: 'admin:menu:settlements',
+        },
+      },
+      {
+        path: 'admin/withdrawals',
+        component: () => import('@/views/withdrawals/index.vue'),
+        meta: {
+          title: '提现单',
+          menu: true,
+          icon: 'CreditCard',
+          permission: 'admin:menu:withdrawals',
+        },
+      },
     ],
   },
   {
