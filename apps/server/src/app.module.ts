@@ -23,8 +23,12 @@ import { IdempotencyRecord } from './database/entities';
 import { EventsModule } from './events/events.module';
 import { AddressModule } from './modules/address/address.module';
 import { AdminAuthModule } from './modules/admin-auth/admin-auth.module';
+import { AdminCategoryModule } from './modules/admin-category/admin-category.module';
+import { AdminCityModule } from './modules/admin-city/admin-city.module';
 import { AdminMerchantModule } from './modules/admin-merchant/admin-merchant.module';
 import { AdminRiderModule } from './modules/admin-rider/admin-rider.module';
+import { AdminSystemConfigModule } from './modules/admin-system-config/admin-system-config.module';
+import { AdminThirdPartyConfigModule } from './modules/admin-third-party-config/admin-third-party-config.module';
 import { AdminUserModule } from './modules/admin-user/admin-user.module';
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -112,6 +116,10 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     RiderTaskPoolModule,
     AdminRiderModule,
     AdminAuthModule,
+    AdminCityModule,
+    AdminCategoryModule,
+    AdminSystemConfigModule,
+    AdminThirdPartyConfigModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

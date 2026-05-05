@@ -278,3 +278,11 @@ DESIGN § 3.1 / ALIGNMENT § 5.11 原写"bcrypt cost=10"。**Wave 1 落地时改
 ### 8.2 admin_user 表创建方式
 
 DESIGN § 2.4 描述为"ALTER 加 4 列"。**Wave 1 实际落地时是 CREATE 整张表**(stage 0 未建 admin_user 表;原 explore 结论有误)。所以 `1714867600000-Stage4Init` migration 是 4 张 `CREATE TABLE`(admin_user / city_site / platform_category / account_disable_record),没有 ALTER。表结构与 DESIGN 字段一致(11 列 admin_user 含 4 列 lock 相关)。
+
+### 8.3 cipher util 落地
+
+DESIGN § 5.10 / R-07 提到 stage 0 cipher util。**Wave 3 落地时新建 `apps/server/src/common/utils/cipher.util.ts`**(stage 0 未实际实现)。算法 AES-256-CBC + sha256 hashed key,密钥源 `process.env.THIRD_PARTY_SECRET_KEY`(默认 dev key),格式 `aes256$<ivHex>$<cipherHex>`,字段 `third_party_config.encrypted_secret TEXT` 充足。`maskSecret` 工具脱敏(前 3 + \*\*\* + 后 3)。6 单元测试覆盖。
+
+### 8.4 third_party_config 实际字段
+
+DESIGN § 3.7 接口契约写"appId / secret / callbackUrl / configJson"。**Wave 3 实际落地按 stage 0 既有 entity 字段简化**(provider / env / encryptedSecret / status / lastHealthAt / errorMessage / updatedAt)。stage 8+ 真接入第三方时,可按需 ALTER 加 appId / callbackUrl 等字段。当前 PATCH 接口只接受 `{ secret?, status? }` 两个字段,`changedFields` 数组反映实际变更。
