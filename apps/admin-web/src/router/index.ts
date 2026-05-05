@@ -92,6 +92,27 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/views/merchants/stores.vue'),
         meta: { title: '店铺管控', menu: true, icon: 'Goods', permission: 'admin:merchants:view' },
       },
+      // Stage 3 — 骑手管理
+      {
+        path: 'admin/riders/audit',
+        component: () => import('@/views/riders/audit.vue'),
+        meta: { title: '骑手审核', menu: true, icon: 'Avatar', permission: 'admin:riders:view' },
+      },
+      {
+        path: 'admin/riders/applications/:id',
+        component: () => import('@/views/riders/detail.vue'),
+        meta: { title: '骑手详情', permission: 'admin:riders:view' },
+      },
+      {
+        path: 'admin/riders/status',
+        component: () => import('@/views/riders/status.vue'),
+        meta: { title: '骑手账号管控', menu: true, icon: 'UserFilled', permission: 'admin:riders:view' },
+      },
+      {
+        path: 'admin/riders/delivery-area',
+        component: () => import('@/views/riders/delivery-area.vue'),
+        meta: { title: '骑手配送区域', menu: true, icon: 'MapLocation', permission: 'admin:riders:manage' },
+      },
     ],
   },
   {
