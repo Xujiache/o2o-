@@ -39,6 +39,8 @@ import { CommonConfigModule } from './modules/common-config/common-config.module
 import { CouponModule } from './modules/coupon/coupon.module';
 import { CustomerAuthModule } from './modules/customer-auth/customer-auth.module';
 import { DictModule } from './modules/dict/dict.module';
+import { ErrandPricingModule } from './modules/errand-pricing/errand-pricing.module';
+import { ErrandTypeModule } from './modules/errand-type/errand-type.module';
 import { FileModule } from './modules/file/file.module';
 import { FoodHomeModule } from './modules/food-home/food-home.module';
 import { FoodOrderModule } from './modules/food-order/food-order.module';
@@ -51,6 +53,7 @@ import { MessageSettingModule } from './modules/message-setting/message-setting.
 import { PaymentModule } from './modules/payment/payment.module';
 import { ProductModule } from './modules/product/product.module';
 import { ProductQueryModule } from './modules/product-query/product-query.module';
+import { ProhibitedItemModule } from './modules/prohibited-item/prohibited-item.module';
 import { PublicStoreReadonlyModule } from './modules/public-store-readonly/public-store-readonly.module';
 import { RealnameModule } from './modules/realname/realname.module';
 import { RiderAuthModule } from './modules/rider-auth/rider-auth.module';
@@ -141,6 +144,10 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     CouponModule,
     TrackQueryModule,
     AdminFoodOrderModule,
+    // Stage 6 — 用户端跑腿交易闭环
+    ErrandTypeModule,
+    ProhibitedItemModule,
+    ErrandPricingModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
