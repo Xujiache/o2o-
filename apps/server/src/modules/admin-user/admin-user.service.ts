@@ -223,4 +223,29 @@ export class AdminUserService {
     const admin = await this.adminRepo.findOne({ where: { adminUserId } });
     return admin?.username ?? `admin-${adminUserId}`;
   }
+
+  async listDisableRecords(query: {
+    accountType?: 'customer' | 'merchant' | 'rider';
+    accountId?: string;
+    pageNo?: number;
+    pageSize?: number;
+  }): Promise<{
+    pageNo: number;
+    pageSize: number;
+    total: number;
+    list: import('../../database/entities').AccountDisableRecord[];
+  }> {
+    const pageNo = query.pageNo ?? 1;
+    const pageSize = query.pageSize ?? 20;
+    const where: Record<string, unknown> = {};
+    if (query.accountType) where.accountType = query.accountType;
+    if (query.accountId) where.accountId = query.accountId;
+    const [list, total] = await this.disableRecordRepo.findAndCount({
+      where,
+      order: { createdAt: 'DESC' },
+      skip: (pageNo - 1) * pageSize,
+      take: pageSize,
+    });
+    return { pageNo, pageSize, total, list };
+  }
 }

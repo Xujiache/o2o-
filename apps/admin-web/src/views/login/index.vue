@@ -1,66 +1,98 @@
 <script setup lang="ts">
 /**
- * 登录占位页(stage 0):提供 2 个 mock 身份按钮 + 自定义 token 输入。
- * 完整登录(账号/密码、二次校验) 留给 stage 4。
- *
- * 因为 stage 0 后端只校验 Admin-Token JWT 与权限点(读 sys_role_permission),
- * 这里的 token 必须用 dev tool 生成的真 admin token,否则后端 /admin/** 会 401。
- *   生成命令:`pnpm --filter @o2o/server token:dev admin`
+ * 登录页(stage 4):用户名 + 密码 + svg-captcha。
+ * mock 模式 captcha 输入 'dev' 跳过校验(便于开发联调)。
  */
-import { ref } from 'vue';
+import { ElMessage } from 'element-plus';
+import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
+import { fetchCaptcha, login } from '@/api/admin-auth';
 import { useUserStore } from '@/stores/user';
 
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
 
-const tokenInput = ref<string>('');
+const captchaId = ref('');
+const captchaSvg = ref('');
+const username = ref('super_admin');
+const password = ref('');
+const captcha = ref('');
+const loading = ref(false);
 
-const SUPER_ADMIN_PERMS = [
-  'admin:audit:logs:view',
-  'admin:integrations:view',
-  'admin:system:config:view',
-  'admin:roles:permissions:view',
-];
-const AUDITOR_PERMS = ['admin:integrations:view'];
+async function reloadCaptcha(): Promise<void> {
+  const r = await fetchCaptcha();
+  if (r.code === '0' && r.data) {
+    captchaId.value = r.data.captchaId;
+    captchaSvg.value = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(r.data.svgImage)))}`;
+  }
+}
 
-function loginAs(role: 'SUPER_ADMIN' | 'AUDITOR'): void {
-  if (!tokenInput.value.trim()) {
-    alert('请先粘贴 Admin-Token(用 pnpm --filter @o2o/server token:dev admin 生成)');
+async function submit(): Promise<void> {
+  if (!username.value || !password.value || !captcha.value) {
+    ElMessage.warning('请填写用户名 / 密码 / 验证码');
     return;
   }
-  const perms = role === 'SUPER_ADMIN' ? SUPER_ADMIN_PERMS : AUDITOR_PERMS;
-  userStore.mockLogin({
-    token: tokenInput.value.trim(),
-    principal: { principalId: '40001', scope: 'admin', roles: [role] },
-    permissions: perms,
-  });
-  const redirect = (route.query.redirect as string) || '/workbench';
-  void router.replace(redirect);
+  loading.value = true;
+  try {
+    const r = await login({
+      username: username.value.trim(),
+      password: password.value,
+      captcha: captcha.value.trim(),
+      captchaId: captchaId.value,
+    });
+    if (r.code !== '0' || !r.data) {
+      ElMessage.error(r.message || '登录失败');
+      await reloadCaptcha();
+      captcha.value = '';
+      return;
+    }
+    userStore.onLoginSuccess(r.data);
+    ElMessage.success(`欢迎,${r.data.displayName}`);
+    const redirect = (route.query.redirect as string) || '/workbench';
+    void router.replace(redirect);
+  } finally {
+    loading.value = false;
+  }
 }
+
+onMounted(() => {
+  void reloadCaptcha();
+});
 </script>
 
 <template>
   <div class="login">
     <div class="login__box">
-      <div class="login__title">O2O 平台管理 — 登录(stage 0 占位)</div>
+      <div class="login__title">O2O 平台管理 — 登录</div>
       <div class="login__hint">
-        本端阶段 0 仅占位。粘贴 dev admin token,然后选择身份进入。<br />
-        生成命令: <code>pnpm --filter @o2o/server token:dev admin</code>
+        默认账号 <code>super_admin / O2o@2026-Admin</code>;mock 模式验证码可输入 <code>dev</code>。
       </div>
-      <el-input
-        v-model="tokenInput"
-        type="textarea"
-        :rows="3"
-        placeholder="将 dev token 粘贴在这里(eyJhbGciOi...)"
-        class="login__token"
-      />
-      <div class="login__actions">
-        <el-button type="primary" @click="loginAs('SUPER_ADMIN')">以 SUPER_ADMIN 登录(全权限)</el-button>
-        <el-button @click="loginAs('AUDITOR')">以 AUDITOR 登录(无审计日志权限)</el-button>
-      </div>
+      <el-form @submit.prevent="submit">
+        <el-form-item>
+          <el-input v-model="username" placeholder="用户名" autocomplete="username" />
+        </el-form-item>
+        <el-form-item>
+          <el-input v-model="password" type="password" placeholder="密码" autocomplete="current-password" />
+        </el-form-item>
+        <el-form-item>
+          <div class="login__captcha-row">
+            <el-input v-model="captcha" placeholder="验证码" maxlength="16" />
+            <img
+              v-if="captchaSvg"
+              :src="captchaSvg"
+              alt="captcha"
+              class="login__captcha-img"
+              title="点击刷新"
+              @click="reloadCaptcha()"
+            />
+          </div>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" :loading="loading" class="login__submit" @click="submit">登录</el-button>
+        </el-form-item>
+      </el-form>
     </div>
   </div>
 </template>
@@ -77,7 +109,7 @@ function loginAs(role: 'SUPER_ADMIN' | 'AUDITOR'): void {
   background: #fff;
   border-radius: 12px;
   padding: 32px;
-  width: 480px;
+  width: 420px;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -92,13 +124,19 @@ function loginAs(role: 'SUPER_ADMIN' | 'AUDITOR'): void {
   color: #888;
   line-height: 1.6;
 }
-.login__token :deep(.el-textarea__inner) {
-  font-family: monospace;
-  font-size: 12px;
-}
-.login__actions {
+.login__captcha-row {
   display: flex;
-  flex-direction: column;
   gap: 10px;
+  width: 100%;
+}
+.login__captcha-img {
+  height: 32px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #f6f6f6;
+}
+.login__submit {
+  width: 100%;
 }
 </style>

@@ -27,7 +27,7 @@ export const routes: RouteRecordRaw[] = [
           title: '操作日志',
           menu: true,
           icon: 'Document',
-          permission: 'admin:audit:logs:view',
+          permission: 'admin:menu:audit-logs',
         },
       },
       {
@@ -37,7 +37,7 @@ export const routes: RouteRecordRaw[] = [
           title: '第三方配置',
           menu: true,
           icon: 'Connection',
-          permission: 'admin:integrations:view',
+          permission: 'admin:menu:integrations',
         },
       },
       {
@@ -47,7 +47,7 @@ export const routes: RouteRecordRaw[] = [
           title: '系统参数',
           menu: true,
           icon: 'Setting',
-          permission: 'admin:system:config:view',
+          permission: 'admin:menu:system-config',
         },
       },
       {
@@ -57,7 +57,7 @@ export const routes: RouteRecordRaw[] = [
           title: '角色权限',
           menu: true,
           icon: 'Lock',
-          permission: 'admin:roles:permissions:view',
+          permission: 'admin:menu:roles-permissions',
         },
       },
       // Stage 1 — 用户管理
@@ -65,6 +65,11 @@ export const routes: RouteRecordRaw[] = [
         path: 'admin/customers',
         component: () => import('@/views/customers/index.vue'),
         meta: { title: '用户管理', menu: true, icon: 'User', permission: 'admin:customers:view' },
+      },
+      {
+        path: 'admin/customers/disable-records',
+        component: () => import('@/views/customers/disable-records.vue'),
+        meta: { title: '禁用记录', permission: 'admin:customers:view' },
       },
       {
         path: 'admin/customers/:id',
@@ -112,6 +117,22 @@ export const routes: RouteRecordRaw[] = [
         path: 'admin/riders/delivery-area',
         component: () => import('@/views/riders/delivery-area.vue'),
         meta: { title: '骑手配送区域', menu: true, icon: 'MapLocation', permission: 'admin:riders:manage' },
+      },
+      // Stage 4 — 城市站点 / 类目
+      {
+        path: 'admin/cities',
+        component: () => import('@/views/cities/index.vue'),
+        meta: { title: '城市站点', menu: true, icon: 'Position', permission: 'admin:menu:cities' },
+      },
+      {
+        path: 'admin/categories/takeaway',
+        component: () => import('@/views/categories/takeaway.vue'),
+        meta: { title: '外卖类目', menu: true, icon: 'Bowl', permission: 'admin:menu:categories' },
+      },
+      {
+        path: 'admin/categories/errand',
+        component: () => import('@/views/categories/errand.vue'),
+        meta: { title: '跑腿类目', menu: true, icon: 'Van', permission: 'admin:menu:categories' },
       },
     ],
   },

@@ -183,3 +183,33 @@ export class DisableCustomerDto {
   @Length(1, 500)
   reason!: string;
 }
+
+export class DisableRecordItemVo {
+  @ApiProperty()
+  accountDisableRecordId!: string;
+  @ApiProperty()
+  accountType!: string;
+  @ApiProperty()
+  accountId!: string;
+  @ApiProperty()
+  action!: string;
+  @ApiProperty({ required: false })
+  reason?: string | null;
+  @ApiProperty()
+  operatorAdminId!: string;
+  @ApiProperty()
+  operatorUsername!: string;
+  @ApiProperty()
+  createdAt!: string;
+}
+
+export class DisableRecordPageVo {
+  @ApiProperty()
+  pageNo!: number;
+  @ApiProperty()
+  pageSize!: number;
+  @ApiProperty()
+  total!: number;
+  @ApiProperty({ type: [DisableRecordItemVo] })
+  list!: DisableRecordItemVo[];
+}

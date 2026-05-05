@@ -1,97 +1,167 @@
 <script setup lang="ts">
-/** 第三方配置页:接 GET /api/v1/admin/integrations/health + 预留配置编辑表单(空表) */
-import { onMounted, ref } from 'vue';
+import { ElMessage } from 'element-plus';
+import { onMounted, reactive, ref } from 'vue';
 
 import { getIntegrationsHealth, type IntegrationHealthVo } from '@/api';
+import {
+  type ProviderStatus,
+  type ThirdPartyConfigItemVo,
+  listIntegrations,
+  patchIntegration,
+} from '@/api/admin-third-party';
+import { useUserStore } from '@/stores/user';
+
+const userStore = useUserStore();
+const canManage = (): boolean => userStore.has('admin:third-party:manage');
 
 const loading = ref(false);
-const list = ref<IntegrationHealthVo[]>([]);
+const list = ref<ThirdPartyConfigItemVo[]>([]);
+const health = ref<IntegrationHealthVo[]>([]);
 
-async function load(): Promise<void> {
+const drawerVisible = ref(false);
+const drawerRow = ref<ThirdPartyConfigItemVo | null>(null);
+const form = reactive<{ secret: string; status: ProviderStatus }>({ secret: '', status: 'active' });
+
+async function fetchList(): Promise<void> {
   loading.value = true;
   try {
-    const res = await getIntegrationsHealth();
-    if (res.code === '0' && res.data) list.value = res.data;
+    const [r1, r2] = await Promise.all([listIntegrations(), getIntegrationsHealth()]);
+    if (r1.code === '0' && r1.data) list.value = r1.data.list;
+    if (r2.code === '0' && r2.data) health.value = r2.data;
   } finally {
     loading.value = false;
   }
 }
 
-function fmtTime(ts: number | null): string {
+function openDrawer(row: ThirdPartyConfigItemVo): void {
+  drawerRow.value = row;
+  form.secret = '';
+  form.status = row.status;
+  drawerVisible.value = true;
+}
+
+async function save(): Promise<void> {
+  if (!drawerRow.value) return;
+  const body: { secret?: string; status?: ProviderStatus } = {};
+  if (form.secret.trim()) body.secret = form.secret.trim();
+  if (form.status !== drawerRow.value.status) body.status = form.status;
+  if (Object.keys(body).length === 0) {
+    ElMessage.info('未修改');
+    return;
+  }
+  const r = await patchIntegration(drawerRow.value.provider, body);
+  if (r.code === '0') {
+    ElMessage.success(`已保存(变更字段:${r.data?.changedFields.join(',') || '-'})`);
+    drawerVisible.value = false;
+    void fetchList();
+  }
+}
+
+function fmtDate(ts: string | null | undefined): string {
   if (!ts) return '-';
-  return new Date(ts).toLocaleString('zh-CN');
+  const n = Number(ts);
+  if (!n) return '-';
+  return new Date(n).toLocaleString();
 }
 
-function tagType(status: string): 'success' | 'warning' | 'danger' | 'info' {
-  if (status === 'OK' || status === 'HEALTHY') return 'success';
-  if (status === 'DEGRADED') return 'warning';
-  if (status === 'DOWN' || status === 'ERROR') return 'danger';
-  return 'info';
-}
-
-onMounted(load);
+onMounted(fetchList);
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="integrations">
     <el-card>
       <template #header>
-        <div class="flex items-center justify-between">
-          <span>第三方健康状态</span>
-          <el-button type="primary" size="small" @click="load">刷新</el-button>
+        <div class="header">
+          <span>第三方配置</span>
+          <span v-if="!canManage()" class="readonly-tag">只读 — 缺 admin:third-party:manage 权限</span>
         </div>
       </template>
-
-      <el-table :data="list" v-loading="loading" border stripe size="small">
-        <el-table-column prop="provider" label="Provider" width="160" />
-        <el-table-column label="状态" width="120">
+      <el-table :data="list" v-loading="loading" stripe>
+        <el-table-column label="provider" prop="provider" width="180" />
+        <el-table-column label="env" prop="env" width="120" />
+        <el-table-column label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="tagType(row.status)">{{ row.status }}</el-tag>
+            <el-tag :type="row.status === 'active' ? 'success' : row.status === 'error' ? 'danger' : 'info'">
+              {{ row.status }}
+            </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="mode" label="模式" width="120" />
-        <el-table-column label="最近检测" width="180">
-          <template #default="{ row }">{{ fmtTime(row.lastCheckedAt) }}</template>
+        <el-table-column label="secret(脱敏)" min-width="160">
+          <template #default="{ row }">
+            <code class="ga">{{ row.secretMasked || '<未设置>' }}</code>
+          </template>
         </el-table-column>
-        <el-table-column prop="errorMessage" label="错误信息" />
+        <el-table-column label="健康检查" min-width="200">
+          <template #default="{ row }">
+            <span v-if="health.find((h) => h.provider === row.provider)">
+              {{ fmtDate(health.find((h) => h.provider === row.provider)?.lastCheckedAt?.toString() ?? null) }}
+              {{ health.find((h) => h.provider === row.provider)?.errorMessage ?? '' }}
+            </span>
+            <span v-else class="muted">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="updatedAt" width="180">
+          <template #default="{ row }">{{ fmtDate(row.updatedAt) }}</template>
+        </el-table-column>
+        <el-table-column label="操作" width="100" fixed="right">
+          <template #default="{ row }">
+            <el-button v-if="canManage()" link type="primary" size="small" @click="openDrawer(row)">编辑</el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </el-card>
 
-    <el-card>
-      <template #header>配置编辑(预留)</template>
-      <el-alert type="info" :closable="false" title="阶段 0 仅占位,完整配置编辑功能在阶段 4 / 9 实现。" />
-      <el-form label-width="120px" class="mt-4" disabled>
-        <el-form-item label="Provider">
-          <el-input placeholder="如 amap / wxpay" />
+    <el-drawer v-model="drawerVisible" :title="drawerRow?.provider" size="420px">
+      <el-form v-if="drawerRow" label-width="100px">
+        <el-form-item label="provider">
+          <el-input :value="drawerRow.provider" disabled />
         </el-form-item>
-        <el-form-item label="App Key">
-          <el-input placeholder="(占位)" />
+        <el-form-item label="env">
+          <el-input :value="drawerRow.env" disabled />
         </el-form-item>
-        <el-form-item label="App Secret">
-          <el-input placeholder="(占位)" type="password" show-password />
+        <el-form-item label="status">
+          <el-select v-model="form.status" style="width: 100%">
+            <el-option label="active" value="active" />
+            <el-option label="disabled" value="disabled" />
+            <el-option label="error" value="error" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="模式">
-          <el-radio-group>
-            <el-radio value="mock">mock</el-radio>
-            <el-radio value="real">real</el-radio>
-          </el-radio-group>
+        <el-form-item label="secret">
+          <el-input v-model="form.secret" type="password" placeholder="留空 = 不修改" show-password />
+          <div class="hint">明文输入将自动加密存储</div>
         </el-form-item>
       </el-form>
-    </el-card>
+      <template #footer>
+        <el-button @click="drawerVisible = false">取消</el-button>
+        <el-button type="primary" @click="save">保存</el-button>
+      </template>
+    </el-drawer>
   </div>
 </template>
 
 <style scoped>
-.mt-4 {
-  margin-top: 16px;
+.integrations {
+  padding: 16px;
 }
-.flex {
+.header {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.flex-col {
-  flex-direction: column;
+.readonly-tag {
+  color: #999;
+  font-size: 12px;
 }
-.gap-4 {
-  gap: 16px;
+.muted {
+  color: #999;
+}
+.ga {
+  font-family: monospace;
+  font-size: 12px;
+}
+.hint {
+  color: #999;
+  font-size: 12px;
+  margin-top: 4px;
 }
 </style>

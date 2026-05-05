@@ -15,6 +15,7 @@ import {
   CustomerDetailVo,
   CustomerListPageVo,
   DisableCustomerDto,
+  DisableRecordPageVo,
   ListCustomersQueryDto,
   RealnameRecordPageVo,
 } from './admin-user.dto';
@@ -53,6 +54,39 @@ export class AdminUserController {
     @Query('pageSize') pageSize?: number,
   ): Promise<RealnameRecordPageVo> {
     return this.service.listRealnameRecords(id, Number(pageNo) || 1, Number(pageSize) || 20);
+  }
+
+  @Get('disable-records')
+  @RequirePermission('admin:customers:view')
+  @ApiOperation({ summary: '账号禁用启用流水(stage 4 account_disable_record)' })
+  @ApiOkResponse({ type: DisableRecordPageVo })
+  async disableRecords(
+    @Query('accountType') accountType?: 'customer' | 'merchant' | 'rider',
+    @Query('accountId') accountId?: string,
+    @Query('pageNo') pageNo?: number,
+    @Query('pageSize') pageSize?: number,
+  ): Promise<DisableRecordPageVo> {
+    const r = await this.service.listDisableRecords({
+      accountType,
+      accountId,
+      pageNo: Number(pageNo) || 1,
+      pageSize: Number(pageSize) || 20,
+    });
+    return {
+      pageNo: r.pageNo,
+      pageSize: r.pageSize,
+      total: r.total,
+      list: r.list.map((row) => ({
+        accountDisableRecordId: row.accountDisableRecordId,
+        accountType: row.accountType,
+        accountId: row.accountId,
+        action: row.action,
+        reason: row.reason,
+        operatorAdminId: row.operatorAdminId,
+        operatorUsername: row.operatorUsername,
+        createdAt: row.createdAt,
+      })),
+    };
   }
 
   @Post(':id/status')
