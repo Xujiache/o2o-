@@ -23,6 +23,7 @@ import { IdempotencyRecord } from './database/entities';
 import { EventsModule } from './events/events.module';
 import { AddressModule } from './modules/address/address.module';
 import { AdminMerchantModule } from './modules/admin-merchant/admin-merchant.module';
+import { AdminRiderModule } from './modules/admin-rider/admin-rider.module';
 import { AdminUserModule } from './modules/admin-user/admin-user.module';
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -40,8 +41,10 @@ import { ProductModule } from './modules/product/product.module';
 import { PublicStoreReadonlyModule } from './modules/public-store-readonly/public-store-readonly.module';
 import { RealnameModule } from './modules/realname/realname.module';
 import { RiderAuthModule } from './modules/rider-auth/rider-auth.module';
+import { RiderLocationModule } from './modules/rider-location/rider-location.module';
 import { RiderOnboardingModule } from './modules/rider-onboarding/rider-onboarding.module';
 import { RiderProfileModule } from './modules/rider-profile/rider-profile.module';
+import { RiderTaskPoolModule } from './modules/rider-task-pool/rider-task-pool.module';
 import { RiskModule } from './modules/risk/risk.module';
 import { SmsModule } from './modules/sms/sms.module';
 import { StockModule } from './modules/stock/stock.module';
@@ -104,6 +107,9 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     RiderAuthModule,
     RiderOnboardingModule,
     RiderProfileModule,
+    RiderLocationModule,
+    RiderTaskPoolModule,
+    AdminRiderModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
