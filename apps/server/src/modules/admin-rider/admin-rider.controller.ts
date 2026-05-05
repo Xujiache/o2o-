@@ -35,6 +35,15 @@ export class AdminRiderController {
     return this.service.list(query);
   }
 
+  @Get('applications')
+  @RequirePermission('admin:riders:view')
+  @ApiOperation({ summary: '骑手申请审核列表(默认 pending + rejected,stage 4 contract alias)' })
+  @ApiOkResponse({ type: RiderListPageVo })
+  async listApplications(@Query() query: ListRidersQueryDto): Promise<RiderListPageVo> {
+    // alias 端点:不指定 auditStatus 时只返审核相关状态(pending + rejected)
+    return this.service.listApplicationsForAudit(query);
+  }
+
   @Get(':applicationId')
   @RequirePermission('admin:riders:view')
   @ApiOperation({ summary: '骑手申请详情(含资质文件 URL,脱敏)' })

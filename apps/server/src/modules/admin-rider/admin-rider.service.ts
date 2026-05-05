@@ -4,6 +4,7 @@ import { ErrorCode } from '@o2o/contracts';
 import { plainToInstance } from 'class-transformer';
 import { Brackets, Repository } from 'typeorm';
 
+import { isValidGeoJsonPolygon } from '../../common/utils/geojson.util';
 import {
   FileObject,
   RiderAccount,
@@ -29,24 +30,6 @@ import {
   UpdateServiceAreaDto,
 } from './admin-rider.dto';
 
-function isValidGeoJsonPolygon(g: unknown): boolean {
-  if (!g || typeof g !== 'object') return false;
-  const obj = g as { type?: string; coordinates?: unknown };
-  if (obj.type !== 'Polygon') return false;
-  if (!Array.isArray(obj.coordinates)) return false;
-  // 允许空 coordinates([])占位
-  if (obj.coordinates.length === 0) return true;
-  // 一组环 + 至少 4 点 + 首尾闭合
-  for (const ring of obj.coordinates) {
-    if (!Array.isArray(ring) || ring.length < 4) return false;
-    const first = ring[0];
-    const last = ring[ring.length - 1];
-    if (!Array.isArray(first) || !Array.isArray(last)) return false;
-    if (first[0] !== last[0] || first[1] !== last[1]) return false;
-  }
-  return true;
-}
-
 @Injectable()
 export class AdminRiderService {
   constructor(
@@ -60,6 +43,48 @@ export class AdminRiderService {
     @InjectRepository(FileObject) private readonly fileRepo: Repository<FileObject>,
     private readonly eventBus: DomainEventBus,
   ) {}
+
+  async listApplicationsForAudit(query: ListRidersQueryDto): Promise<RiderListPageVo> {
+    // alias 端点:不指定 auditStatus 时只返审核相关状态(pending + rejected)
+    if (!query.auditStatus) {
+      const pageNo = query.pageNo ?? 1;
+      const pageSize = query.pageSize ?? 20;
+      const qb = this.appRepo.createQueryBuilder('a');
+      qb.andWhere('a.audit_status IN (:...s)', { s: ['pending', 'rejected'] });
+      if (query.keyword) {
+        const kw = query.keyword.trim();
+        qb.andWhere(
+          new Brackets((sub) =>
+            sub
+              .where('a.real_name LIKE :kw', { kw: `%${kw}%` })
+              .orWhere('a.mobile LIKE :kw', { kw: `%${kw}%` })
+              .orWhere('a.id_card_no LIKE :kw', { kw: `%${kw}%` }),
+          ),
+        );
+      }
+      qb.orderBy('a.submitted_at', 'DESC')
+        .skip((pageNo - 1) * pageSize)
+        .take(pageSize);
+      const [items, total] = await qb.getManyAndCount();
+      const list = items.map((a) =>
+        plainToInstance(
+          RiderListItemVo,
+          {
+            applicationId: a.applicationId,
+            riderId: a.riderId,
+            mobile: a.mobile,
+            realName: a.realName,
+            idCardNo: a.idCardNo,
+            auditStatus: a.auditStatus,
+            submittedAt: a.submittedAt,
+          },
+          { excludeExtraneousValues: true },
+        ),
+      );
+      return { pageNo, pageSize, total, list };
+    }
+    return this.list(query);
+  }
 
   async list(query: ListRidersQueryDto): Promise<RiderListPageVo> {
     const pageNo = query.pageNo ?? 1;
@@ -192,6 +217,20 @@ export class AdminRiderService {
         { bizType: 'rider', bizId: app.riderId ?? applicationId },
       );
     }
+
+    // stage 4 通用审核事件:approved / rejected 都发(stage 2 既有 approved 兼容保留)
+    await this.eventBus.publish(
+      EventName.RiderAudited,
+      {
+        applicationId,
+        riderId: app.riderId ?? undefined,
+        auditResult: dto.auditResult,
+        rejectReason: dto.rejectReason,
+        operatorAdminId: operatorId,
+        auditedAt: Number(now),
+      },
+      { bizType: 'rider', bizId: app.riderId ?? applicationId },
+    );
 
     return {
       riderId: app.riderId,

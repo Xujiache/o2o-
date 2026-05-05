@@ -175,3 +175,11 @@ export class ChangeStatusVo {
   @ApiProperty()
   accountStatus!: string;
 }
+
+/** stage 4 disable / enable 入参(reason 必填,1-500 char)*/
+export class DisableCustomerDto {
+  @ApiProperty({ description: '操作原因(1-500 字符)' })
+  @IsString()
+  @Length(1, 500)
+  reason!: string;
+}

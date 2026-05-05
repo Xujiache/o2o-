@@ -3,7 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { Brackets, Repository } from 'typeorm';
 
-import { CustomerProfile, CustomerUser, LoginDevice, RealnameRecord, RiskUserTag } from '../../database/entities';
+import {
+  AccountDisableRecord,
+  AdminUser,
+  CustomerProfile,
+  CustomerUser,
+  LoginDevice,
+  RealnameRecord,
+  RiskUserTag,
+} from '../../database/entities';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
 import { CustomerAuthService } from '../customer-auth/customer-auth.service';
@@ -27,6 +35,8 @@ export class AdminUserService {
     @InjectRepository(LoginDevice) private readonly deviceRepo: Repository<LoginDevice>,
     @InjectRepository(RealnameRecord) private readonly recordRepo: Repository<RealnameRecord>,
     @InjectRepository(RiskUserTag) private readonly riskRepo: Repository<RiskUserTag>,
+    @InjectRepository(AccountDisableRecord) private readonly disableRecordRepo: Repository<AccountDisableRecord>,
+    @InjectRepository(AdminUser) private readonly adminRepo: Repository<AdminUser>,
     private readonly customerAuthService: CustomerAuthService,
     private readonly eventBus: DomainEventBus,
   ) {}
@@ -167,7 +177,20 @@ export class AdminUserService {
       return { userId: user.userId, accountStatus: user.accountStatus };
     }
 
-    await this.userRepo.update({ userId }, { accountStatus: targetStatus, updatedAt: String(Date.now()) });
+    const now = String(Date.now());
+    await this.userRepo.update({ userId }, { accountStatus: targetStatus, updatedAt: now });
+
+    // stage 4 — 写 account_disable_record(disable + enable 都记)
+    const operatorUsername = await this.resolveOperatorUsername(operatorId);
+    await this.disableRecordRepo.insert({
+      accountType: 'customer',
+      accountId: userId,
+      action: dto.operation,
+      reason: dto.reason ?? null,
+      operatorAdminId: operatorId,
+      operatorUsername,
+      createdAt: now,
+    });
 
     if (dto.operation === 'disable') {
       // 同步吊销该用户全部 login_device(由 AccountDisabledSubscriber 也会异步处理 — 双保险幂等)
@@ -179,6 +202,25 @@ export class AdminUserService {
       );
     }
 
+    // stage 4 通用账号禁用启用事件(无论 disable 还是 enable 都发,subscriber 区分 action)
+    await this.eventBus.publish(
+      EventName.AccountDisabled,
+      {
+        accountType: 'customer',
+        accountId: userId,
+        action: dto.operation,
+        reason: dto.reason,
+        operatorAdminId: operatorId,
+        operatedAt: Number(now),
+      },
+      { bizType: 'customer', bizId: userId },
+    );
+
     return { userId, accountStatus: targetStatus };
+  }
+
+  private async resolveOperatorUsername(adminUserId: string): Promise<string> {
+    const admin = await this.adminRepo.findOne({ where: { adminUserId } });
+    return admin?.username ?? `admin-${adminUserId}`;
   }
 }

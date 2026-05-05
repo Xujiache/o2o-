@@ -137,6 +137,19 @@ describe('AdminRiderService', () => {
     expect(r.total).toBe(2);
   });
 
+  it('listApplicationsForAudit 不指定 status 时仅返 pending+rejected', async () => {
+    // fakeQb 用于 mock createQueryBuilder;此处只验证返字段而非过滤逻辑(集成测试更合适)
+    const r = await svc.listApplicationsForAudit({});
+    expect(r.pageNo).toBe(1);
+    expect(r.pageSize).toBe(20);
+    expect(Array.isArray(r.list)).toBe(true);
+  });
+
+  it('listApplicationsForAudit 指定 status 时直接走 list 逻辑', async () => {
+    const r = await svc.listApplicationsForAudit({ auditStatus: 'approved' });
+    expect(r.total).toBe(2);
+  });
+
   it('detail 返回应用 + 状态', async () => {
     const r = await svc.getDetail('1');
     expect(r.applicationId).toBe('1');
@@ -148,16 +161,22 @@ describe('AdminRiderService', () => {
     await expect(svc.getDetail('999')).rejects.toBeInstanceOf(NotFoundException);
   });
 
-  it('audit approved → 发 RiderApproved 事件', async () => {
+  it('audit approved → 发 RiderApproved + RiderAudited(stage 4)事件', async () => {
     const r = await svc.audit('1', 'admin-1', { auditResult: 'approved' });
     expect(r.auditStatus).toBe('approved');
     expect(publishedEvents.find((e) => e.name === EventName.RiderApproved)).toBeTruthy();
+    expect(publishedEvents.find((e) => e.name === EventName.RiderAudited)).toMatchObject({
+      payload: expect.objectContaining({ auditResult: 'approved', operatorAdminId: 'admin-1' }),
+    });
   });
 
-  it('audit rejected → 写 reject_reason,不发 RiderApproved', async () => {
+  it('audit rejected → 写 reject_reason,发 RiderAudited(stage 4)不发 RiderApproved', async () => {
     const r = await svc.audit('1', 'admin-1', { auditResult: 'rejected', rejectReason: '资质问题' });
     expect(r.auditStatus).toBe('rejected');
     expect(publishedEvents.find((e) => e.name === EventName.RiderApproved)).toBeUndefined();
+    expect(publishedEvents.find((e) => e.name === EventName.RiderAudited)).toMatchObject({
+      payload: expect.objectContaining({ auditResult: 'rejected', rejectReason: '资质问题' }),
+    });
   });
 
   it('audit 幂等:已是目标态 → 不重发事件', async () => {

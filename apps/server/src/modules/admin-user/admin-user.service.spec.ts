@@ -2,7 +2,15 @@ import { NotFoundException } from '@nestjs/common';
 import { instanceToPlain } from 'class-transformer';
 import type { Repository } from 'typeorm';
 
-import type { CustomerProfile, CustomerUser, LoginDevice, RealnameRecord, RiskUserTag } from '../../database/entities';
+import type {
+  AccountDisableRecord,
+  AdminUser,
+  CustomerProfile,
+  CustomerUser,
+  LoginDevice,
+  RealnameRecord,
+  RiskUserTag,
+} from '../../database/entities';
 import type { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
 import type { CustomerAuthService } from '../customer-auth/customer-auth.service';
@@ -22,6 +30,9 @@ describe('AdminUserService', () => {
   let deviceRepo: jest.Mocked<Repository<LoginDevice>>;
   let recordRepo: jest.Mocked<Repository<RealnameRecord>>;
   let riskRepo: jest.Mocked<Repository<RiskUserTag>>;
+  let disableRecords: AccountDisableRecord[];
+  let disableRepo: jest.Mocked<Repository<AccountDisableRecord>>;
+  let adminRepo: jest.Mocked<Repository<AdminUser>>;
   let customerAuth: jest.Mocked<CustomerAuthService>;
   let bus: jest.Mocked<DomainEventBus>;
 
@@ -153,7 +164,32 @@ describe('AdminUserService', () => {
       }),
     } as unknown as jest.Mocked<DomainEventBus>;
 
-    svc = new AdminUserService(userRepo, profileRepo, deviceRepo, recordRepo, riskRepo, customerAuth, bus);
+    disableRecords = [];
+    disableRepo = {
+      insert: jest.fn(async (row: Partial<AccountDisableRecord>) => {
+        disableRecords.push(row as AccountDisableRecord);
+        return { identifiers: [{ accountDisableRecordId: String(disableRecords.length) }], generatedMaps: [], raw: [] };
+      }),
+    } as unknown as jest.Mocked<Repository<AccountDisableRecord>>;
+
+    adminRepo = {
+      findOne: jest.fn(async ({ where }: { where: Partial<AdminUser> }) => {
+        if (where.adminUserId === '40001') return { username: 'super_admin' } as AdminUser;
+        return null;
+      }),
+    } as unknown as jest.Mocked<Repository<AdminUser>>;
+
+    svc = new AdminUserService(
+      userRepo,
+      profileRepo,
+      deviceRepo,
+      recordRepo,
+      riskRepo,
+      disableRepo,
+      adminRepo,
+      customerAuth,
+      bus,
+    );
   });
 
   it('listCustomers:返回脱敏 mobile + nickname', async () => {
@@ -181,11 +217,19 @@ describe('AdminUserService', () => {
     expect(serialized.idCardMasked).toContain('**');
   });
 
-  it('changeStatus disable:UPDATE + 吊销设备 + 发布 AccountDisabled', async () => {
+  it('changeStatus disable:UPDATE + 吊销设备 + 发 CustomerAccountDisabled + 发 AccountDisabled(stage 4) + 写 disable_record', async () => {
     const r = await svc.changeStatus('1', 'admin-1', { operation: 'disable', reason: '违规' });
     expect(r.accountStatus).toBe('disabled');
     expect(customerAuth.revokeAllDevices).toHaveBeenCalledWith('1');
-    expect(publishedEvents).toEqual([expect.objectContaining({ name: EventName.CustomerAccountDisabled })]);
+    expect(publishedEvents.map((e) => e.name)).toEqual([EventName.CustomerAccountDisabled, EventName.AccountDisabled]);
+    expect(disableRecords).toHaveLength(1);
+    expect(disableRecords[0]).toMatchObject({
+      accountType: 'customer',
+      accountId: '1',
+      action: 'disable',
+      reason: '违规',
+      operatorAdminId: 'admin-1',
+    });
   });
 
   it('changeStatus 幂等:已 disabled → 不重发事件', async () => {
@@ -193,12 +237,17 @@ describe('AdminUserService', () => {
     expect(r.accountStatus).toBe('disabled');
     expect(publishedEvents).toHaveLength(0);
     expect(customerAuth.revokeAllDevices).not.toHaveBeenCalled();
+    expect(disableRecords).toHaveLength(0);
   });
 
-  it('changeStatus enable:UPDATE 不发布事件,不吊销设备', async () => {
+  it('changeStatus enable:UPDATE + 写 disable_record + 发 AccountDisabled(action=enable),不吊销设备', async () => {
     const r = await svc.changeStatus('2', 'admin-1', { operation: 'enable', reason: '解禁' });
     expect(r.accountStatus).toBe('active');
-    expect(publishedEvents).toHaveLength(0);
+    // 不再发 CustomerAccountDisabled,但 stage 4 通用事件 AccountDisabled 必发
+    expect(publishedEvents.map((e) => e.name)).toEqual([EventName.AccountDisabled]);
+    expect(publishedEvents[0]!.payload).toMatchObject({ action: 'enable', accountId: '2' });
     expect(customerAuth.revokeAllDevices).not.toHaveBeenCalled();
+    expect(disableRecords).toHaveLength(1);
+    expect(disableRecords[0]).toMatchObject({ action: 'enable' });
   });
 });

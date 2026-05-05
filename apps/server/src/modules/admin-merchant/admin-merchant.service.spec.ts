@@ -185,7 +185,7 @@ describe('AdminMerchantService', () => {
     await expect(svc.getApplicationDetail('999')).rejects.toBeInstanceOf(NotFoundException);
   });
 
-  it('audit approved:UPDATE app + merchant active + 发 MerchantApproved', async () => {
+  it('audit approved:UPDATE app + merchant active + 发 MerchantApproved + 发 MerchantAudited(stage 4 通用事件)', async () => {
     const r = await svc.audit('100', 'admin-1', { auditResult: 'approved', commissionRate: 0.07 });
     expect(r.auditStatus).toBe('approved');
     expect(apps[0]!.commissionRate).toBe('0.07');
@@ -195,14 +195,25 @@ describe('AdminMerchantService', () => {
         name: EventName.MerchantApproved,
         payload: expect.objectContaining({ merchantId: '1', commissionRate: 0.07 }),
       }),
+      expect.objectContaining({
+        name: EventName.MerchantAudited,
+        payload: expect.objectContaining({ merchantId: '1', auditResult: 'approved', operatorAdminId: 'admin-1' }),
+      }),
     ]);
   });
 
-  it('audit rejected:UPDATE rejectReason 不发事件', async () => {
+  it('audit rejected:UPDATE rejectReason + 发 MerchantAudited(stage 4)不发 MerchantApproved', async () => {
     const r = await svc.audit('100', 'admin-1', { auditResult: 'rejected', rejectReason: '资质不符' });
     expect(r.auditStatus).toBe('rejected');
     expect(apps[0]!.rejectReason).toBe('资质不符');
-    expect(publishedEvents).toHaveLength(0);
+    expect(publishedEvents).toHaveLength(1);
+    expect(publishedEvents[0]).toEqual(
+      expect.objectContaining({
+        name: EventName.MerchantAudited,
+        payload: expect.objectContaining({ auditResult: 'rejected', rejectReason: '资质不符' }),
+      }),
+    );
+    expect(publishedEvents.find((e) => e.name === EventName.MerchantApproved)).toBeUndefined();
   });
 
   it('audit 幂等:已 approved 再次 audit approved → 不重发事件', async () => {

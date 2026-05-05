@@ -14,6 +14,7 @@ import {
   ChangeStatusVo,
   CustomerDetailVo,
   CustomerListPageVo,
+  DisableCustomerDto,
   ListCustomersQueryDto,
   RealnameRecordPageVo,
 } from './admin-user.dto';
@@ -66,5 +67,33 @@ export class AdminUserController {
     @CurrentUser() principal: CurrentPrincipal,
   ): Promise<ChangeStatusVo> {
     return this.service.changeStatus(id, principal.principalId, dto);
+  }
+
+  @Post(':id/disable')
+  @RequirePermission('admin:customers:disable')
+  @Idempotent({ scope: 'admin-customer:disable', ttlSeconds: 60 })
+  @Audit({ targetType: 'customer-account-status' })
+  @ApiOperation({ summary: '禁用用户(stage 4 contract alias)' })
+  @ApiOkResponse({ type: ChangeStatusVo })
+  async disable(
+    @Param('id') id: string,
+    @Body() dto: DisableCustomerDto,
+    @CurrentUser() principal: CurrentPrincipal,
+  ): Promise<ChangeStatusVo> {
+    return this.service.changeStatus(id, principal.principalId, { operation: 'disable', reason: dto.reason });
+  }
+
+  @Post(':id/enable')
+  @RequirePermission('admin:customers:disable')
+  @Idempotent({ scope: 'admin-customer:enable', ttlSeconds: 60 })
+  @Audit({ targetType: 'customer-account-status' })
+  @ApiOperation({ summary: '启用用户(stage 4 contract alias)' })
+  @ApiOkResponse({ type: ChangeStatusVo })
+  async enable(
+    @Param('id') id: string,
+    @Body() dto: DisableCustomerDto,
+    @CurrentUser() principal: CurrentPrincipal,
+  ): Promise<ChangeStatusVo> {
+    return this.service.changeStatus(id, principal.principalId, { operation: 'enable', reason: dto.reason });
   }
 }

@@ -162,6 +162,20 @@ export class AdminMerchantService {
       );
     }
 
+    // stage 4 通用审核事件:approved / rejected 都发(stage 2 既有 approved 兼容保留)
+    await this.eventBus.publish(
+      EventName.MerchantAudited,
+      {
+        applicationId: app.applicationId,
+        merchantId: app.merchantId,
+        auditResult: dto.auditResult,
+        rejectReason: dto.rejectReason,
+        operatorAdminId: operatorId,
+        auditedAt: Number(now),
+      },
+      { bizType: 'merchant', bizId: app.merchantId },
+    );
+
     const merchant = await this.merchantRepo.findOne({ where: { merchantId: app.merchantId } });
     return {
       merchantId: app.merchantId,

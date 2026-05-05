@@ -22,6 +22,7 @@ import { REDIS_CLIENT, RedisModule } from './config/redis.module';
 import { IdempotencyRecord } from './database/entities';
 import { EventsModule } from './events/events.module';
 import { AddressModule } from './modules/address/address.module';
+import { AdminAuthModule } from './modules/admin-auth/admin-auth.module';
 import { AdminMerchantModule } from './modules/admin-merchant/admin-merchant.module';
 import { AdminRiderModule } from './modules/admin-rider/admin-rider.module';
 import { AdminUserModule } from './modules/admin-user/admin-user.module';
@@ -110,6 +111,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     RiderLocationModule,
     RiderTaskPoolModule,
     AdminRiderModule,
+    AdminAuthModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
