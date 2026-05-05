@@ -27,6 +27,7 @@ import { AdminCategoryModule } from './modules/admin-category/admin-category.mod
 import { AdminCityModule } from './modules/admin-city/admin-city.module';
 import { AdminMerchantModule } from './modules/admin-merchant/admin-merchant.module';
 import { AdminRiderModule } from './modules/admin-rider/admin-rider.module';
+import { AdminRolePermissionModule } from './modules/admin-role-permission/admin-role-permission.module';
 import { AdminSystemConfigModule } from './modules/admin-system-config/admin-system-config.module';
 import { AdminThirdPartyConfigModule } from './modules/admin-third-party-config/admin-third-party-config.module';
 import { AdminUserModule } from './modules/admin-user/admin-user.module';
@@ -120,6 +121,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     AdminCategoryModule,
     AdminSystemConfigModule,
     AdminThirdPartyConfigModule,
+    AdminRolePermissionModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

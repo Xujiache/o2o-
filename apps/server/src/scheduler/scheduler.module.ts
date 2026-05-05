@@ -3,6 +3,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import {
+  AccountDisableRecord,
   CustomerAddress,
   CustomerUser,
   IdempotencyRecord,
@@ -26,7 +27,9 @@ import { AuthEntitiesModule } from '../modules/auth/auth-entities.module';
 import { DistributedLockService } from './distributed-lock.service';
 import { AuditLogArchiveJob } from './jobs/audit-log-archive.job';
 import { ConfigCacheRefreshJob } from './jobs/config-cache-refresh.job';
+import { ConfigChangeAggregateJob } from './jobs/config-change-aggregate.job';
 import { DefaultAddressUniquenessJob } from './jobs/default-address-uniqueness.job';
+import { DisabledAccountTokenBroadcastJob } from './jobs/disabled-account-token-broadcast.job';
 import { ExpiredCleanupJob } from './jobs/expired-cleanup.job';
 import { LicenseExpiryReminderJob } from './jobs/license-expiry-reminder.job';
 import { LoginAnomalyDetectionJob } from './jobs/login-anomaly-detection.job';
@@ -69,6 +72,8 @@ import { SchedulerController } from './scheduler.controller';
       RiderStatus,
       RiderLocation,
       RiderAuditLog,
+      // Stage 4
+      AccountDisableRecord,
     ]),
   ],
   controllers: [SchedulerController],
@@ -95,6 +100,9 @@ import { SchedulerController } from './scheduler.controller';
     RiderHealthCertExpiryReminderJob,
     RiderAuditTimeoutReminderJob,
     RiderLocationArchiveJob,
+    // Stage 4
+    ConfigChangeAggregateJob,
+    DisabledAccountTokenBroadcastJob,
   ],
   exports: [ConfigCacheRefreshJob],
 })
