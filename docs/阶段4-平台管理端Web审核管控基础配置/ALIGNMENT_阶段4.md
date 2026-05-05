@@ -268,3 +268,13 @@ stage 0/1/2/3 既有 `admin:customers:disable` 等本阶段直接绑定 SUPER_AD
 | 强制下线               | jti 黑名单广播 → 老 token verify 失败 → 401;前端跳登录                 |
 | svg-captcha            | npm `svg-captcha` 库,后端生成 SVG 文本验证码,不依赖外部                |
 | 软禁用                 | enabled=false / service_enabled=false 标志位,业务读时过滤;数据物理保留 |
+
+## 8. 实现澄清(Wave 1 落地后追加)
+
+### 8.1 密码哈希算法
+
+DESIGN § 3.1 / ALIGNMENT § 5.11 原写"bcrypt cost=10"。**Wave 1 落地时改用 Node 内置 `crypto.scrypt`**(无原生编译依赖,Windows / 跨平台 / 测试环境零摩擦),参数 N=16384 r=8 p=1 salt=16 字节 key=32 字节,存储格式 `scrypt$<saltHex>$<hashHex>`,字段 `password_hash VARCHAR(128)` 充足容纳。`hashPassword` / `verifyPassword` 工具位于 `apps/server/src/common/utils/password.util.ts`,5 单元测试覆盖。R-01 风险等价(scrypt 与 bcrypt 安全等级相当)。
+
+### 8.2 admin_user 表创建方式
+
+DESIGN § 2.4 描述为"ALTER 加 4 列"。**Wave 1 实际落地时是 CREATE 整张表**(stage 0 未建 admin_user 表;原 explore 结论有误)。所以 `1714867600000-Stage4Init` migration 是 4 张 `CREATE TABLE`(admin_user / city_site / platform_category / account_disable_record),没有 ALTER。表结构与 DESIGN 字段一致(11 列 admin_user 含 4 列 lock 相关)。

@@ -28,6 +28,13 @@ export const EventName = {
   RiderOnline: 'domain.rider.online',
   RiderOffline: 'domain.rider.offline',
   RiderLocationUpdated: 'domain.rider.location-updated',
+  // Stage 4 — 平台管理端 6 个事件
+  AdminLoggedIn: 'domain.admin.logged-in',
+  RoleChanged: 'domain.role.changed',
+  AccountDisabled: 'domain.account.disabled',
+  MerchantAudited: 'domain.merchant.audited',
+  RiderAudited: 'domain.rider.audited',
+  ThirdPartyConfigChanged: 'domain.thirdparty.config-changed',
 } as const;
 
 export type EventName = (typeof EventName)[keyof typeof EventName];
@@ -185,6 +192,59 @@ export interface RiderLocationUpdatedPayload {
   lastReportedAt: number;
 }
 
+// === Stage 4 — 平台管理端事件 payload ===
+
+export interface AdminLoggedInPayload {
+  adminUserId: string;
+  username: string;
+  loggedInAt: number;
+  ip?: string;
+  deviceId?: string;
+}
+
+export interface RoleChangedPayload {
+  roleId: string;
+  roleCode: string;
+  oldPermissionCodes: string[];
+  newPermissionCodes: string[];
+  operatorAdminId: string;
+  changedAt: number;
+}
+
+export interface AccountDisabledPayload {
+  accountType: 'customer' | 'merchant' | 'rider';
+  accountId: string;
+  action: 'disable' | 'enable';
+  reason?: string;
+  operatorAdminId: string;
+  operatedAt: number;
+}
+
+export interface MerchantAuditedPayload {
+  applicationId: string;
+  merchantId?: string;
+  auditResult: 'approved' | 'rejected';
+  rejectReason?: string;
+  operatorAdminId: string;
+  auditedAt: number;
+}
+
+export interface RiderAuditedPayload {
+  applicationId: string;
+  riderId?: string;
+  auditResult: 'approved' | 'rejected';
+  rejectReason?: string;
+  operatorAdminId: string;
+  auditedAt: number;
+}
+
+export interface ThirdPartyConfigChangedPayload {
+  provider: string;
+  changedFields: string[];
+  operatorAdminId: string;
+  changedAt: number;
+}
+
 export type EventPayloadMap = {
   [EventName.ConfigChanged]: ConfigChangedPayload;
   [EventName.PermissionChanged]: PermissionChangedPayload;
@@ -207,4 +267,10 @@ export type EventPayloadMap = {
   [EventName.RiderOnline]: RiderOnlinePayload;
   [EventName.RiderOffline]: RiderOfflinePayload;
   [EventName.RiderLocationUpdated]: RiderLocationUpdatedPayload;
+  [EventName.AdminLoggedIn]: AdminLoggedInPayload;
+  [EventName.RoleChanged]: RoleChangedPayload;
+  [EventName.AccountDisabled]: AccountDisabledPayload;
+  [EventName.MerchantAudited]: MerchantAuditedPayload;
+  [EventName.RiderAudited]: RiderAuditedPayload;
+  [EventName.ThirdPartyConfigChanged]: ThirdPartyConfigChangedPayload;
 };

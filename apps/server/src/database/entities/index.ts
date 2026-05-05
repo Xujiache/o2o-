@@ -40,3 +40,8 @@ export * from './rider-service-area.entity';
 export * from './rider-status.entity';
 export * from './rider-location.entity';
 export * from './rider-audit-log.entity';
+// Stage 4 — 平台管理端 Web 审核管控与基础配置 4 张表
+export * from './admin-user.entity';
+export * from './city-site.entity';
+export * from './platform-category.entity';
+export * from './account-disable-record.entity';

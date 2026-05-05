@@ -128,6 +128,53 @@ const PERMISSIONS: PermRow[] = [
     parentCode: 'admin:menu:riders',
     sort: 2,
   },
+  // Stage 4 — 平台 Web 城市站点
+  { code: 'admin:menu:cities', name: '城市站点菜单', scope: 'admin', type: 'menu', sort: 500 },
+  {
+    code: 'admin:cities:manage',
+    name: '城市站点 CRUD',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:cities',
+    sort: 1,
+  },
+  // Stage 4 — 平台 Web 类目
+  { code: 'admin:menu:categories', name: '类目管理菜单', scope: 'admin', type: 'menu', sort: 510 },
+  {
+    code: 'admin:categories:manage',
+    name: '平台类目 CRUD',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:categories',
+    sort: 1,
+  },
+  // Stage 4 — 平台 Web 系统参数(stage 0 已有 menu,本阶段加 manage)
+  {
+    code: 'admin:system-config:manage',
+    name: '系统参数编辑',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:system-config',
+    sort: 1,
+  },
+  // Stage 4 — 平台 Web 第三方配置(stage 0 已有 menu + view,本阶段加 manage)
+  {
+    code: 'admin:third-party:manage',
+    name: '第三方配置编辑',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:integrations',
+    sort: 2,
+  },
+  // Stage 4 — 平台 Web 角色权限(stage 0 已有 menu,本阶段加 manage)
+  {
+    code: 'admin:roles:manage',
+    name: '角色权限编辑',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:roles-permissions',
+    sort: 1,
+  },
 ];
 
 export async function seedRolesAndPermissions(
@@ -201,6 +248,9 @@ export async function seedRolesAndPermissions(
     // AUDITOR 可以查看骑手(只读),不能审核/启停/配送区域
     ['AUDITOR', 'admin:menu:riders'],
     ['AUDITOR', 'admin:riders:view'],
+    // Stage 4 — AUDITOR 可见城市/类目/系统参数(只读项),无 manage
+    ['AUDITOR', 'admin:menu:cities'],
+    ['AUDITOR', 'admin:menu:categories'],
     // SUPER_ADMIN 全量已通过 ...PERMISSIONS.map 覆盖
   ];
 
