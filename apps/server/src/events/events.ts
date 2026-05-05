@@ -22,6 +22,12 @@ export const EventName = {
   ProductCreated: 'domain.product.created',
   ProductOnSale: 'domain.product.on-sale',
   StockLow: 'domain.stock.low',
+  // Stage 3 — 骑手入驻接单配送 5 个事件
+  RiderSubmitted: 'domain.rider.submitted',
+  RiderApproved: 'domain.rider.approved',
+  RiderOnline: 'domain.rider.online',
+  RiderOffline: 'domain.rider.offline',
+  RiderLocationUpdated: 'domain.rider.location-updated',
 } as const;
 
 export type EventName = (typeof EventName)[keyof typeof EventName];
@@ -141,6 +147,44 @@ export interface StockLowPayload {
   threshold: number;
 }
 
+// === Stage 3 — 骑手入驻接单配送事件 payload ===
+
+export interface RiderSubmittedPayload {
+  applicationId: string;
+  riderId: string;
+  mobile: string;
+  submittedAt: number;
+}
+
+export interface RiderApprovedPayload {
+  applicationId: string;
+  riderId: string;
+  approvedAt: number;
+  auditedBy: string;
+}
+
+export interface RiderOnlinePayload {
+  riderId: string;
+  deviceToken?: string;
+  platform?: 'android' | 'ios';
+  lng?: number;
+  lat?: number;
+}
+
+export interface RiderOfflinePayload {
+  riderId: string;
+  reason: 'rider-action' | 'heartbeat-timeout' | 'health-cert-expired' | 'admin-disabled';
+}
+
+export interface RiderLocationUpdatedPayload {
+  riderId: string;
+  batchId: string;
+  batchSize: number;
+  lastLng: number;
+  lastLat: number;
+  lastReportedAt: number;
+}
+
 export type EventPayloadMap = {
   [EventName.ConfigChanged]: ConfigChangedPayload;
   [EventName.PermissionChanged]: PermissionChangedPayload;
@@ -158,4 +202,9 @@ export type EventPayloadMap = {
   [EventName.ProductCreated]: ProductCreatedPayload;
   [EventName.ProductOnSale]: ProductOnSalePayload;
   [EventName.StockLow]: StockLowPayload;
+  [EventName.RiderSubmitted]: RiderSubmittedPayload;
+  [EventName.RiderApproved]: RiderApprovedPayload;
+  [EventName.RiderOnline]: RiderOnlinePayload;
+  [EventName.RiderOffline]: RiderOfflinePayload;
+  [EventName.RiderLocationUpdated]: RiderLocationUpdatedPayload;
 };

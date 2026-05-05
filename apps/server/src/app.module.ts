@@ -39,6 +39,9 @@ import { MessageSettingModule } from './modules/message-setting/message-setting.
 import { ProductModule } from './modules/product/product.module';
 import { PublicStoreReadonlyModule } from './modules/public-store-readonly/public-store-readonly.module';
 import { RealnameModule } from './modules/realname/realname.module';
+import { RiderAuthModule } from './modules/rider-auth/rider-auth.module';
+import { RiderOnboardingModule } from './modules/rider-onboarding/rider-onboarding.module';
+import { RiderProfileModule } from './modules/rider-profile/rider-profile.module';
 import { RiskModule } from './modules/risk/risk.module';
 import { SmsModule } from './modules/sms/sms.module';
 import { StockModule } from './modules/stock/stock.module';
@@ -98,6 +101,9 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     MerchantPromotionModule,
     AdminMerchantModule,
     PublicStoreReadonlyModule,
+    RiderAuthModule,
+    RiderOnboardingModule,
+    RiderProfileModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
