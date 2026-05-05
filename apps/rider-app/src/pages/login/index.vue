@@ -1,45 +1,63 @@
 <script setup lang="ts">
-/** 骑手端登录占位页:阶段 0 仅占位,完整登录流程在阶段 3 接入(短信 + 实名) */
-function back(): void {
-  uni.reLaunch({ url: '/pages/launch/index' });
+import { computed, ref } from 'vue';
+
+import MobileInput from '@/components/common/MobileInput.vue';
+import { useAuthStore } from '@/stores/auth';
+
+const auth = useAuthStore();
+const mobile = ref('');
+const sending = ref(false);
+
+const valid = computed(() => /^1[3-9]\d{9}$/.test(mobile.value));
+
+async function onSendSms(): Promise<void> {
+  if (!valid.value || sending.value) return;
+  sending.value = true;
+  try {
+    await auth.sendSms(mobile.value);
+    uni.navigateTo({ url: `/pages/login/verify?mobile=${mobile.value}` });
+  } catch (e) {
+    uni.showToast({ icon: 'none', title: e instanceof Error ? e.message : '发送失败' });
+  } finally {
+    sending.value = false;
+  }
 }
 </script>
 
 <template>
-  <view class="page">
-    <view class="page__title">骑手登录</view>
-    <text class="page__desc">阶段 0 仅占位,完整登录流程在阶段 3 接入(短信 + 实名)。</text>
-    <button class="page__btn" disabled>登录(占位)</button>
-    <button class="page__btn page__btn--ghost" @click="back">返回首页</button>
+  <view class="login">
+    <view class="login__title">骑手登录</view>
+    <view class="login__desc">输入手机号,接收 6 位验证码登录</view>
+    <MobileInput v-model="mobile" />
+    <button class="login__btn" :disabled="!valid || sending" @click="onSendSms">
+      {{ sending ? '发送中...' : '发送验证码' }}
+    </button>
   </view>
 </template>
 
 <style scoped>
-.page {
-  padding: 64rpx 32rpx;
+.login {
+  padding: 64rpx 48rpx;
   display: flex;
   flex-direction: column;
   gap: 32rpx;
-  align-items: center;
 }
-.page__title {
-  font-size: 40rpx;
+.login__title {
+  font-size: 48rpx;
   font-weight: 600;
 }
-.page__desc {
+.login__desc {
   font-size: 26rpx;
   color: #666;
-  text-align: center;
 }
-.page__btn {
-  width: 80%;
+.login__btn {
+  margin-top: 32rpx;
   background: #4c84ff;
   color: #fff;
   border-radius: 12rpx;
 }
-.page__btn--ghost {
-  background: #fff;
-  color: #4c84ff;
-  border: 1rpx solid #4c84ff;
+.login__btn[disabled] {
+  background: #aac4ff;
+  color: #fff;
 }
 </style>

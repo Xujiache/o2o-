@@ -7,8 +7,7 @@
     "dev": "uni",
     "dev:h5": "uni",
     "dev:app": "uni -p app",
-    "build": "uni build",
-    "build:h5": "uni build",
+    "build": "uni build -p app",
     "build:app": "uni build -p app",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
@@ -20,6 +19,7 @@
     "@dcloudio/uni-components": "vue3",
     "@dcloudio/uni-h5": "vue3",
     "@o2o/contracts": "workspace:*",
+    "pinia": "2.0.36",
     "vue": "3.4.21"
   },
   "devDependencies": {

@@ -8,15 +8,69 @@
       }
     },
     {
-      "path": "pages/permission/location",
-      "style": {
-        "navigationBarTitleText": "定位授权"
-      }
-    },
-    {
       "path": "pages/login/index",
       "style": {
         "navigationBarTitleText": "登录"
+      }
+    },
+    {
+      "path": "pages/login/verify",
+      "style": {
+        "navigationBarTitleText": "验证码"
+      }
+    },
+    {
+      "path": "pages/onboarding/apply",
+      "style": {
+        "navigationBarTitleText": "入驻 - 身份资料"
+      }
+    },
+    {
+      "path": "pages/onboarding/face",
+      "style": {
+        "navigationBarTitleText": "入驻 - 人脸核验"
+      }
+    },
+    {
+      "path": "pages/onboarding/health",
+      "style": {
+        "navigationBarTitleText": "入驻 - 健康证"
+      }
+    },
+    {
+      "path": "pages/onboarding/vehicle",
+      "style": {
+        "navigationBarTitleText": "入驻 - 车辆信息"
+      }
+    },
+    {
+      "path": "pages/onboarding/progress",
+      "style": {
+        "navigationBarTitleText": "审核进度"
+      }
+    },
+    {
+      "path": "pages/workbench/index",
+      "style": {
+        "navigationBarTitleText": "骑手工作台"
+      }
+    },
+    {
+      "path": "pages/tasks/available",
+      "style": {
+        "navigationBarTitleText": "接单大厅"
+      }
+    },
+    {
+      "path": "pages/profile/index",
+      "style": {
+        "navigationBarTitleText": "个人资料"
+      }
+    },
+    {
+      "path": "pages/permission/location",
+      "style": {
+        "navigationBarTitleText": "定位授权"
       }
     },
     {

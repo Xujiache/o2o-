@@ -1,7 +1,7 @@
 /**
  * 骑手端统一请求封装(基于 uni.request)。
  * - 自动注入 Rider-Token / Idempotency-Key(写接口) / X-Trace-Id
- * - 401 → clear token + 跳登录占位
+ * - 401 → 调用 refreshHandler(stage 3 注入)→ 失败则 clear token + 跳登录
  */
 import { ErrorCode, Header, type ApiResponse } from '@o2o/contracts';
 
@@ -12,13 +12,21 @@ const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://127.0.
 
 export interface RiderRequestOptions {
   url: string;
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   data?: Record<string, unknown> | unknown[];
   params?: Record<string, unknown>;
   header?: Record<string, string>;
   idempotent?: boolean;
   authRequired?: boolean;
   timeout?: number;
+  /** 内部用,防止 401 → refresh → 401 死循环 */
+  _retried?: boolean;
+}
+
+type RefreshHandler = () => Promise<boolean>;
+let refreshHandler: RefreshHandler | null = null;
+export function setRefreshHandler(handler: RefreshHandler | null): void {
+  refreshHandler = handler;
 }
 
 function buildQuery(params?: Record<string, unknown>): string {
@@ -52,24 +60,37 @@ export function request<T = unknown>(options: RiderRequestOptions): Promise<ApiR
   return new Promise<ApiResponse<T>>((resolve, reject) => {
     uni.request({
       url: BASE_URL + options.url + buildQuery(options.params),
-      method,
+      method: method as never,
       data: options.data,
       header: headers,
       timeout: options.timeout ?? 15000,
-      success(res) {
+      async success(res) {
         const body = res.data as ApiResponse<T> | undefined;
         if (!body || typeof body !== 'object' || !('code' in body)) {
           reject(new Error(`bad response: status=${res.statusCode}`));
           return;
         }
-        if (body.code === ErrorCode.UNAUTHORIZED) {
+        if (body.code === ErrorCode.UNAUTHORIZED && !options._retried && refreshHandler) {
+          const ok = await refreshHandler();
+          if (ok) {
+            try {
+              const r = await request<T>({ ...options, _retried: true });
+              resolve(r);
+              return;
+            } catch (err) {
+              reject(err);
+              return;
+            }
+          }
+          clearToken();
+          uni.reLaunch({ url: '/pages/login/index' });
+        } else if (body.code === ErrorCode.UNAUTHORIZED) {
           clearToken();
           uni.reLaunch({ url: '/pages/login/index' });
         }
         resolve(body);
       },
       fail(err) {
-        uni.reLaunch({ url: '/pages/error/network' });
         reject(err);
       },
     });
