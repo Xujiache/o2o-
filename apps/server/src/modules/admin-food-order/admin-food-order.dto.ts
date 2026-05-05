@@ -82,6 +82,11 @@ export class AdminFoodOrderDetailVo {
   @ApiProperty({ required: false }) @Expose() cancelledAt?: number | null;
   @ApiProperty({ required: false }) @Expose() cancelledBy?: FoodOrderCancelledBy | null;
   @ApiProperty({ required: false }) @Expose() cancelledReason?: string | null;
+  // Stage 7 — 商家履约时间字段(扩展)
+  @ApiProperty({ required: false }) @Expose() acceptedAt?: number | null;
+  @ApiProperty({ required: false }) @Expose() expectedReadyAt?: number | null;
+  @ApiProperty({ required: false }) @Expose() readyAt?: number | null;
+  @ApiProperty({ required: false }) @Expose() rejectReason?: string | null;
   @ApiProperty() @Expose() createdAt!: number;
   @ApiProperty({ type: [AdminTimelineEntryVo] }) @Expose() timeline!: AdminTimelineEntryVo[];
   @ApiProperty({ required: false }) @Expose() payment?: AdminPaymentBriefVo | null;

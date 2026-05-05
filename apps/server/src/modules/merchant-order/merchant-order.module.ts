@@ -1,0 +1,15 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { FoodOrder, MerchantOrderActionLog, Store } from '../../database/entities';
+
+import { MerchantOrderController } from './merchant-order.controller';
+import { MerchantOrderService } from './merchant-order.service';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([FoodOrder, MerchantOrderActionLog, Store])],
+  controllers: [MerchantOrderController],
+  providers: [MerchantOrderService],
+  exports: [MerchantOrderService],
+})
+export class MerchantOrderModule {}

@@ -22,23 +22,29 @@ import { REDIS_CLIENT, RedisModule } from './config/redis.module';
 import { IdempotencyRecord } from './database/entities';
 import { EventsModule } from './events/events.module';
 import { AddressModule } from './modules/address/address.module';
+import { AdminAfterSaleModule } from './modules/admin-after-sale/admin-after-sale.module';
 import { AdminAuthModule } from './modules/admin-auth/admin-auth.module';
 import { AdminCategoryModule } from './modules/admin-category/admin-category.module';
 import { AdminCityModule } from './modules/admin-city/admin-city.module';
 import { AdminErrandOrderModule } from './modules/admin-errand-order/admin-errand-order.module';
 import { AdminFoodOrderModule } from './modules/admin-food-order/admin-food-order.module';
 import { AdminMerchantModule } from './modules/admin-merchant/admin-merchant.module';
+import { AdminMerchantStatisticsModule } from './modules/admin-merchant-statistics/admin-merchant-statistics.module';
 import { AdminRiderModule } from './modules/admin-rider/admin-rider.module';
 import { AdminRolePermissionModule } from './modules/admin-role-permission/admin-role-permission.module';
+import { AdminSettlementModule } from './modules/admin-settlement/admin-settlement.module';
 import { AdminSystemConfigModule } from './modules/admin-system-config/admin-system-config.module';
 import { AdminThirdPartyConfigModule } from './modules/admin-third-party-config/admin-third-party-config.module';
 import { AdminUserModule } from './modules/admin-user/admin-user.module';
+import { AdminWithdrawalModule } from './modules/admin-withdrawal/admin-withdrawal.module';
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CartModule } from './modules/cart/cart.module';
 import { CommonConfigModule } from './modules/common-config/common-config.module';
 import { CouponModule } from './modules/coupon/coupon.module';
+import { CustomerAfterSaleModule } from './modules/customer-after-sale/customer-after-sale.module';
 import { CustomerAuthModule } from './modules/customer-auth/customer-auth.module';
+import { CustomerReviewModule } from './modules/customer-review/customer-review.module';
 import { DictModule } from './modules/dict/dict.module';
 import { ErrandDispatchModule } from './modules/errand-dispatch/errand-dispatch.module';
 import { ErrandOrderModule } from './modules/errand-order/errand-order.module';
@@ -49,9 +55,15 @@ import { FoodHomeModule } from './modules/food-home/food-home.module';
 import { FoodOrderModule } from './modules/food-order/food-order.module';
 import { GatewayModule } from './modules/gateway/gateway.module';
 import { IntegrationGatewayModule } from './modules/integration-gateway/integration-gateway.module';
+import { MerchantAfterSaleModule } from './modules/merchant-after-sale/merchant-after-sale.module';
 import { MerchantAuthModule } from './modules/merchant-auth/merchant-auth.module';
 import { MerchantOnboardingModule } from './modules/merchant-onboarding/merchant-onboarding.module';
+import { MerchantOrderModule } from './modules/merchant-order/merchant-order.module';
 import { MerchantPromotionModule } from './modules/merchant-promotion/merchant-promotion.module';
+import { MerchantReviewModule } from './modules/merchant-review/merchant-review.module';
+import { MerchantSettlementModule } from './modules/merchant-settlement/merchant-settlement.module';
+import { MerchantStatisticsModule } from './modules/merchant-statistics/merchant-statistics.module';
+import { MerchantWithdrawalModule } from './modules/merchant-withdrawal/merchant-withdrawal.module';
 import { MessageSettingModule } from './modules/message-setting/message-setting.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { ProductModule } from './modules/product/product.module';
@@ -154,6 +166,19 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     ErrandOrderModule,
     ErrandDispatchModule,
     AdminErrandOrderModule,
+    // Stage 7 — 商家端 APP 订单售后结算
+    MerchantOrderModule,
+    MerchantAfterSaleModule,
+    MerchantReviewModule,
+    MerchantStatisticsModule,
+    MerchantSettlementModule,
+    MerchantWithdrawalModule,
+    CustomerAfterSaleModule,
+    CustomerReviewModule,
+    AdminAfterSaleModule,
+    AdminSettlementModule,
+    AdminWithdrawalModule,
+    AdminMerchantStatisticsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

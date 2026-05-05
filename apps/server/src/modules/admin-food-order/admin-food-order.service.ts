@@ -87,6 +87,11 @@ export class AdminFoodOrderService {
       cancelledAt: order.cancelledAt ? Number(order.cancelledAt) : null,
       cancelledBy: order.cancelledBy,
       cancelledReason: order.cancelledReason,
+      // Stage 7 — 商家履约时间(扩展)
+      acceptedAt: order.acceptedAt ? Number(order.acceptedAt) : null,
+      expectedReadyAt: order.expectedReadyAt ? Number(order.expectedReadyAt) : null,
+      readyAt: order.readyAt ? Number(order.readyAt) : null,
+      rejectReason: order.rejectReason,
       createdAt: Number(order.createdAt),
       timeline: timelineRows.map((t) => ({
         fromStatus: t.fromStatus,
