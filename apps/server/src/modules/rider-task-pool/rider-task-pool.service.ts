@@ -3,19 +3,26 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ErrorCode } from '@o2o/contracts';
 import { Repository } from 'typeorm';
 
-import { RiderAccount, RiderApplication, RiderServiceArea, RiderStatus } from '../../database/entities';
+import {
+  FoodOrder,
+  RiderAccount,
+  RiderApplication,
+  RiderServiceArea,
+  RiderStatus,
+  Store,
+} from '../../database/entities';
 
 import { TaskPoolQueryDto, TaskPoolVo } from './rider-task-pool.dto';
 
+const PICKUP_DEADLINE_MS = 30 * 60 * 1000; // stage 5 简化:READY_FOR_PICKUP 后 30 min 截止
+const REWARD_BASE_CENTS = 500; // 5 元基础酬劳(stage 8 真计算)
+
 /**
- * 接单大厅服务(stage 3 骨架,per ALIGNMENT D-4)。
+ * 接单大厅服务(stage 3 骨架 + stage 5 扩展)。
  *
- * 本阶段:校验 rider 必须 approved + online + 有 service_area,然后返回空数组。
- * Stage 5/6 真订单出来后,在此处:
- *  1. 按 bizType 过滤外卖/跑腿订单
- *  2. 计算 rider 当前位置到 pickup 点距离 ≤ radius
- *  3. 校验 pickup 点在 rider 服务区内
- *  4. 排序按 distance ASC + deadline ASC
+ * 校验 rider 必须 approved + online + 有 service_area。
+ * Stage 5:扫 food_order WHERE status='READY_FOR_PICKUP' 返简化任务卡(只读,不允许接单)。
+ * 接单 / 取餐 / 送达 → stage 8 实现。
  */
 @Injectable()
 export class RiderTaskPoolService {
@@ -26,6 +33,8 @@ export class RiderTaskPoolService {
     @InjectRepository(RiderApplication) private readonly appRepo: Repository<RiderApplication>,
     @InjectRepository(RiderStatus) private readonly statusRepo: Repository<RiderStatus>,
     @InjectRepository(RiderServiceArea) private readonly areaRepo: Repository<RiderServiceArea>,
+    @InjectRepository(FoodOrder) private readonly foodOrderRepo: Repository<FoodOrder>,
+    @InjectRepository(Store) private readonly storeRepo: Repository<Store>,
   ) {}
 
   async listAvailable(riderId: string, query: TaskPoolQueryDto): Promise<TaskPoolVo> {
@@ -50,7 +59,6 @@ export class RiderTaskPoolService {
     }
     const status = await this.statusRepo.findOne({ where: { riderId } });
     if (!status || status.onlineStatus !== 'online') {
-      // 未上线时返空数组,不抛错(前端可正常 loading 后展示空状态)
       return { items: [], total: 0 };
     }
     const area = await this.areaRepo.findOne({ where: { riderId } });
@@ -58,7 +66,41 @@ export class RiderTaskPoolService {
       this.logger.debug(`[task-pool] rider ${riderId} has no service-area; returning empty`);
       return { items: [], total: 0 };
     }
-    // 真订单查询留 stage 5/6
-    return { items: [], total: 0 };
+
+    // stage 5:扫 READY_FOR_PICKUP 外卖订单(只读骨架)
+    const orders = await this.foodOrderRepo
+      .createQueryBuilder('o')
+      .where("o.status = 'READY_FOR_PICKUP'")
+      .orderBy('o.created_at', 'ASC')
+      .limit(20)
+      .getMany();
+
+    if (!orders.length) return { items: [], total: 0 };
+
+    const storeIds = Array.from(new Set(orders.map((o) => o.storeId)));
+    const storeRows = storeIds.length
+      ? await this.storeRepo.createQueryBuilder('s').where('s.store_id IN (:...ids)', { ids: storeIds }).getMany()
+      : [];
+    const storeMap = new Map(storeRows.map((s) => [s.storeId, s]));
+
+    const items = orders.map((o) => {
+      const store = storeMap.get(o.storeId);
+      const addressSnapshot = (o.addressSnapshot ?? {}) as { lng?: number; lat?: number; detail?: string };
+      return {
+        taskId: o.foodOrderId,
+        bizType: 'takeaway' as const,
+        distance: 1500,
+        reward: REWARD_BASE_CENTS,
+        deadline: Number(o.paidAt ?? o.createdAt) + PICKUP_DEADLINE_MS,
+        pickupAddress: { lng: 116.4, lat: 39.9, text: store?.name ?? '门店地址' },
+        deliveryAddress: {
+          lng: addressSnapshot.lng ?? 116.4,
+          lat: addressSnapshot.lat ?? 39.9,
+          text: addressSnapshot.detail ?? '收货地址',
+        },
+      };
+    });
+
+    return { items, total: items.length };
   }
 }

@@ -175,6 +175,16 @@ const PERMISSIONS: PermRow[] = [
     parentCode: 'admin:menu:roles-permissions',
     sort: 1,
   },
+  // Stage 5 — 平台 Web 外卖订单监控
+  { code: 'admin:menu:food-orders', name: '外卖订单菜单', scope: 'admin', type: 'menu', sort: 600 },
+  {
+    code: 'admin:food-orders:view',
+    name: '外卖订单查询',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:food-orders',
+    sort: 1,
+  },
 ];
 
 export async function seedRolesAndPermissions(
@@ -251,6 +261,9 @@ export async function seedRolesAndPermissions(
     // Stage 4 — AUDITOR 可见城市/类目/系统参数(只读项),无 manage
     ['AUDITOR', 'admin:menu:cities'],
     ['AUDITOR', 'admin:menu:categories'],
+    // Stage 5 — AUDITOR 可见外卖订单(只读)
+    ['AUDITOR', 'admin:menu:food-orders'],
+    ['AUDITOR', 'admin:food-orders:view'],
     // SUPER_ADMIN 全量已通过 ...PERMISSIONS.map 覆盖
   ];
 

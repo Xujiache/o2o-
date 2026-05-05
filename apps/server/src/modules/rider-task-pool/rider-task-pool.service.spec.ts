@@ -1,7 +1,14 @@
 import { NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import type { Repository } from 'typeorm';
 
-import type { RiderAccount, RiderApplication, RiderServiceArea, RiderStatus } from '../../database/entities';
+import type {
+  FoodOrder,
+  RiderAccount,
+  RiderApplication,
+  RiderServiceArea,
+  RiderStatus,
+  Store,
+} from '../../database/entities';
 
 import { RiderTaskPoolService } from './rider-task-pool.service';
 
@@ -11,6 +18,8 @@ describe('RiderTaskPoolService', () => {
   let applications: RiderApplication[];
   let statuses: RiderStatus[];
   let areas: RiderServiceArea[];
+  let foodOrders: FoodOrder[];
+  let stores: Store[];
 
   beforeEach(() => {
     riders = [
@@ -24,6 +33,8 @@ describe('RiderTaskPoolService', () => {
     ];
     statuses = [{ statusId: '1', riderId: '1', onlineStatus: 'online' } as RiderStatus];
     areas = [{ serviceAreaId: '1', riderId: '1' } as RiderServiceArea];
+    foodOrders = [];
+    stores = [{ storeId: '20001', name: '北京肯德基' } as unknown as Store];
 
     const riderRepo = {
       findOne: jest.fn(
@@ -52,13 +63,59 @@ describe('RiderTaskPoolService', () => {
       ),
     } as unknown as jest.Mocked<Repository<RiderServiceArea>>;
 
-    svc = new RiderTaskPoolService(riderRepo, appRepo, statusRepo, areaRepo);
+    const foodOrderRepo = {
+      createQueryBuilder: jest.fn(() => ({
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        getMany: jest.fn(async () => foodOrders.filter((o) => o.status === 'READY_FOR_PICKUP')),
+      })),
+    } as unknown as jest.Mocked<Repository<FoodOrder>>;
+
+    const storeRepo = {
+      createQueryBuilder: jest.fn(() => ({
+        where: jest.fn().mockReturnThis(),
+        getMany: jest.fn(async () => stores),
+      })),
+    } as unknown as jest.Mocked<Repository<Store>>;
+
+    svc = new RiderTaskPoolService(riderRepo, appRepo, statusRepo, areaRepo, foodOrderRepo, storeRepo);
   });
 
-  it('approved+online+有 service area → 返空数组(本阶段无源订单)', async () => {
+  it('approved+online+有 service area → 无 READY_FOR_PICKUP 时返空', async () => {
     const r = await svc.listAvailable('1', {});
     expect(r.items).toEqual([]);
     expect(r.total).toBe(0);
+  });
+
+  it('approved+online + 有 READY_FOR_PICKUP 食单 → 返简化任务卡', async () => {
+    foodOrders.push({
+      foodOrderId: '700001',
+      storeId: '20001',
+      status: 'READY_FOR_PICKUP',
+      paidAt: '1000',
+      createdAt: '500',
+      addressSnapshot: { lng: 116.5, lat: 40.0, detail: '收货地址' },
+    } as unknown as FoodOrder);
+    const r = await svc.listAvailable('1', {});
+    expect(r.items).toHaveLength(1);
+    expect(r.items[0]!.taskId).toBe('700001');
+    expect(r.items[0]!.bizType).toBe('takeaway');
+    expect(r.items[0]!.reward).toBe(500);
+    expect(r.items[0]!.pickupAddress.text).toBe('北京肯德基');
+    expect(r.items[0]!.deliveryAddress.text).toContain('收货');
+  });
+
+  it('已 RIDER_ASSIGNED 的食单不返(filter status=READY_FOR_PICKUP)', async () => {
+    foodOrders.push({
+      foodOrderId: '700002',
+      storeId: '20001',
+      status: 'RIDER_ASSIGNED',
+      paidAt: '1000',
+      createdAt: '500',
+    } as unknown as FoodOrder);
+    const r = await svc.listAvailable('1', {});
+    expect(r.items).toEqual([]);
   });
 
   it('未 approved → STATUS_INVALID', async () => {

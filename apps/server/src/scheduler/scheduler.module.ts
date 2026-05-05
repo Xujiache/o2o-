@@ -6,12 +6,16 @@ import {
   AccountDisableRecord,
   CustomerAddress,
   CustomerUser,
+  FoodOrder,
   IdempotencyRecord,
   IntegrationRequestLog,
   LoginDevice,
   MerchantLicense,
   MerchantPromotion,
+  OrderTimeline,
+  PaymentOrder,
   Product,
+  ProductSku,
   RealnameRecord,
   RiderAccount,
   RiderApplication,
@@ -19,9 +23,11 @@ import {
   RiderLocation,
   RiderStatus,
   SmsCode,
+  StockLock,
   SysAuditLog,
   SysConfig,
 } from '../database/entities';
+import { EventsModule } from '../events/events.module';
 import { AuthEntitiesModule } from '../modules/auth/auth-entities.module';
 
 import { DistributedLockService } from './distributed-lock.service';
@@ -33,9 +39,12 @@ import { DisabledAccountTokenBroadcastJob } from './jobs/disabled-account-token-
 import { ExpiredCleanupJob } from './jobs/expired-cleanup.job';
 import { LicenseExpiryReminderJob } from './jobs/license-expiry-reminder.job';
 import { LoginAnomalyDetectionJob } from './jobs/login-anomaly-detection.job';
+import { MerchantAcceptTimeoutCancelJob } from './jobs/merchant-accept-timeout-cancel.job';
+import { PaymentCallbackRetryJob } from './jobs/payment-callback-retry.job';
 import { PromoEndJob } from './jobs/promo-end.job';
 import { PromoStartJob } from './jobs/promo-start.job';
 import { RealnameRetryJob } from './jobs/realname-retry.job';
+import { ReservedOrderDispatchJob } from './jobs/reserved-order-dispatch.job';
 import { RiderAuditTimeoutReminderJob } from './jobs/rider-audit-timeout-reminder.job';
 import { RiderHealthCertExpiryReminderJob } from './jobs/rider-health-cert-expiry-reminder.job';
 import { RiderHeartbeatTimeoutOfflineJob } from './jobs/rider-heartbeat-timeout-offline.job';
@@ -44,6 +53,7 @@ import { SmsCodeExpiredCleanupJob } from './jobs/sms-code-expired-cleanup.job';
 import { SoldOutAutoOffShelfJob } from './jobs/sold-out-auto-off-shelf.job';
 import { StockAlertScanJob } from './jobs/stock-alert-scan.job';
 import { ThirdPartyRetryJob } from './jobs/third-party-retry.job';
+import { WaitPayTimeoutCloseJob } from './jobs/wait-pay-timeout-close.job';
 import { SchedulerController } from './scheduler.controller';
 
 @Module({
@@ -74,7 +84,14 @@ import { SchedulerController } from './scheduler.controller';
       RiderAuditLog,
       // Stage 4
       AccountDisableRecord,
+      // Stage 5
+      FoodOrder,
+      PaymentOrder,
+      StockLock,
+      OrderTimeline,
+      ProductSku,
     ]),
+    EventsModule,
   ],
   controllers: [SchedulerController],
   providers: [
@@ -103,6 +120,11 @@ import { SchedulerController } from './scheduler.controller';
     // Stage 4
     ConfigChangeAggregateJob,
     DisabledAccountTokenBroadcastJob,
+    // Stage 5
+    WaitPayTimeoutCloseJob,
+    MerchantAcceptTimeoutCancelJob,
+    PaymentCallbackRetryJob,
+    ReservedOrderDispatchJob,
   ],
   exports: [ConfigCacheRefreshJob],
 })
