@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 
-export type RealnameFailedReason = '内容不符' | '三要素不一致' | '三方不可用';
+export type RealnameFailedReason = '内容不符' | '三要素不一致' | '三方不可用' | '企业资质不一致';
 
 export interface RealnameVerifyResult {
   success: boolean;
@@ -9,12 +9,29 @@ export interface RealnameVerifyResult {
   reason?: RealnameFailedReason;
 }
 
+export interface VerifyEnterpriseOpts {
+  /** 营业执照号 */
+  licenseNo: string;
+  /** 法人姓名 */
+  legalName: string;
+  /** 法人身份证号 */
+  legalIdCardNo: string;
+  /** 食品许可证号(餐饮类必填) */
+  foodPermitNo?: string;
+}
+
 export interface RealnameAdapter {
   /**
-   * 校验姓名 + 身份证号 三要素一致性。
-   * mock 行为(T02):姓名首字汉字 → success;否则 → failed("内容不符")。
+   * 校验姓名 + 身份证号 三要素一致性(个人)。
+   * mock 行为:姓名首字汉字 → success;否则 → failed("内容不符")。
    */
   verify(realName: string, idCardNo: string): Promise<RealnameVerifyResult>;
+
+  /**
+   * 企业三要素 + 资质核验(stage 2)。
+   * mock 行为:licenseNo.length==18 且 legalName 首字汉字 → success;否则 → failed("企业资质不一致")。
+   */
+  verifyEnterprise(opts: VerifyEnterpriseOpts): Promise<RealnameVerifyResult>;
 }
 
 export class RealnameMockAdapter implements RealnameAdapter {
@@ -26,6 +43,16 @@ export class RealnameMockAdapter implements RealnameAdapter {
     }
     return { success: false, providerRequestId: `mock-${nanoid(16)}`, reason: '内容不符' };
   }
+
+  async verifyEnterprise(opts: VerifyEnterpriseOpts): Promise<RealnameVerifyResult> {
+    const legalFirstChar = opts.legalName.trim().charAt(0);
+    const isLegalChinese = /^[一-龥]$/.test(legalFirstChar);
+    const licenseOk = opts.licenseNo.trim().length === 18;
+    if (isLegalChinese && licenseOk) {
+      return { success: true, providerRequestId: `mock-${nanoid(16)}` };
+    }
+    return { success: false, providerRequestId: `mock-${nanoid(16)}`, reason: '企业资质不一致' };
+  }
 }
 
 export class RealnameRealAdapter implements RealnameAdapter {
@@ -36,5 +63,8 @@ export class RealnameRealAdapter implements RealnameAdapter {
   }
   async verify(_realName: string, _idCardNo: string): Promise<RealnameVerifyResult> {
     throw new Error('ali-realname not configured (stage 1+)');
+  }
+  async verifyEnterprise(_opts: VerifyEnterpriseOpts): Promise<RealnameVerifyResult> {
+    throw new Error('ali-realname enterprise not configured (stage 2+)');
   }
 }

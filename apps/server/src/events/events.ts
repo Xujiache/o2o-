@@ -15,6 +15,13 @@ export const EventName = {
   CustomerRealnameVerified: 'domain.customer.realname-verified',
   CustomerAddressChanged: 'domain.customer.address-changed',
   CustomerAccountDisabled: 'domain.customer.account-disabled',
+  // Stage 2 — 商家入驻店铺商品 6 个事件
+  MerchantSubmitted: 'domain.merchant.submitted',
+  MerchantApproved: 'domain.merchant.approved',
+  StoreStatusChanged: 'domain.store.status-changed',
+  ProductCreated: 'domain.product.created',
+  ProductOnSale: 'domain.product.on-sale',
+  StockLow: 'domain.stock.low',
 } as const;
 
 export type EventName = (typeof EventName)[keyof typeof EventName];
@@ -87,6 +94,53 @@ export interface CustomerAccountDisabledPayload {
   reason: string;
 }
 
+// === Stage 2 — 商家入驻店铺商品事件 payload ===
+
+export interface MerchantSubmittedPayload {
+  merchantId: string;
+  applicationId: string;
+  submittedAt: number;
+}
+
+export interface MerchantApprovedPayload {
+  merchantId: string;
+  applicationId: string;
+  commissionRate: number;
+  approvedAt: number;
+  auditedBy: string;
+}
+
+export interface StoreStatusChangedPayload {
+  storeId: string;
+  merchantId: string;
+  beforeStatus: string;
+  afterStatus: string;
+  effectiveAt: number;
+  operatorType: 'merchant' | 'admin' | 'system';
+  reason?: string;
+}
+
+export interface ProductCreatedPayload {
+  productId: string;
+  storeId: string;
+  categoryId: string;
+  createdAt: number;
+}
+
+export interface ProductOnSalePayload {
+  productId: string;
+  storeId: string;
+  saleStatus: 'on_shelf' | 'off_shelf' | 'sold_out';
+  changedAt: number;
+}
+
+export interface StockLowPayload {
+  productId: string;
+  storeId: string;
+  currentStock: number;
+  threshold: number;
+}
+
 export type EventPayloadMap = {
   [EventName.ConfigChanged]: ConfigChangedPayload;
   [EventName.PermissionChanged]: PermissionChangedPayload;
@@ -98,4 +152,10 @@ export type EventPayloadMap = {
   [EventName.CustomerRealnameVerified]: CustomerRealnameVerifiedPayload;
   [EventName.CustomerAddressChanged]: CustomerAddressChangedPayload;
   [EventName.CustomerAccountDisabled]: CustomerAccountDisabledPayload;
+  [EventName.MerchantSubmitted]: MerchantSubmittedPayload;
+  [EventName.MerchantApproved]: MerchantApprovedPayload;
+  [EventName.StoreStatusChanged]: StoreStatusChangedPayload;
+  [EventName.ProductCreated]: ProductCreatedPayload;
+  [EventName.ProductOnSale]: ProductOnSalePayload;
+  [EventName.StockLow]: StockLowPayload;
 };

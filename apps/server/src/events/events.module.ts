@@ -14,6 +14,10 @@ import { CustomerLoggedInSubscriber } from './subscribers/customer-logged-in.sub
 import { CustomerRealnameVerifiedSubscriber } from './subscribers/customer-realname-verified.subscriber';
 import { CustomerRegisteredSubscriber } from './subscribers/customer-registered.subscriber';
 import { FileUploadedSubscriber } from './subscribers/file-uploaded.subscriber';
+import { MerchantApprovedSubscriber } from './subscribers/merchant-approved.subscriber';
+import { MerchantSubmittedSubscriber } from './subscribers/merchant-submitted.subscriber';
+import { StockLowSubscriber } from './subscribers/stock-low.subscriber';
+import { StoreStatusChangedSubscriber } from './subscribers/store-status-changed.subscriber';
 
 @Global()
 @Module({
@@ -32,6 +36,10 @@ import { FileUploadedSubscriber } from './subscribers/file-uploaded.subscriber';
     CustomerLoggedInSubscriber,
     CustomerRealnameVerifiedSubscriber,
     CustomerAccountDisabledSubscriber,
+    MerchantSubmittedSubscriber,
+    MerchantApprovedSubscriber,
+    StoreStatusChangedSubscriber,
+    StockLowSubscriber,
   ],
   exports: [DomainEventBus],
 })

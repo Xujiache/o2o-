@@ -86,6 +86,27 @@ const PERMISSIONS: PermRow[] = [
     parentCode: 'admin:menu:customers',
     sort: 2,
   },
+  // Stage 2 — 商家端
+  { code: 'merchant:public', name: '商家端公开接口', scope: 'public', type: 'data', sort: 300 },
+  { code: 'merchant:store:own', name: '商家访问自己店铺数据', scope: 'merchant', type: 'data', sort: 310 },
+  // Stage 2 — 平台 Web 商家管理
+  { code: 'admin:menu:merchants', name: '商家管理菜单', scope: 'admin', type: 'menu', sort: 300 },
+  {
+    code: 'admin:merchants:view',
+    name: '商家列表/详情/资质查看',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:merchants',
+    sort: 1,
+  },
+  {
+    code: 'admin:merchants:manage',
+    name: '商家审核/驳回/管控',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:merchants',
+    sort: 2,
+  },
 ];
 
 export async function seedRolesAndPermissions(
@@ -149,7 +170,12 @@ export async function seedRolesAndPermissions(
     // AUDITOR 可以查看用户(只读),不能禁用
     ['AUDITOR', 'admin:menu:customers'],
     ['AUDITOR', 'admin:customers:view'],
-    // SUPER_ADMIN 全量已通过 ...PERMISSIONS.map 覆盖,无需重复
+    // Stage 2 — 商家端
+    ['MERCHANT', 'merchant:store:own'],
+    // AUDITOR 可以查看商家(只读),不能审核
+    ['AUDITOR', 'admin:menu:merchants'],
+    ['AUDITOR', 'admin:merchants:view'],
+    // SUPER_ADMIN 全量已通过 ...PERMISSIONS.map 覆盖
   ];
 
   let bindings = 0;

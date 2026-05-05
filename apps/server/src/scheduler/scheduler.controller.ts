@@ -12,9 +12,14 @@ import type { BaseJob } from './jobs/base-job';
 import { ConfigCacheRefreshJob } from './jobs/config-cache-refresh.job';
 import { DefaultAddressUniquenessJob } from './jobs/default-address-uniqueness.job';
 import { ExpiredCleanupJob } from './jobs/expired-cleanup.job';
+import { LicenseExpiryReminderJob } from './jobs/license-expiry-reminder.job';
 import { LoginAnomalyDetectionJob } from './jobs/login-anomaly-detection.job';
+import { PromoEndJob } from './jobs/promo-end.job';
+import { PromoStartJob } from './jobs/promo-start.job';
 import { RealnameRetryJob } from './jobs/realname-retry.job';
 import { SmsCodeExpiredCleanupJob } from './jobs/sms-code-expired-cleanup.job';
+import { SoldOutAutoOffShelfJob } from './jobs/sold-out-auto-off-shelf.job';
+import { StockAlertScanJob } from './jobs/stock-alert-scan.job';
 import { ThirdPartyRetryJob } from './jobs/third-party-retry.job';
 
 @ApiTags('admin-scheduler-dev')
@@ -33,6 +38,11 @@ export class SchedulerController {
     private readonly loginAnomalyDetection: LoginAnomalyDetectionJob,
     private readonly realnameRetry: RealnameRetryJob,
     private readonly defaultAddressUniqueness: DefaultAddressUniquenessJob,
+    private readonly licenseExpiryReminder: LicenseExpiryReminderJob,
+    private readonly stockAlertScan: StockAlertScanJob,
+    private readonly promoStart: PromoStartJob,
+    private readonly promoEnd: PromoEndJob,
+    private readonly soldOutAutoOffShelf: SoldOutAutoOffShelfJob,
   ) {
     this.jobsByName = {
       [expiredCleanup.name]: expiredCleanup,
@@ -43,6 +53,11 @@ export class SchedulerController {
       [loginAnomalyDetection.name]: loginAnomalyDetection,
       [realnameRetry.name]: realnameRetry,
       [defaultAddressUniqueness.name]: defaultAddressUniqueness,
+      [licenseExpiryReminder.name]: licenseExpiryReminder,
+      [stockAlertScan.name]: stockAlertScan,
+      [promoStart.name]: promoStart,
+      [promoEnd.name]: promoEnd,
+      [soldOutAutoOffShelf.name]: soldOutAutoOffShelf,
     };
   }
 

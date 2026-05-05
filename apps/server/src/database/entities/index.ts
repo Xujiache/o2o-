@@ -19,3 +19,15 @@ export * from './sms-code.entity';
 export * from './login-device.entity';
 export * from './message-setting.entity';
 export * from './risk-user-tag.entity';
+// Stage 2 — 商家入驻店铺商品 11 张表
+export * from './merchant-account.entity';
+export * from './merchant-application.entity';
+export * from './merchant-license.entity';
+export * from './store.entity';
+export * from './store-business-hour.entity';
+export * from './store-delivery-area.entity';
+export * from './product-category.entity';
+export * from './product.entity';
+export * from './product-sku.entity';
+export * from './stock-record.entity';
+export * from './merchant-promotion.entity';
