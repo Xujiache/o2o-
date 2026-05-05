@@ -2,8 +2,9 @@ import { forwardRef, Global, Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { DomainEvent, RiskUserTag } from '../database/entities';
+import { DomainEvent, IntegrationRequestLog, RiderStatus, RiskUserTag } from '../database/entities';
 import { CustomerAuthModule } from '../modules/customer-auth/customer-auth.module';
+import { IntegrationGatewayModule } from '../modules/integration-gateway/integration-gateway.module';
 import { SchedulerModule } from '../scheduler/scheduler.module';
 
 import { DomainEventBus } from './domain-event-bus';
@@ -16,6 +17,11 @@ import { CustomerRegisteredSubscriber } from './subscribers/customer-registered.
 import { FileUploadedSubscriber } from './subscribers/file-uploaded.subscriber';
 import { MerchantApprovedSubscriber } from './subscribers/merchant-approved.subscriber';
 import { MerchantSubmittedSubscriber } from './subscribers/merchant-submitted.subscriber';
+import { RiderApprovedSubscriber } from './subscribers/rider-approved.subscriber';
+import { RiderLocationUpdatedSubscriber } from './subscribers/rider-location-updated.subscriber';
+import { RiderOfflineSubscriber } from './subscribers/rider-offline.subscriber';
+import { RiderOnlineSubscriber } from './subscribers/rider-online.subscriber';
+import { RiderSubmittedSubscriber } from './subscribers/rider-submitted.subscriber';
 import { StockLowSubscriber } from './subscribers/stock-low.subscriber';
 import { StoreStatusChangedSubscriber } from './subscribers/store-status-changed.subscriber';
 
@@ -23,8 +29,9 @@ import { StoreStatusChangedSubscriber } from './subscribers/store-status-changed
 @Module({
   imports: [
     EventEmitterModule.forRoot({ wildcard: false, ignoreErrors: false }),
-    TypeOrmModule.forFeature([DomainEvent, RiskUserTag]),
+    TypeOrmModule.forFeature([DomainEvent, RiskUserTag, RiderStatus, IntegrationRequestLog]),
     SchedulerModule,
+    IntegrationGatewayModule,
     forwardRef(() => CustomerAuthModule),
   ],
   providers: [
@@ -40,6 +47,11 @@ import { StoreStatusChangedSubscriber } from './subscribers/store-status-changed
     MerchantApprovedSubscriber,
     StoreStatusChangedSubscriber,
     StockLowSubscriber,
+    RiderSubmittedSubscriber,
+    RiderApprovedSubscriber,
+    RiderOnlineSubscriber,
+    RiderOfflineSubscriber,
+    RiderLocationUpdatedSubscriber,
   ],
   exports: [DomainEventBus],
 })

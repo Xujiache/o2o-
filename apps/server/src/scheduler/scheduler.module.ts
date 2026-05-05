@@ -12,6 +12,11 @@ import {
   MerchantPromotion,
   Product,
   RealnameRecord,
+  RiderAccount,
+  RiderApplication,
+  RiderAuditLog,
+  RiderLocation,
+  RiderStatus,
   SmsCode,
   SysAuditLog,
   SysConfig,
@@ -28,6 +33,10 @@ import { LoginAnomalyDetectionJob } from './jobs/login-anomaly-detection.job';
 import { PromoEndJob } from './jobs/promo-end.job';
 import { PromoStartJob } from './jobs/promo-start.job';
 import { RealnameRetryJob } from './jobs/realname-retry.job';
+import { RiderAuditTimeoutReminderJob } from './jobs/rider-audit-timeout-reminder.job';
+import { RiderHealthCertExpiryReminderJob } from './jobs/rider-health-cert-expiry-reminder.job';
+import { RiderHeartbeatTimeoutOfflineJob } from './jobs/rider-heartbeat-timeout-offline.job';
+import { RiderLocationArchiveJob } from './jobs/rider-location-archive.job';
 import { SmsCodeExpiredCleanupJob } from './jobs/sms-code-expired-cleanup.job';
 import { SoldOutAutoOffShelfJob } from './jobs/sold-out-auto-off-shelf.job';
 import { StockAlertScanJob } from './jobs/stock-alert-scan.job';
@@ -54,6 +63,12 @@ import { SchedulerController } from './scheduler.controller';
       MerchantLicense,
       Product,
       MerchantPromotion,
+      // Stage 3
+      RiderAccount,
+      RiderApplication,
+      RiderStatus,
+      RiderLocation,
+      RiderAuditLog,
     ]),
   ],
   controllers: [SchedulerController],
@@ -75,6 +90,11 @@ import { SchedulerController } from './scheduler.controller';
     PromoStartJob,
     PromoEndJob,
     SoldOutAutoOffShelfJob,
+    // Stage 3
+    RiderHeartbeatTimeoutOfflineJob,
+    RiderHealthCertExpiryReminderJob,
+    RiderAuditTimeoutReminderJob,
+    RiderLocationArchiveJob,
   ],
   exports: [ConfigCacheRefreshJob],
 })
