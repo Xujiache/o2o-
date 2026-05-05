@@ -37,6 +37,7 @@ import { MerchantOnboardingModule } from './modules/merchant-onboarding/merchant
 import { MerchantPromotionModule } from './modules/merchant-promotion/merchant-promotion.module';
 import { MessageSettingModule } from './modules/message-setting/message-setting.module';
 import { ProductModule } from './modules/product/product.module';
+import { PublicStoreReadonlyModule } from './modules/public-store-readonly/public-store-readonly.module';
 import { RealnameModule } from './modules/realname/realname.module';
 import { RiskModule } from './modules/risk/risk.module';
 import { SmsModule } from './modules/sms/sms.module';
@@ -96,6 +97,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     StockModule,
     MerchantPromotionModule,
     AdminMerchantModule,
+    PublicStoreReadonlyModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

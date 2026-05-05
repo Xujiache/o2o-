@@ -17,6 +17,7 @@
     "@dcloudio/uni-app-plus": "vue3",
     "@dcloudio/uni-components": "vue3",
     "@o2o/contracts": "workspace:*",
+    "pinia": "2.0.36",
     "vue": "3.4.21"
   },
   "devDependencies": {

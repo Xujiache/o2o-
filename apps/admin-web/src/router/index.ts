@@ -60,6 +60,38 @@ export const routes: RouteRecordRaw[] = [
           permission: 'admin:roles:permissions:view',
         },
       },
+      // Stage 1 — 用户管理
+      {
+        path: 'admin/customers',
+        component: () => import('@/views/customers/index.vue'),
+        meta: { title: '用户管理', menu: true, icon: 'User', permission: 'admin:customers:view' },
+      },
+      {
+        path: 'admin/customers/:id',
+        component: () => import('@/views/customers/detail.vue'),
+        meta: { title: '用户详情', permission: 'admin:customers:view' },
+      },
+      {
+        path: 'admin/customers/:id/realname',
+        component: () => import('@/views/customers/realname-records.vue'),
+        meta: { title: '实名记录', permission: 'admin:customers:view' },
+      },
+      // Stage 2 — 商家管理
+      {
+        path: 'admin/merchants/audit',
+        component: () => import('@/views/merchants/audit.vue'),
+        meta: { title: '商家审核', menu: true, icon: 'Shop', permission: 'admin:merchants:view' },
+      },
+      {
+        path: 'admin/merchants/applications/:id',
+        component: () => import('@/views/merchants/detail.vue'),
+        meta: { title: '商家详情', permission: 'admin:merchants:view' },
+      },
+      {
+        path: 'admin/merchants/stores',
+        component: () => import('@/views/merchants/stores.vue'),
+        meta: { title: '店铺管控', menu: true, icon: 'Goods', permission: 'admin:merchants:view' },
+      },
     ],
   },
   {

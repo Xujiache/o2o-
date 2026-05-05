@@ -1,13 +1,19 @@
 /**
  * 商家端统一请求封装(基于 uni.request)。
  * - 自动注入 Merchant-Token / Idempotency-Key(写接口) / X-Trace-Id
- * - 401 → clear token + 跳启动页(stage 0 占位;阶段 2 接入登录)
+ * - 401 → 自动 refresh,失败再 clear token + 跳登录页
  * - 业务错误返回完整 ApiResponse 让调用方决定提示
  */
 import { ErrorCode, Header, type ApiResponse } from '@o2o/contracts';
 
 import { clearToken, getToken } from './token';
 import { genTraceId } from './trace';
+
+type RefreshHandler = () => Promise<boolean>;
+let refreshHandler: RefreshHandler | null = null;
+export function setRefreshHandler(h: RefreshHandler | null): void {
+  refreshHandler = h;
+}
 
 const BASE_URL = 'http://127.0.0.1:3000';
 
@@ -36,7 +42,7 @@ function buildQuery(params?: Record<string, unknown>): string {
   return parts.length ? `?${parts.join('&')}` : '';
 }
 
-export function request<T = unknown>(options: MerchantRequestOptions): Promise<ApiResponse<T>> {
+function rawRequest<T>(options: MerchantRequestOptions): Promise<ApiResponse<T>> {
   const method = options.method ?? 'GET';
   const isWrite = method !== 'GET';
   const headers: Record<string, string> = { 'content-type': 'application/json', ...(options.header ?? {}) };
@@ -63,18 +69,37 @@ export function request<T = unknown>(options: MerchantRequestOptions): Promise<A
           reject(new Error(`bad response: status=${res.statusCode}`));
           return;
         }
-        if (body.code === ErrorCode.UNAUTHORIZED) {
-          clearToken();
-          uni.reLaunch({ url: '/pages/launch/index' });
-        }
         resolve(body);
       },
       fail(err) {
-        uni.reLaunch({ url: '/pages/error/network' });
         reject(err);
       },
     });
   });
+}
+
+export async function request<T = unknown>(options: MerchantRequestOptions): Promise<ApiResponse<T>> {
+  let res: ApiResponse<T>;
+  try {
+    res = await rawRequest<T>(options);
+  } catch (err) {
+    uni.reLaunch({ url: '/pages/error/network' });
+    throw err;
+  }
+  if (res.code === ErrorCode.UNAUTHORIZED && options.authRequired !== false && refreshHandler) {
+    const ok = await refreshHandler();
+    if (ok) {
+      try {
+        return await rawRequest<T>(options);
+      } catch (err) {
+        uni.reLaunch({ url: '/pages/error/network' });
+        throw err;
+      }
+    }
+    clearToken();
+    uni.reLaunch({ url: '/pages/login/index' });
+  }
+  return res;
 }
 
 export interface UploadOptions {
