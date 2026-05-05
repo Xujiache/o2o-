@@ -15,6 +15,10 @@ import {
   LoginDevice,
   MerchantLicense,
   MerchantPromotion,
+  MerchantSettlement,
+  MerchantStatisticsSnapshot,
+  MerchantWithdrawal,
+  OrderReview,
   OrderTimeline,
   PaymentOrder,
   Product,
@@ -27,6 +31,7 @@ import {
   RiderStatus,
   SmsCode,
   StockLock,
+  Store,
   SysAuditLog,
   SysConfig,
 } from '../database/entities';
@@ -39,11 +44,13 @@ import { DistributedLockService } from './distributed-lock.service';
 import { AuditLogArchiveJob } from './jobs/audit-log-archive.job';
 import { ConfigCacheRefreshJob } from './jobs/config-cache-refresh.job';
 import { ConfigChangeAggregateJob } from './jobs/config-change-aggregate.job';
+import { DailyStatisticsSnapshotJob } from './jobs/daily-statistics-snapshot.job';
 import { DefaultAddressUniquenessJob } from './jobs/default-address-uniqueness.job';
 import { DisabledAccountTokenBroadcastJob } from './jobs/disabled-account-token-broadcast.job';
 import { ExpiredCleanupJob } from './jobs/expired-cleanup.job';
 import { LicenseExpiryReminderJob } from './jobs/license-expiry-reminder.job';
 import { LoginAnomalyDetectionJob } from './jobs/login-anomaly-detection.job';
+import { MerchantAcceptRemindJob } from './jobs/merchant-accept-remind.job';
 import { MerchantAcceptTimeoutCancelJob } from './jobs/merchant-accept-timeout-cancel.job';
 import { NoRiderCancelJob } from './jobs/no-rider-cancel.job';
 import { NoRiderPriceIncreaseJob } from './jobs/no-rider-price-increase.job';
@@ -60,9 +67,11 @@ import { RiderLocationArchiveJob } from './jobs/rider-location-archive.job';
 import { SmsCodeExpiredCleanupJob } from './jobs/sms-code-expired-cleanup.job';
 import { SoldOutAutoOffShelfJob } from './jobs/sold-out-auto-off-shelf.job';
 import { StockAlertScanJob } from './jobs/stock-alert-scan.job';
+import { T1MerchantSettlementJob } from './jobs/t1-merchant-settlement.job';
 import { ThirdPartyRetryJob } from './jobs/third-party-retry.job';
 import { WaitPayTimeoutCloseErrandJob } from './jobs/wait-pay-timeout-close-errand.job';
 import { WaitPayTimeoutCloseJob } from './jobs/wait-pay-timeout-close.job';
+import { WithdrawalStatusPollJob } from './jobs/withdrawal-status-poll.job';
 import { SchedulerController } from './scheduler.controller';
 
 @Module({
@@ -103,6 +112,12 @@ import { SchedulerController } from './scheduler.controller';
       ErrandOrder,
       ErrandTask,
       ErrandTimeline,
+      // Stage 7
+      MerchantSettlement,
+      MerchantStatisticsSnapshot,
+      MerchantWithdrawal,
+      OrderReview,
+      Store,
     ]),
     EventsModule,
     IntegrationGatewayModule,
@@ -145,6 +160,11 @@ import { SchedulerController } from './scheduler.controller';
     NoRiderPriceIncreaseJob,
     NoRiderCancelJob,
     ReservedErrandDispatchJob,
+    // Stage 7
+    MerchantAcceptRemindJob,
+    T1MerchantSettlementJob,
+    WithdrawalStatusPollJob,
+    DailyStatisticsSnapshotJob,
   ],
   exports: [ConfigCacheRefreshJob],
 })

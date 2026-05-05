@@ -12,15 +12,24 @@ import { DomainEventBus } from './domain-event-bus';
 import { DomainEventRetryJob } from './jobs/domain-event-retry.job';
 import { AccountDisabledSubscriber } from './subscribers/account-disabled.subscriber';
 import { AdminLoggedInSubscriber } from './subscribers/admin-logged-in.subscriber';
+import { AfterSaleAppliedSubscriber } from './subscribers/after-sale-applied.subscriber';
+import { AfterSaleReviewedByMerchantSubscriber } from './subscribers/after-sale-reviewed-by-merchant.subscriber';
 import { ConfigChangedSubscriber } from './subscribers/config-changed.subscriber';
 import { CustomerAccountDisabledSubscriber } from './subscribers/customer-account-disabled.subscriber';
 import { CustomerLoggedInSubscriber } from './subscribers/customer-logged-in.subscriber';
 import { CustomerRealnameVerifiedSubscriber } from './subscribers/customer-realname-verified.subscriber';
 import { CustomerRegisteredSubscriber } from './subscribers/customer-registered.subscriber';
 import { FileUploadedSubscriber } from './subscribers/file-uploaded.subscriber';
+import { FoodReadyForPickupSubscriber } from './subscribers/food-ready-for-pickup.subscriber';
 import { MerchantApprovedSubscriber } from './subscribers/merchant-approved.subscriber';
 import { MerchantAuditedSubscriber } from './subscribers/merchant-audited.subscriber';
+import { MerchantOrderAcceptedSubscriber } from './subscribers/merchant-order-accepted.subscriber';
+import { MerchantOrderPushedSubscriber } from './subscribers/merchant-order-pushed.subscriber';
+import { MerchantOrderRejectedSubscriber } from './subscribers/merchant-order-rejected.subscriber';
+import { MerchantSettlementGeneratedSubscriber } from './subscribers/merchant-settlement-generated.subscriber';
 import { MerchantSubmittedSubscriber } from './subscribers/merchant-submitted.subscriber';
+import { MerchantWithdrawRequestedSubscriber } from './subscribers/merchant-withdraw-requested.subscriber';
+import { OrderReviewSubmittedSubscriber } from './subscribers/order-review-submitted.subscriber';
 import { RiderApprovedSubscriber } from './subscribers/rider-approved.subscriber';
 import { RiderAuditedSubscriber } from './subscribers/rider-audited.subscriber';
 import { RiderLocationUpdatedSubscriber } from './subscribers/rider-location-updated.subscriber';
@@ -31,6 +40,7 @@ import { RoleChangedSubscriber } from './subscribers/role-changed.subscriber';
 import { StockLowSubscriber } from './subscribers/stock-low.subscriber';
 import { StoreStatusChangedSubscriber } from './subscribers/store-status-changed.subscriber';
 import { ThirdPartyConfigChangedSubscriber } from './subscribers/third-party-config-changed.subscriber';
+// Stage 7
 
 @Global()
 @Module({
@@ -67,6 +77,16 @@ import { ThirdPartyConfigChangedSubscriber } from './subscribers/third-party-con
     MerchantAuditedSubscriber,
     RiderAuditedSubscriber,
     ThirdPartyConfigChangedSubscriber,
+    // Stage 7
+    MerchantOrderPushedSubscriber,
+    MerchantOrderAcceptedSubscriber,
+    MerchantOrderRejectedSubscriber,
+    FoodReadyForPickupSubscriber,
+    AfterSaleAppliedSubscriber,
+    AfterSaleReviewedByMerchantSubscriber,
+    OrderReviewSubmittedSubscriber,
+    MerchantSettlementGeneratedSubscriber,
+    MerchantWithdrawRequestedSubscriber,
   ],
   exports: [DomainEventBus],
 })
