@@ -35,6 +35,13 @@ export const EventName = {
   MerchantAudited: 'domain.merchant.audited',
   RiderAudited: 'domain.rider.audited',
   ThirdPartyConfigChanged: 'domain.thirdparty.config-changed',
+  // Stage 5 — 用户端外卖交易闭环 6 个事件
+  FoodOrderCreated: 'domain.food-order.created',
+  PaymentSucceeded: 'domain.payment.succeeded',
+  FoodOrderPaid: 'domain.food-order.paid',
+  FoodOrderCancelled: 'domain.food-order.cancelled',
+  StockReleased: 'domain.stock.released',
+  FoodReviewCreated: 'domain.food-review.created',
 } as const;
 
 export type EventName = (typeof EventName)[keyof typeof EventName];
@@ -245,6 +252,60 @@ export interface ThirdPartyConfigChangedPayload {
   changedAt: number;
 }
 
+// === Stage 5 — 用户端外卖交易闭环事件 payload ===
+
+export interface FoodOrderCreatedPayload {
+  orderId: string;
+  orderNo: string;
+  customerId: string;
+  storeId: string;
+  payableAmount: string;
+  expireAt: number;
+  createdAt: number;
+}
+
+export interface PaymentSucceededPayload {
+  payOrderId: string;
+  payOrderNo: string;
+  bizType: 'FOOD' | 'ERRAND';
+  bizId: string;
+  payChannel: 'wxpay' | 'alipay';
+  paidAmount: string;
+  paidAt: number;
+}
+
+export interface FoodOrderPaidPayload {
+  orderId: string;
+  customerId: string;
+  storeId: string;
+  paidAmount: string;
+  paidAt: number;
+}
+
+export interface FoodOrderCancelledPayload {
+  orderId: string;
+  customerId: string;
+  reason: string;
+  cancelledBy: 'customer' | 'system' | 'merchant' | 'admin';
+  cancelledAt: number;
+}
+
+export interface StockReleasedPayload {
+  orderId: string;
+  items: Array<{ skuId: string; quantity: number }>;
+  reason: string;
+  releasedAt: number;
+}
+
+export interface FoodReviewCreatedPayload {
+  reviewId: string;
+  orderId: string;
+  customerId: string;
+  storeId: string;
+  rating: number;
+  createdAt: number;
+}
+
 export type EventPayloadMap = {
   [EventName.ConfigChanged]: ConfigChangedPayload;
   [EventName.PermissionChanged]: PermissionChangedPayload;
@@ -273,4 +334,10 @@ export type EventPayloadMap = {
   [EventName.MerchantAudited]: MerchantAuditedPayload;
   [EventName.RiderAudited]: RiderAuditedPayload;
   [EventName.ThirdPartyConfigChanged]: ThirdPartyConfigChangedPayload;
+  [EventName.FoodOrderCreated]: FoodOrderCreatedPayload;
+  [EventName.PaymentSucceeded]: PaymentSucceededPayload;
+  [EventName.FoodOrderPaid]: FoodOrderPaidPayload;
+  [EventName.FoodOrderCancelled]: FoodOrderCancelledPayload;
+  [EventName.StockReleased]: StockReleasedPayload;
+  [EventName.FoodReviewCreated]: FoodReviewCreatedPayload;
 };

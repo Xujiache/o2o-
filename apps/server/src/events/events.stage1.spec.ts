@@ -37,7 +37,7 @@ describe('Stage 1 EventName 扩展', () => {
     expect(Object.keys(sample)).toHaveLength(5);
   });
 
-  it('Object.values(EventName) 含 stage 0 5 + stage 1 5 + stage 2 6 + stage 3 5 + stage 4 6 = 27', () => {
-    expect(Object.values(EventName)).toHaveLength(27);
+  it('Object.values(EventName) 含 stage 0 5 + stage 1 5 + stage 2 6 + stage 3 5 + stage 4 6 + stage 5 6 = 33', () => {
+    expect(Object.values(EventName)).toHaveLength(33);
   });
 });

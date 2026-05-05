@@ -45,3 +45,13 @@ export * from './admin-user.entity';
 export * from './city-site.entity';
 export * from './platform-category.entity';
 export * from './account-disable-record.entity';
+// Stage 5 — 用户端外卖交易闭环 9 张表
+export * from './food-order.entity';
+export * from './food-order-item.entity';
+export * from './cart-item.entity';
+export * from './order-price-snapshot.entity';
+export * from './payment-order.entity';
+export * from './coupon-lock.entity';
+export * from './stock-lock.entity';
+export * from './order-timeline.entity';
+export * from './order-review.entity';
