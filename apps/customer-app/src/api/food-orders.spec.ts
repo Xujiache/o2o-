@@ -7,7 +7,7 @@ vi.mock('@/utils/request', () => ({
   })),
 }));
 
-import { cancelOrder, getOrderDetail, listOrders, previewOrder, submitOrder, submitReview } from './food-orders';
+import { cancelOrder, getOrderDetail, listOrders, previewOrder, submitOrder } from './food-orders';
 
 describe('food-orders api', () => {
   it('previewOrder POST /preview', async () => {
@@ -38,10 +38,5 @@ describe('food-orders api', () => {
   it('cancelOrder POST /orders/:id/cancel', async () => {
     const r = await cancelOrder('700001', 'reason');
     expect((r.data as { url: string }).url).toBe('/api/v1/c/food/orders/700001/cancel');
-  });
-
-  it('submitReview POST /orders/:id/reviews', async () => {
-    const r = await submitReview('700001', { rating: 5 });
-    expect((r.data as { url: string }).url).toBe('/api/v1/c/food/orders/700001/reviews');
   });
 });

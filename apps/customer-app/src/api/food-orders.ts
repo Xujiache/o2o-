@@ -147,13 +147,4 @@ export interface ReviewReq {
   anonymous?: boolean;
   images?: string[];
 }
-export function submitReview(
-  orderId: string,
-  body: ReviewReq,
-): Promise<ApiResponse<{ reviewId: string; createdAt: number }>> {
-  return request({
-    url: `/api/v1/c/food/orders/${orderId}/reviews`,
-    method: 'POST',
-    data: body,
-  });
-}
+// Stage 5 占位 submitReview 已迁移至 stage 7 `food-review.ts`(POST /api/v1/c/reviews)。

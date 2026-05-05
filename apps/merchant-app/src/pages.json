@@ -1,36 +1,34 @@
 {
   "pages": [
-    {
-      "path": "pages/launch/index",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTitleText": "O2O 商家端"
-      }
-    },
-    {
-      "path": "pages/audit/pending",
-      "style": {
-        "navigationBarTitleText": "审核中"
-      }
-    },
-    {
-      "path": "pages/error/forbidden",
-      "style": {
-        "navigationBarTitleText": "无权限"
-      }
-    },
-    {
-      "path": "pages/error/network",
-      "style": {
-        "navigationBarTitleText": "网络错误"
-      }
-    },
-    {
-      "path": "pages/error/maintenance",
-      "style": {
-        "navigationBarTitleText": "系统维护中"
-      }
-    }
+    { "path": "pages/launch/index", "style": { "navigationStyle": "custom", "navigationBarTitleText": "O2O 商家端" } },
+    { "path": "pages/audit/pending", "style": { "navigationBarTitleText": "审核中" } },
+    { "path": "pages/error/forbidden", "style": { "navigationBarTitleText": "无权限" } },
+    { "path": "pages/error/network", "style": { "navigationBarTitleText": "网络错误" } },
+    { "path": "pages/error/maintenance", "style": { "navigationBarTitleText": "系统维护中" } },
+    { "path": "pages/login/index", "style": { "navigationBarTitleText": "登录" } },
+    { "path": "pages/onboarding/apply", "style": { "navigationBarTitleText": "入驻申请" } },
+    { "path": "pages/workbench/index", "style": { "navigationBarTitleText": "商家工作台" } },
+    { "path": "pages/store/settings", "style": { "navigationBarTitleText": "店铺设置" } },
+    { "path": "pages/store/business-status", "style": { "navigationBarTitleText": "营业开关" } },
+    { "path": "pages/store/delivery-area", "style": { "navigationBarTitleText": "配送范围" } },
+    { "path": "pages/products/categories", "style": { "navigationBarTitleText": "商品分类" } },
+    { "path": "pages/products/list", "style": { "navigationBarTitleText": "商品列表" } },
+    { "path": "pages/products/edit", "style": { "navigationBarTitleText": "商品编辑" } },
+    { "path": "pages/stock/alerts", "style": { "navigationBarTitleText": "库存预警" } },
+    { "path": "pages/promotions/list", "style": { "navigationBarTitleText": "促销活动" } },
+    { "path": "pages/promotions/edit", "style": { "navigationBarTitleText": "促销编辑" } },
+    { "path": "pages/orders/pending", "style": { "navigationBarTitleText": "待接单" } },
+    { "path": "pages/orders/detail", "style": { "navigationBarTitleText": "订单详情" } },
+    { "path": "pages/after-sales/list", "style": { "navigationBarTitleText": "售后列表" } },
+    { "path": "pages/after-sales/detail", "style": { "navigationBarTitleText": "售后详情" } },
+    { "path": "pages/statistics/index", "style": { "navigationBarTitleText": "经营统计" } },
+    { "path": "pages/settlements/list", "style": { "navigationBarTitleText": "结算记录" } },
+    { "path": "pages/settlements/detail", "style": { "navigationBarTitleText": "结算详情" } },
+    { "path": "pages/withdrawals/form", "style": { "navigationBarTitleText": "提现" } },
+    { "path": "pages/withdrawals/records", "style": { "navigationBarTitleText": "提现记录" } },
+    { "path": "pages/exports/index", "style": { "navigationBarTitleText": "数据导出" } },
+    { "path": "pages/reviews/list", "style": { "navigationBarTitleText": "评价回复" } },
+    { "path": "pages/me/index", "style": { "navigationBarTitleText": "个人中心" } }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",

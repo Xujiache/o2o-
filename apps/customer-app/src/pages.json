@@ -55,6 +55,7 @@
     { "path": "pages/food/order/detail", "style": { "navigationBarTitleText": "订单详情" } },
     { "path": "pages/food/order/track", "style": { "navigationBarTitleText": "配送轨迹" } },
     { "path": "pages/food/review/submit", "style": { "navigationBarTitleText": "评价订单" } },
+    { "path": "pages/food/order/after-sale-apply", "style": { "navigationBarTitleText": "申请售后" } },
     { "path": "pages/me/aftersales-stub", "style": { "navigationBarTitleText": "售后申请" } },
     { "path": "pages/errand/home/index", "style": { "navigationBarTitleText": "跑腿服务" } },
     { "path": "pages/errand/form/buy", "style": { "navigationBarTitleText": "代买" } },

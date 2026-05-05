@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 
-import { submitReview } from '@/api/food-orders';
+import { submitReview } from '@/api/food-review';
 
 const orderId = ref('');
 const rating = ref(5);
@@ -20,7 +20,8 @@ async function submit(): Promise<void> {
   }
   submitting.value = true;
   try {
-    const r = await submitReview(orderId.value, {
+    const r = await submitReview({
+      orderId: orderId.value,
       rating: rating.value,
       content: content.value || undefined,
       anonymous: anonymous.value,

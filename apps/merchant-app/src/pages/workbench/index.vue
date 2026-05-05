@@ -20,6 +20,14 @@ async function load(): Promise<void> {
 onMounted(load);
 
 const entries = [
+  { label: '待接单', url: '/pages/orders/pending' },
+  { label: '售后申请', url: '/pages/after-sales/list' },
+  { label: '评价回复', url: '/pages/reviews/list' },
+  { label: '经营统计', url: '/pages/statistics/index' },
+  { label: '结算记录', url: '/pages/settlements/list' },
+  { label: '提现', url: '/pages/withdrawals/form' },
+  { label: '提现记录', url: '/pages/withdrawals/records' },
+  { label: '数据导出', url: '/pages/exports/index' },
   { label: '店铺设置', url: '/pages/store/settings' },
   { label: '营业开关', url: '/pages/store/business-status' },
   { label: '配送范围', url: '/pages/store/delivery-area' },
@@ -27,6 +35,7 @@ const entries = [
   { label: '商品列表', url: '/pages/products/list' },
   { label: '库存预警', url: '/pages/stock/alerts' },
   { label: '促销活动', url: '/pages/promotions/list' },
+  { label: '个人中心', url: '/pages/me/index' },
 ];
 
 function go(url: string): void {
