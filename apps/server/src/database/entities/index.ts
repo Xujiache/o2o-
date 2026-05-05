@@ -31,3 +31,12 @@ export * from './product.entity';
 export * from './product-sku.entity';
 export * from './stock-record.entity';
 export * from './merchant-promotion.entity';
+// Stage 3 — 骑手入驻接单配送 8 张表
+export * from './rider-account.entity';
+export * from './rider-application.entity';
+export * from './rider-certificate.entity';
+export * from './rider-vehicle.entity';
+export * from './rider-service-area.entity';
+export * from './rider-status.entity';
+export * from './rider-location.entity';
+export * from './rider-audit-log.entity';

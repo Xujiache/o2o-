@@ -53,6 +53,48 @@ describe('RealnameMockAdapter', () => {
       expect(r.reason).toBe('企业资质不一致');
     });
   });
+
+  describe('verifyFace (stage 3)', () => {
+    it('身份证 18 位 + faceFileId 非空 + 姓名首字汉字 → success', async () => {
+      const r = await adapter.verifyFace({
+        idCardNo: '110101199001011234',
+        realName: '骑手张三',
+        faceFileId: 'file-123',
+      });
+      expect(r.success).toBe(true);
+      expect(r.providerRequestId).toMatch(/^mock-/);
+    });
+
+    it('身份证长度不为 18 → failed reason=人脸核验未通过', async () => {
+      const r = await adapter.verifyFace({
+        idCardNo: '12345',
+        realName: '张三',
+        faceFileId: 'file-123',
+      });
+      expect(r.success).toBe(false);
+      expect(r.reason).toBe('人脸核验未通过');
+    });
+
+    it('faceFileId 为空 → failed', async () => {
+      const r = await adapter.verifyFace({
+        idCardNo: '110101199001011234',
+        realName: '张三',
+        faceFileId: '',
+      });
+      expect(r.success).toBe(false);
+      expect(r.reason).toBe('人脸核验未通过');
+    });
+
+    it('姓名首字非汉字 → failed', async () => {
+      const r = await adapter.verifyFace({
+        idCardNo: '110101199001011234',
+        realName: 'Zhang San',
+        faceFileId: 'file-123',
+      });
+      expect(r.success).toBe(false);
+      expect(r.reason).toBe('人脸核验未通过');
+    });
+  });
 });
 
 describe('RealnameRealAdapter', () => {
@@ -74,5 +116,16 @@ describe('RealnameRealAdapter', () => {
         legalIdCardNo: '110101199001011234',
       }),
     ).rejects.toThrow(/enterprise not configured/);
+  });
+
+  it('真实凭证占位时调 verifyFace 抛 face not configured', async () => {
+    const adapter = new RealnameRealAdapter({ accessKeyId: 'ak', accessKeySecret: 'sk' });
+    await expect(
+      adapter.verifyFace({
+        idCardNo: '110101199001011234',
+        realName: '张三',
+        faceFileId: 'file-1',
+      }),
+    ).rejects.toThrow(/face not configured/);
   });
 });

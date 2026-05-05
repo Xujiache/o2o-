@@ -107,6 +107,27 @@ const PERMISSIONS: PermRow[] = [
     parentCode: 'admin:menu:merchants',
     sort: 2,
   },
+  // Stage 3 — 骑手端
+  { code: 'rider:public', name: '骑手端公开接口', scope: 'public', type: 'data', sort: 400 },
+  { code: 'rider:self', name: '骑手访问本人数据', scope: 'rider', type: 'data', sort: 410 },
+  // Stage 3 — 平台 Web 骑手管理
+  { code: 'admin:menu:riders', name: '骑手管理菜单', scope: 'admin', type: 'menu', sort: 400 },
+  {
+    code: 'admin:riders:view',
+    name: '骑手列表/详情/资质查看',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:riders',
+    sort: 1,
+  },
+  {
+    code: 'admin:riders:manage',
+    name: '骑手审核/启停/配送区域',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:riders',
+    sort: 2,
+  },
 ];
 
 export async function seedRolesAndPermissions(
@@ -175,6 +196,11 @@ export async function seedRolesAndPermissions(
     // AUDITOR 可以查看商家(只读),不能审核
     ['AUDITOR', 'admin:menu:merchants'],
     ['AUDITOR', 'admin:merchants:view'],
+    // Stage 3 — 骑手端
+    ['RIDER', 'rider:self'],
+    // AUDITOR 可以查看骑手(只读),不能审核/启停/配送区域
+    ['AUDITOR', 'admin:menu:riders'],
+    ['AUDITOR', 'admin:riders:view'],
     // SUPER_ADMIN 全量已通过 ...PERMISSIONS.map 覆盖
   ];
 
