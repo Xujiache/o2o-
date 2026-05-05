@@ -33,17 +33,20 @@ import { AdminThirdPartyConfigModule } from './modules/admin-third-party-config/
 import { AdminUserModule } from './modules/admin-user/admin-user.module';
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CartModule } from './modules/cart/cart.module';
 import { CommonConfigModule } from './modules/common-config/common-config.module';
 import { CustomerAuthModule } from './modules/customer-auth/customer-auth.module';
 import { DictModule } from './modules/dict/dict.module';
 import { FileModule } from './modules/file/file.module';
 import { FoodHomeModule } from './modules/food-home/food-home.module';
+import { FoodOrderModule } from './modules/food-order/food-order.module';
 import { GatewayModule } from './modules/gateway/gateway.module';
 import { IntegrationGatewayModule } from './modules/integration-gateway/integration-gateway.module';
 import { MerchantAuthModule } from './modules/merchant-auth/merchant-auth.module';
 import { MerchantOnboardingModule } from './modules/merchant-onboarding/merchant-onboarding.module';
 import { MerchantPromotionModule } from './modules/merchant-promotion/merchant-promotion.module';
 import { MessageSettingModule } from './modules/message-setting/message-setting.module';
+import { PaymentModule } from './modules/payment/payment.module';
 import { ProductModule } from './modules/product/product.module';
 import { ProductQueryModule } from './modules/product-query/product-query.module';
 import { PublicStoreReadonlyModule } from './modules/public-store-readonly/public-store-readonly.module';
@@ -129,6 +132,9 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     FoodHomeModule,
     StoreQueryModule,
     ProductQueryModule,
+    CartModule,
+    FoodOrderModule,
+    PaymentModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
