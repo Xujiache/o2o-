@@ -322,6 +322,23 @@ const PERMISSIONS: PermRow[] = [
     parentCode: 'admin:menu:risk',
     sort: 1,
   },
+  // Stage 10 — 四端联调:平台订单时间线 + 平台支付单查看 2 个权限点
+  {
+    code: 'admin:order:timeline:view',
+    name: '订单时间线查看',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:food-orders',
+    sort: 900,
+  },
+  {
+    code: 'admin:payment:view',
+    name: '支付单查看',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:settlements',
+    sort: 901,
+  },
 ];
 
 export async function seedRolesAndPermissions(
@@ -422,6 +439,9 @@ export async function seedRolesAndPermissions(
     ['AUDITOR', 'admin:dashboard:view'],
     ['AUDITOR', 'admin:menu:risk'],
     ['AUDITOR', 'admin:risk:view'],
+    // Stage 10 — AUDITOR 可见订单时间线 + 支付单(只读)
+    ['AUDITOR', 'admin:order:timeline:view'],
+    ['AUDITOR', 'admin:payment:view'],
     // SUPER_ADMIN 全量已通过 ...PERMISSIONS.map 覆盖
   ];
 

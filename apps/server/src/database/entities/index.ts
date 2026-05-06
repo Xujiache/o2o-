@@ -93,3 +93,5 @@ export * from './rate-rule.entity';
 export * from './dashboard-snapshot.entity';
 export * from './export-task.entity';
 export * from './risk-exception-log.entity';
+// Stage 10 — 四端联调 1 张新表
+export * from './push-device.entity';
