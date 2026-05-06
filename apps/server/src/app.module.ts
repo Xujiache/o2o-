@@ -31,6 +31,7 @@ import { AdminErrandOrderModule } from './modules/admin-errand-order/admin-erran
 import { AdminFoodOrderModule } from './modules/admin-food-order/admin-food-order.module';
 import { AdminMerchantModule } from './modules/admin-merchant/admin-merchant.module';
 import { AdminMerchantStatisticsModule } from './modules/admin-merchant-statistics/admin-merchant-statistics.module';
+import { AdminOrdersModule } from './modules/admin-orders/admin-orders.module';
 import { AdminRefundModule } from './modules/admin-refund/admin-refund.module';
 import { AdminRiderModule } from './modules/admin-rider/admin-rider.module';
 import { AdminRolePermissionModule } from './modules/admin-role-permission/admin-role-permission.module';
@@ -48,6 +49,7 @@ import { CommonConfigModule } from './modules/common-config/common-config.module
 import { CouponModule } from './modules/coupon/coupon.module';
 import { CustomerAfterSaleModule } from './modules/customer-after-sale/customer-after-sale.module';
 import { CustomerAuthModule } from './modules/customer-auth/customer-auth.module';
+import { CustomerOrdersModule } from './modules/customer-orders/customer-orders.module';
 import { CustomerReviewModule } from './modules/customer-review/customer-review.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { DictModule } from './modules/dict/dict.module';
@@ -210,6 +212,9 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     FinanceModule,
     DashboardModule,
     ExportModule,
+    // Stage 10 — 四端联调:timeline / payment 查询 / push device
+    CustomerOrdersModule,
+    AdminOrdersModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

@@ -11,6 +11,7 @@ import {
   AcceptOrderDto,
   AcceptOrderVo,
   MerchantOrderListVo,
+  MerchantOrderTimelineVo,
   PendingListQueryDto,
   ReadyOrderDto,
   ReadyOrderVo,
@@ -57,6 +58,16 @@ export class MerchantOrderController {
     @Body() dto: RejectOrderDto,
   ): Promise<RejectOrderVo> {
     return this.service.reject(p.principalId, orderId, dto);
+  }
+
+  @Get(':orderId/timeline')
+  @ApiOperation({ summary: '商家端外卖订单时间线(本店)' })
+  @ApiOkResponse({ type: MerchantOrderTimelineVo })
+  async timeline(
+    @CurrentUser() p: CurrentPrincipal,
+    @Param('orderId') orderId: string,
+  ): Promise<MerchantOrderTimelineVo> {
+    return this.service.getTimeline(p.principalId, orderId);
   }
 
   @Post(':orderId/ready')

@@ -97,13 +97,16 @@ function buildService(w: World) {
       return { identifiers: [{ merchantOrderActionLogId: String(w.actionLogs.length) }] };
     }),
   };
+  const timelineRepo: any = {
+    find: jest.fn(async () => []),
+  };
   const eventBus = {
     publish: jest.fn((name: string, payload: unknown) => {
       w.events.push({ name, payload });
     }),
   } as unknown as DomainEventBus;
 
-  const svc = new MerchantOrderService(orderRepo, storeRepo, actionLogRepo, eventBus);
+  const svc = new MerchantOrderService(orderRepo, storeRepo, actionLogRepo, timelineRepo, eventBus);
   return { svc, orderRepo, storeRepo, actionLogRepo };
   /* eslint-enable */
 }

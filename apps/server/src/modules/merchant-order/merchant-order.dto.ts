@@ -1,6 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
+export class MerchantTimelineItemVo {
+  @ApiProperty() at!: number;
+  @ApiProperty({ nullable: true }) fromStatus!: string | null;
+  @ApiProperty() toStatus!: string;
+  @ApiProperty() actor!: string;
+  @ApiProperty({ nullable: true }) reason!: string | null;
+}
+
+export class MerchantOrderTimelineVo {
+  @ApiProperty({ type: [MerchantTimelineItemVo] }) timeline!: MerchantTimelineItemVo[];
+  @ApiProperty() currentStatus!: string;
+  @ApiProperty({ type: [String] }) allowedMerchantActions!: string[];
+}
+
 export class PendingListQueryDto {
   @ApiProperty({ required: false, description: '页码,默认 1' })
   @IsOptional()

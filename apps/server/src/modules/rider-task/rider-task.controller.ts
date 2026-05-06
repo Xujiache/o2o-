@@ -21,6 +21,7 @@ import {
   PickupDto,
   PickupVo,
   RiderTaskDetailVo,
+  RiderTaskTimelineVo,
 } from './rider-task.dto';
 import { RiderTaskService } from './rider-task.service';
 
@@ -37,6 +38,14 @@ export class RiderTaskController {
   @ApiOkResponse({ type: RiderTaskDetailVo })
   async detail(@CurrentUser() p: CurrentPrincipal, @Param('taskId') taskId: string): Promise<RiderTaskDetailVo> {
     return this.service.detail(p.principalId, taskId);
+  }
+
+  @Get(':taskId/timeline')
+  @RequirePermission('rider:self')
+  @ApiOperation({ summary: '骑手任务时间线(按 bizType 取 order_timeline 或 errand_timeline)' })
+  @ApiOkResponse({ type: RiderTaskTimelineVo })
+  async timeline(@CurrentUser() p: CurrentPrincipal, @Param('taskId') taskId: string): Promise<RiderTaskTimelineVo> {
+    return this.service.getTimeline(p.principalId, taskId);
   }
 
   @Post(':taskId/accept')

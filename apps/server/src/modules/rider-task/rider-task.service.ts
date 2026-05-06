@@ -9,7 +9,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ErrorCode } from '@o2o/contracts';
 import { Repository } from 'typeorm';
 
-import { DispatchTask, ErrandOrder, ErrandTask, FoodOrder, RiderTask, RiderViolation } from '../../database/entities';
+import {
+  DispatchTask,
+  ErrandOrder,
+  ErrandTask,
+  ErrandTimeline,
+  FoodOrder,
+  OrderTimeline,
+  RiderTask,
+  RiderViolation,
+} from '../../database/entities';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
 import { DispatchService } from '../dispatch/dispatch.service';
@@ -26,7 +35,14 @@ import type {
   PickupDto,
   PickupVo,
   RiderTaskDetailVo,
+  RiderTaskTimelineVo,
 } from './rider-task.dto';
+
+const RIDER_NEXT_ACTIONS: Record<string, string[]> = {
+  ASSIGNED: ['ARRIVED_PICKUP'],
+  ARRIVED_PICKUP: ['PICKED_UP'],
+  PICKED_UP: ['DELIVERED'],
+};
 
 @Injectable()
 export class RiderTaskService {
@@ -39,9 +55,53 @@ export class RiderTaskService {
     @InjectRepository(ErrandOrder) private readonly errandOrderRepo: Repository<ErrandOrder>,
     @InjectRepository(ErrandTask) private readonly errandTaskRepo: Repository<ErrandTask>,
     @InjectRepository(RiderViolation) private readonly violationRepo: Repository<RiderViolation>,
+    @InjectRepository(OrderTimeline) private readonly orderTimelineRepo: Repository<OrderTimeline>,
+    @InjectRepository(ErrandTimeline) private readonly errandTimelineRepo: Repository<ErrandTimeline>,
     private readonly dispatchService: DispatchService,
     private readonly eventBus: DomainEventBus,
   ) {}
+
+  async getTimeline(riderId: string, riderTaskId: string): Promise<RiderTaskTimelineVo> {
+    const task = await this.taskRepo.findOne({ where: { riderTaskId } });
+    if (!task) throw new NotFoundException({ code: ErrorCode.DATA_NOT_FOUND, message: 'task not found' });
+    if (task.riderId !== riderId) {
+      throw new ForbiddenException({ code: ErrorCode.FORBIDDEN, message: 'not your task' });
+    }
+    if (task.bizType === 'FOOD') {
+      const rows = await this.orderTimelineRepo.find({
+        where: { orderId: task.bizOrderId, bizType: 'FOOD' },
+        order: { createdAt: 'ASC' },
+      });
+      return {
+        timeline: rows.map((r) => ({
+          at: Number(r.createdAt),
+          fromStatus: r.fromStatus,
+          toStatus: r.toStatus,
+          actor: r.actorType,
+          reason: r.reason,
+        })),
+        taskStatus: task.status,
+        orderBizType: 'FOOD',
+        allowedRiderActions: RIDER_NEXT_ACTIONS[task.status] ?? [],
+      };
+    }
+    const rows = await this.errandTimelineRepo.find({
+      where: { errandOrderId: task.bizOrderId },
+      order: { createdAt: 'ASC' },
+    });
+    return {
+      timeline: rows.map((r) => ({
+        at: Number(r.createdAt),
+        fromStatus: null,
+        toStatus: r.eventType,
+        actor: r.operator,
+        reason: null,
+      })),
+      taskStatus: task.status,
+      orderBizType: 'ERRAND',
+      allowedRiderActions: RIDER_NEXT_ACTIONS[task.status] ?? [],
+    };
+  }
 
   async detail(riderId: string, riderTaskId: string): Promise<RiderTaskDetailVo> {
     const task = await this.taskRepo.findOne({ where: { riderTaskId } });

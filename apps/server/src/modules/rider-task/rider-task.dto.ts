@@ -93,3 +93,18 @@ export class ExceptionVo {
   @ApiProperty() status!: string;
   @ApiProperty() platformHandleRequired!: boolean;
 }
+
+export class RiderTimelineItemVo {
+  @ApiProperty() at!: number;
+  @ApiProperty({ nullable: true }) fromStatus!: string | null;
+  @ApiProperty() toStatus!: string;
+  @ApiProperty() actor!: string;
+  @ApiProperty({ nullable: true }) reason!: string | null;
+}
+
+export class RiderTaskTimelineVo {
+  @ApiProperty({ type: [RiderTimelineItemVo] }) timeline!: RiderTimelineItemVo[];
+  @ApiProperty() taskStatus!: string;
+  @ApiProperty({ enum: ['FOOD', 'ERRAND'] }) orderBizType!: 'FOOD' | 'ERRAND';
+  @ApiProperty({ type: [String] }) allowedRiderActions!: string[];
+}

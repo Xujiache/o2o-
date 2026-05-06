@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ErrorCode } from '@o2o/contracts';
 import { Repository } from 'typeorm';
 
-import { FoodOrder, MerchantOrderActionLog, Store } from '../../database/entities';
+import { FoodOrder, MerchantOrderActionLog, OrderTimeline, Store } from '../../database/entities';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
 
@@ -18,12 +18,18 @@ import type {
   AcceptOrderVo,
   MerchantOrderListItemVo,
   MerchantOrderListVo,
+  MerchantOrderTimelineVo,
   PendingListQueryDto,
   ReadyOrderDto,
   ReadyOrderVo,
   RejectOrderDto,
   RejectOrderVo,
 } from './merchant-order.dto';
+
+const MERCHANT_NEXT_ACTIONS: Record<string, string[]> = {
+  PAID_WAIT_MERCHANT: ['ACCEPT', 'REJECT'],
+  PREPARING: ['READY'],
+};
 
 const DEFAULT_EXPECTED_READY_MIN = 15;
 const ACCEPT_DEADLINE_MS = 10 * 60 * 1000;
@@ -35,8 +41,35 @@ export class MerchantOrderService {
     @InjectRepository(Store) private readonly storeRepo: Repository<Store>,
     @InjectRepository(MerchantOrderActionLog)
     private readonly actionLogRepo: Repository<MerchantOrderActionLog>,
+    @InjectRepository(OrderTimeline) private readonly timelineRepo: Repository<OrderTimeline>,
     private readonly eventBus: DomainEventBus,
   ) {}
+
+  async getTimeline(merchantId: string, orderId: string): Promise<MerchantOrderTimelineVo> {
+    const store = await this.resolveStoreOrThrow(merchantId);
+    const order = await this.orderRepo.findOne({ where: { foodOrderId: orderId } });
+    if (!order) {
+      throw new NotFoundException({ code: ErrorCode.DATA_NOT_FOUND, message: 'order not found' });
+    }
+    if (order.storeId !== store.storeId) {
+      throw new ForbiddenException({ code: ErrorCode.FORBIDDEN, message: 'not your store order' });
+    }
+    const rows = await this.timelineRepo.find({
+      where: { orderId, bizType: 'FOOD' },
+      order: { createdAt: 'ASC' },
+    });
+    return {
+      timeline: rows.map((r) => ({
+        at: Number(r.createdAt),
+        fromStatus: r.fromStatus,
+        toStatus: r.toStatus,
+        actor: r.actorType,
+        reason: r.reason,
+      })),
+      currentStatus: order.status,
+      allowedMerchantActions: MERCHANT_NEXT_ACTIONS[order.status] ?? [],
+    };
+  }
 
   private async resolveStoreOrThrow(merchantId: string): Promise<Store> {
     const store = await this.storeRepo.findOne({ where: { merchantId } });

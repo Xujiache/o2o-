@@ -102,6 +102,8 @@ function buildService(w: World) {
     }),
   } as unknown as DomainEventBus;
 
+  const orderTimelineRepo: any = { find: jest.fn(async () => []) };
+  const errandTimelineRepo: any = { find: jest.fn(async () => []) };
   const svc = new RiderTaskService(
     taskRepo,
     dispatchRepo,
@@ -109,6 +111,8 @@ function buildService(w: World) {
     errandOrderRepo,
     errandTaskRepo,
     violationRepo,
+    orderTimelineRepo,
+    errandTimelineRepo,
     dispatchService,
     eventBus,
   );
