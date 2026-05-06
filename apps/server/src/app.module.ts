@@ -46,6 +46,7 @@ import { CustomerAfterSaleModule } from './modules/customer-after-sale/customer-
 import { CustomerAuthModule } from './modules/customer-auth/customer-auth.module';
 import { CustomerReviewModule } from './modules/customer-review/customer-review.module';
 import { DictModule } from './modules/dict/dict.module';
+import { DispatchModule } from './modules/dispatch/dispatch.module';
 import { ErrandDispatchModule } from './modules/errand-dispatch/errand-dispatch.module';
 import { ErrandOrderModule } from './modules/errand-order/errand-order.module';
 import { ErrandPricingModule } from './modules/errand-pricing/errand-pricing.module';
@@ -75,6 +76,7 @@ import { RiderAuthModule } from './modules/rider-auth/rider-auth.module';
 import { RiderLocationModule } from './modules/rider-location/rider-location.module';
 import { RiderOnboardingModule } from './modules/rider-onboarding/rider-onboarding.module';
 import { RiderProfileModule } from './modules/rider-profile/rider-profile.module';
+import { RiderTaskModule } from './modules/rider-task/rider-task.module';
 import { RiderTaskPoolModule } from './modules/rider-task-pool/rider-task-pool.module';
 import { RiskModule } from './modules/risk/risk.module';
 import { SmsModule } from './modules/sms/sms.module';
@@ -82,6 +84,7 @@ import { StockModule } from './modules/stock/stock.module';
 import { StoreModule } from './modules/store/store.module';
 import { StoreQueryModule } from './modules/store-query/store-query.module';
 import { SystemModule } from './modules/system/system.module';
+import { TrackModule } from './modules/track/track.module';
 import { TrackQueryModule } from './modules/track-query/track-query.module';
 import { UserProfileModule } from './modules/user-profile/user-profile.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
@@ -179,6 +182,10 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     AdminSettlementModule,
     AdminWithdrawalModule,
     AdminMerchantStatisticsModule,
+    // Stage 8 — 骑手端调度轨迹收益考核
+    DispatchModule,
+    RiderTaskModule,
+    TrackModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
