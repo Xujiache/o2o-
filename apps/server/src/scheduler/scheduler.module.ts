@@ -40,7 +40,6 @@ import {
   SysConfig,
   TrackPoint,
 } from '../database/entities';
-import { EventsModule } from '../events/events.module';
 import { AuthEntitiesModule } from '../modules/auth/auth-entities.module';
 import { ErrandDispatchModule } from '../modules/errand-dispatch/errand-dispatch.module';
 import { IntegrationGatewayModule } from '../modules/integration-gateway/integration-gateway.module';
@@ -135,7 +134,6 @@ import { SchedulerController } from './scheduler.controller';
       RiderEarning,
       TrackPoint,
     ]),
-    EventsModule,
     IntegrationGatewayModule,
     ErrandDispatchModule,
   ],
