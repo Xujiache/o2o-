@@ -31,6 +31,7 @@ import { AdminErrandOrderModule } from './modules/admin-errand-order/admin-erran
 import { AdminFoodOrderModule } from './modules/admin-food-order/admin-food-order.module';
 import { AdminMerchantModule } from './modules/admin-merchant/admin-merchant.module';
 import { AdminMerchantStatisticsModule } from './modules/admin-merchant-statistics/admin-merchant-statistics.module';
+import { AdminRefundModule } from './modules/admin-refund/admin-refund.module';
 import { AdminRiderModule } from './modules/admin-rider/admin-rider.module';
 import { AdminRolePermissionModule } from './modules/admin-role-permission/admin-role-permission.module';
 import { AdminSettlementModule } from './modules/admin-settlement/admin-settlement.module';
@@ -48,6 +49,7 @@ import { CouponModule } from './modules/coupon/coupon.module';
 import { CustomerAfterSaleModule } from './modules/customer-after-sale/customer-after-sale.module';
 import { CustomerAuthModule } from './modules/customer-auth/customer-auth.module';
 import { CustomerReviewModule } from './modules/customer-review/customer-review.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { DictModule } from './modules/dict/dict.module';
 import { DispatchModule } from './modules/dispatch/dispatch.module';
 import { ErrandDispatchModule } from './modules/errand-dispatch/errand-dispatch.module';
@@ -55,10 +57,12 @@ import { ErrandOrderModule } from './modules/errand-order/errand-order.module';
 import { ErrandPricingModule } from './modules/errand-pricing/errand-pricing.module';
 import { ErrandTypeModule } from './modules/errand-type/errand-type.module';
 import { FileModule } from './modules/file/file.module';
+import { FinanceModule } from './modules/finance/finance.module';
 import { FoodHomeModule } from './modules/food-home/food-home.module';
 import { FoodOrderModule } from './modules/food-order/food-order.module';
 import { GatewayModule } from './modules/gateway/gateway.module';
 import { IntegrationGatewayModule } from './modules/integration-gateway/integration-gateway.module';
+import { MarketingModule } from './modules/marketing/marketing.module';
 import { MerchantAfterSaleModule } from './modules/merchant-after-sale/merchant-after-sale.module';
 import { MerchantAuthModule } from './modules/merchant-auth/merchant-auth.module';
 import { MerchantOnboardingModule } from './modules/merchant-onboarding/merchant-onboarding.module';
@@ -200,6 +204,10 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     AdminDispatchModule,
     AdminTrackReplayModule,
     AdminViolationsModule,
+    AdminRefundModule,
+    MarketingModule,
+    FinanceModule,
+    DashboardModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
