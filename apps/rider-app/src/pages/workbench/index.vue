@@ -112,6 +112,12 @@ function gotoProfile(): void {
     <text v-if="onlineStatus === 'offline' && reasonText" class="wb__hint">{{ reasonText }}</text>
     <view class="wb__entries">
       <view class="wb__entry" @click="gotoTasks">接单大厅</view>
+      <view class="wb__entry" @click="uni.navigateTo({ url: '/pages/tasks/current' })">当前任务</view>
+      <view class="wb__entry" @click="uni.navigateTo({ url: '/pages/earnings/index' })">收益中心</view>
+      <view class="wb__entry" @click="uni.navigateTo({ url: '/pages/withdrawals/form' })">提现</view>
+      <view class="wb__entry" @click="uni.navigateTo({ url: '/pages/withdrawals/records' })">提现记录</view>
+      <view class="wb__entry" @click="uni.navigateTo({ url: '/pages/assessment/index' })">考核中心</view>
+      <view class="wb__entry" @click="uni.navigateTo({ url: '/pages/violations/index' })">违规记录</view>
       <view class="wb__entry" @click="gotoProfile">个人资料</view>
     </view>
   </view>

@@ -61,6 +61,19 @@
         "navigationBarTitleText": "接单大厅"
       }
     },
+    { "path": "pages/tasks/hall", "style": { "navigationBarTitleText": "接单大厅" } },
+    { "path": "pages/tasks/current", "style": { "navigationBarTitleText": "当前任务" } },
+    { "path": "pages/tasks/pickup-food", "style": { "navigationBarTitleText": "外卖取餐" } },
+    { "path": "pages/tasks/pickup-errand", "style": { "navigationBarTitleText": "跑腿取件" } },
+    { "path": "pages/tasks/navigate", "style": { "navigationBarTitleText": "导航" } },
+    { "path": "pages/tasks/delivering", "style": { "navigationBarTitleText": "配送中" } },
+    { "path": "pages/tasks/delivered", "style": { "navigationBarTitleText": "送达确认" } },
+    { "path": "pages/tasks/exception", "style": { "navigationBarTitleText": "异常报备" } },
+    { "path": "pages/earnings/index", "style": { "navigationBarTitleText": "收益中心" } },
+    { "path": "pages/withdrawals/form", "style": { "navigationBarTitleText": "提现" } },
+    { "path": "pages/withdrawals/records", "style": { "navigationBarTitleText": "提现记录" } },
+    { "path": "pages/assessment/index", "style": { "navigationBarTitleText": "考核中心" } },
+    { "path": "pages/violations/index", "style": { "navigationBarTitleText": "违规记录" } },
     {
       "path": "pages/profile/index",
       "style": {
