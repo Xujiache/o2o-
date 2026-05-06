@@ -187,6 +187,37 @@ export const routes: RouteRecordRaw[] = [
           permission: 'admin:menu:withdrawals',
         },
       },
+      // Stage 8 — 调度监控 / 轨迹回放 / 违规记录
+      {
+        path: 'admin/dispatch',
+        component: () => import('@/views/dispatch/index.vue'),
+        meta: {
+          title: '调度监控',
+          menu: true,
+          icon: 'Compass',
+          permission: 'admin:menu:dispatch',
+        },
+      },
+      {
+        path: 'admin/track-replay',
+        component: () => import('@/views/track-replay/index.vue'),
+        meta: {
+          title: '轨迹回放',
+          menu: true,
+          icon: 'Position',
+          permission: 'admin:menu:track-replay',
+        },
+      },
+      {
+        path: 'admin/violations',
+        component: () => import('@/views/violations/index.vue'),
+        meta: {
+          title: '违规记录',
+          menu: true,
+          icon: 'Warning',
+          permission: 'admin:menu:violations',
+        },
+      },
     ],
   },
   {
