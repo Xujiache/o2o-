@@ -67,6 +67,14 @@ export const EventName = {
   RiderDelivered: 'domain.rider-task.delivered',
   RiderExceptionReported: 'domain.rider-task.exception-reported',
   RiderEarningGenerated: 'domain.rider-earning.generated',
+  // Stage 9 — 平台 Web 调度售后运营财务 7 个事件
+  ManualDispatchCreated: 'domain.dispatch.manual-created',
+  OrderReassigned: 'domain.dispatch.order-reassigned',
+  ArbitrationCompleted: 'domain.after-sale.arbitration-completed',
+  RefundExecuted: 'domain.refund.executed',
+  CouponPublished: 'domain.coupon.published',
+  RateRuleChanged: 'domain.rate-rule.changed',
+  ReportGenerated: 'domain.dashboard.report-generated',
 } as const;
 
 export type EventName = (typeof EventName)[keyof typeof EventName];
@@ -532,6 +540,70 @@ export interface RiderEarningGeneratedPayload {
   generatedAt: number;
 }
 
+// Stage 9 — 平台 Web 调度售后运营财务 7 个 Payload
+export interface ManualDispatchCreatedPayload {
+  dispatchTaskId: string;
+  riderId: string;
+  operatorAdminId: string;
+  reason: string | null;
+  createdAt: number;
+}
+
+export interface OrderReassignedPayload {
+  dispatchTaskId: string;
+  oldRiderId: string | null;
+  newRiderId: string;
+  operatorAdminId: string;
+  reassignedAt: number;
+}
+
+export interface ArbitrationCompletedPayload {
+  arbitrationId: string;
+  afterSaleId: string;
+  responsibleParty: 'MERCHANT' | 'RIDER' | 'CUSTOMER' | 'PLATFORM';
+  decision: 'APPROVE' | 'REJECT' | 'PARTIAL';
+  refundAmount: string;
+  penalty: string;
+  refundOrderId: string | null;
+  operatorAdminId: string;
+  completedAt: number;
+}
+
+export interface RefundExecutedPayload {
+  refundOrderId: string;
+  refundNo: string;
+  bizType: 'FOOD' | 'ERRAND';
+  bizOrderId: string;
+  amount: string;
+  status: 'SUCCESS' | 'FAILED';
+  executedAt: number;
+}
+
+export interface CouponPublishedPayload {
+  couponRuleId: string;
+  couponName: string;
+  bizType: 'FOOD' | 'ERRAND' | 'ALL';
+  totalStock: number;
+  validFrom: number;
+  validTo: number;
+  publishedAt: number;
+}
+
+export interface RateRuleChangedPayload {
+  rateRuleId: string;
+  cityCode: string;
+  categoryId: string | null;
+  effectiveAt: number;
+  operatorAdminId: string;
+  changedAt: number;
+}
+
+export interface ReportGeneratedPayload {
+  snapshotDate: string;
+  cityCode: string;
+  generatedAt: number;
+}
+
 export type EventPayloadMap = {
   [EventName.ConfigChanged]: ConfigChangedPayload;
   [EventName.PermissionChanged]: PermissionChangedPayload;
@@ -588,4 +660,11 @@ export type EventPayloadMap = {
   [EventName.RiderDelivered]: RiderDeliveredPayload;
   [EventName.RiderExceptionReported]: RiderExceptionReportedPayload;
   [EventName.RiderEarningGenerated]: RiderEarningGeneratedPayload;
+  [EventName.ManualDispatchCreated]: ManualDispatchCreatedPayload;
+  [EventName.OrderReassigned]: OrderReassignedPayload;
+  [EventName.ArbitrationCompleted]: ArbitrationCompletedPayload;
+  [EventName.RefundExecuted]: RefundExecutedPayload;
+  [EventName.CouponPublished]: CouponPublishedPayload;
+  [EventName.RateRuleChanged]: RateRuleChangedPayload;
+  [EventName.ReportGenerated]: ReportGeneratedPayload;
 };

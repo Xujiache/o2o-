@@ -251,6 +251,77 @@ const PERMISSIONS: PermRow[] = [
     parentCode: 'admin:menu:violations',
     sort: 1,
   },
+  // Stage 9 — 平台 Web 调度售后运营财务 8 个权限点
+  {
+    code: 'admin:dispatch:manage',
+    name: '调度管理(人工派单)',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:dispatch',
+    sort: 800,
+  },
+  {
+    code: 'admin:after:sales:manage',
+    name: '售后仲裁',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:after-sales',
+    sort: 1,
+  },
+  { code: 'admin:menu:marketing', name: '营销菜单', scope: 'admin', type: 'menu', sort: 820 },
+  {
+    code: 'admin:marketing:manage',
+    name: '营销管理(优惠券)',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:marketing',
+    sort: 1,
+  },
+  { code: 'admin:menu:rate-rules', name: '费率菜单', scope: 'admin', type: 'menu', sort: 830 },
+  {
+    code: 'admin:rate:rules:manage',
+    name: '费率配置',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:rate-rules',
+    sort: 1,
+  },
+  { code: 'admin:menu:dashboard', name: '数据大屏菜单', scope: 'admin', type: 'menu', sort: 840 },
+  {
+    code: 'admin:dashboard:view',
+    name: '数据大屏查询',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:dashboard',
+    sort: 1,
+  },
+  { code: 'admin:menu:exports', name: '报表导出菜单', scope: 'admin', type: 'menu', sort: 850 },
+  {
+    code: 'admin:export:manage',
+    name: '报表导出',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:exports',
+    sort: 1,
+  },
+  { code: 'admin:menu:refunds', name: '退款执行菜单', scope: 'admin', type: 'menu', sort: 860 },
+  {
+    code: 'admin:refund:manage',
+    name: '退款管理',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:refunds',
+    sort: 1,
+  },
+  { code: 'admin:menu:risk', name: '风控菜单', scope: 'admin', type: 'menu', sort: 870 },
+  {
+    code: 'admin:risk:view',
+    name: '异常订单查询',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:risk',
+    sort: 1,
+  },
 ];
 
 export async function seedRolesAndPermissions(
@@ -346,6 +417,11 @@ export async function seedRolesAndPermissions(
     ['AUDITOR', 'admin:track-replay:view'],
     ['AUDITOR', 'admin:menu:violations'],
     ['AUDITOR', 'admin:violations:view'],
+    // Stage 9 — AUDITOR 可见 dashboard / risk(view 类只读),manage 类不给
+    ['AUDITOR', 'admin:menu:dashboard'],
+    ['AUDITOR', 'admin:dashboard:view'],
+    ['AUDITOR', 'admin:menu:risk'],
+    ['AUDITOR', 'admin:risk:view'],
     // SUPER_ADMIN 全量已通过 ...PERMISSIONS.map 覆盖
   ];
 

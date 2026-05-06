@@ -82,3 +82,14 @@ export * from './rider-earning.entity';
 export * from './rider-withdrawal.entity';
 export * from './rider-assessment.entity';
 export * from './rider-violation.entity';
+// Stage 9 — 平台 Web 调度售后运营财务 10 张新表
+export * from './dispatch-rule.entity';
+export * from './manual-dispatch-log.entity';
+export * from './after-sale-arbitration.entity';
+export * from './refund-order.entity';
+export * from './coupon-rule.entity';
+export * from './points-rule.entity';
+export * from './rate-rule.entity';
+export * from './dashboard-snapshot.entity';
+export * from './export-task.entity';
+export * from './risk-exception-log.entity';
