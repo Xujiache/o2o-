@@ -1,9 +1,12 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { PermissionGuard } from '../auth/guards/permission.guard';
 import { AdminJwtGuard } from '../auth/guards/scope-jwt.guard';
+import type { CurrentPrincipal } from '../auth/types';
+import { ExportService } from '../export/export.service';
 
 import {
   AdminErrandOrderDetailVo,
@@ -18,7 +21,10 @@ import { AdminErrandOrderService } from './admin-errand-order.service';
 @UseGuards(AdminJwtGuard, PermissionGuard)
 @ApiBearerAuth('Admin-Token')
 export class AdminErrandOrderController {
-  constructor(private readonly service: AdminErrandOrderService) {}
+  constructor(
+    private readonly service: AdminErrandOrderService,
+    private readonly exportService: ExportService,
+  ) {}
 
   @Get('stats')
   @RequirePermission('admin:errand-orders:view')
@@ -34,6 +40,20 @@ export class AdminErrandOrderController {
   @ApiOkResponse({ type: AdminErrandOrderListPageVo })
   async list(@Query() q: AdminListErrandOrdersQueryDto): Promise<AdminErrandOrderListPageVo> {
     return this.service.list(q);
+  }
+
+  @Get('export')
+  @RequirePermission('admin:export:manage')
+  @ApiOperation({ summary: '导出跑腿订单(异步)' })
+  async exportOrders(
+    @Query() q: AdminListErrandOrdersQueryDto,
+    @CurrentUser() principal: CurrentPrincipal,
+  ): Promise<{ exportTaskId: string; status: string }> {
+    const r = await this.exportService.enqueue(
+      { exportType: 'errand-orders', queryParams: q as unknown as Record<string, unknown> },
+      principal.principalId,
+    );
+    return { exportTaskId: r.exportTaskId, status: r.status };
   }
 
   @Get(':orderId')

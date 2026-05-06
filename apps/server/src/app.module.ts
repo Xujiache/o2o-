@@ -56,6 +56,7 @@ import { ErrandDispatchModule } from './modules/errand-dispatch/errand-dispatch.
 import { ErrandOrderModule } from './modules/errand-order/errand-order.module';
 import { ErrandPricingModule } from './modules/errand-pricing/errand-pricing.module';
 import { ErrandTypeModule } from './modules/errand-type/errand-type.module';
+import { ExportModule } from './modules/export/export.module';
 import { FileModule } from './modules/file/file.module';
 import { FinanceModule } from './modules/finance/finance.module';
 import { FoodHomeModule } from './modules/food-home/food-home.module';
@@ -208,6 +209,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     MarketingModule,
     FinanceModule,
     DashboardModule,
+    ExportModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

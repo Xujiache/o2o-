@@ -1,9 +1,12 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { PermissionGuard } from '../auth/guards/permission.guard';
 import { AdminJwtGuard } from '../auth/guards/scope-jwt.guard';
+import type { CurrentPrincipal } from '../auth/types';
+import { ExportService } from '../export/export.service';
 
 import {
   AdminFoodOrderDetailVo,
@@ -18,7 +21,10 @@ import { AdminFoodOrderService } from './admin-food-order.service';
 @UseGuards(AdminJwtGuard, PermissionGuard)
 @ApiBearerAuth('Admin-Token')
 export class AdminFoodOrderController {
-  constructor(private readonly service: AdminFoodOrderService) {}
+  constructor(
+    private readonly service: AdminFoodOrderService,
+    private readonly exportService: ExportService,
+  ) {}
 
   @Get('timeline-statistics')
   @RequirePermission('admin:food-orders:view')
@@ -34,6 +40,20 @@ export class AdminFoodOrderController {
   @ApiOkResponse({ type: AdminFoodOrderListPageVo })
   async list(@Query() query: AdminListFoodOrdersQueryDto): Promise<AdminFoodOrderListPageVo> {
     return this.service.list(query);
+  }
+
+  @Get('export')
+  @RequirePermission('admin:export:manage')
+  @ApiOperation({ summary: '导出外卖订单(异步)' })
+  async exportOrders(
+    @Query() query: AdminListFoodOrdersQueryDto,
+    @CurrentUser() principal: CurrentPrincipal,
+  ): Promise<{ exportTaskId: string; status: string }> {
+    const r = await this.exportService.enqueue(
+      { exportType: 'food-orders', queryParams: query as unknown as Record<string, unknown> },
+      principal.principalId,
+    );
+    return { exportTaskId: r.exportTaskId, status: r.status };
   }
 
   @Get(':orderId')

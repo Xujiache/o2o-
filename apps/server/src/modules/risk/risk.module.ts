@@ -1,7 +1,15 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
-/**
- * 风控模块占位 — T06 限流接入,后续业务阶段补充黑名单/防刷单/防恶意下单
- */
-@Module({})
+import { RiskExceptionLog } from '../../database/entities';
+
+import { RiskController } from './risk.controller';
+import { RiskService } from './risk.service';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([RiskExceptionLog])],
+  controllers: [RiskController],
+  providers: [RiskService],
+  exports: [RiskService],
+})
 export class RiskModule {}
