@@ -34,7 +34,14 @@ function buildService(w: World) {
       return [matched.slice(skip, skip + take), matched.length];
     }),
     findOne: jest.fn(async (opt: any) => {
-      return w.rows.find((r) => r.refundOrderId === opt.where.refundOrderId) ?? null;
+      const where = opt.where ?? {};
+      return (
+        w.rows.find((r) => {
+          if (where.refundOrderId && r.refundOrderId !== where.refundOrderId) return false;
+          if (where.refundNo && r.refundNo !== where.refundNo) return false;
+          return true;
+        }) ?? null
+      );
     }),
   };
   const eventBus: any = {
@@ -105,6 +112,34 @@ describe('AdminRefundService', () => {
     expect(r2.total).toBe(1);
     const r3 = await svc.list({});
     expect(r3.total).toBe(2);
+  });
+
+  it('handleProviderCallback: 找到 PENDING → SUCCESS,重复返 duplicate', async () => {
+    const w: World = {
+      rows: [
+        {
+          refundOrderId: '1',
+          refundNo: 'RF20260506000001',
+          bizType: 'FOOD',
+          bizOrderId: '510001',
+          paymentOrderId: 'P1',
+          amount: '1000',
+          status: 'PENDING',
+          provider: 'wxpay',
+          providerRefundId: null,
+          errorMessage: null,
+          createdAt: '1',
+          updatedAt: '1',
+        } as unknown as RefundOrder,
+      ],
+      events: [],
+    };
+    const { svc } = buildService(w);
+    const r1 = await svc.handleProviderCallback('wxpay', 'wx_x_1', 'RF20260506000001', true);
+    expect(r1).toEqual({ ok: true });
+    expect(w.rows[0]?.status).toBe('SUCCESS');
+    const r2 = await svc.handleProviderCallback('wxpay', 'wx_x_1', 'RF20260506000001', true);
+    expect(r2.duplicate).toBe(true);
   });
 
   it('detail: 找到返 vo,找不到 throw NotFoundException', async () => {

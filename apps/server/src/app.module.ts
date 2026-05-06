@@ -32,6 +32,7 @@ import { AdminFoodOrderModule } from './modules/admin-food-order/admin-food-orde
 import { AdminMerchantModule } from './modules/admin-merchant/admin-merchant.module';
 import { AdminMerchantStatisticsModule } from './modules/admin-merchant-statistics/admin-merchant-statistics.module';
 import { AdminOrdersModule } from './modules/admin-orders/admin-orders.module';
+import { AdminPaymentModule } from './modules/admin-payment/admin-payment.module';
 import { AdminRefundModule } from './modules/admin-refund/admin-refund.module';
 import { AdminRiderModule } from './modules/admin-rider/admin-rider.module';
 import { AdminRolePermissionModule } from './modules/admin-role-permission/admin-role-permission.module';
@@ -215,6 +216,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     // Stage 10 — 四端联调:timeline / payment 查询 / push device
     CustomerOrdersModule,
     AdminOrdersModule,
+    AdminPaymentModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

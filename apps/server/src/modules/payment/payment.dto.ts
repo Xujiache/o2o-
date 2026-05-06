@@ -23,3 +23,11 @@ export class PrepayVo {
   @ApiProperty({ description: '前端 SDK 唤起字符串' }) @Expose() payParams!: string;
   @ApiProperty() @Expose() expireAt!: number;
 }
+
+export class CustomerPaymentVo {
+  @ApiProperty() payOrderId!: string;
+  @ApiProperty() payStatus!: string;
+  @ApiProperty({ nullable: true }) paidAt!: number | null;
+  @ApiProperty() amountFen!: string;
+  @ApiProperty() channel!: string;
+}

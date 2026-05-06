@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { Audit } from '../../common/decorators/audit.decorator';
@@ -7,7 +7,7 @@ import { Idempotent } from '../../common/decorators/idempotent.decorator';
 import { CustomerJwtGuard } from '../auth/guards/scope-jwt.guard';
 import type { CurrentPrincipal } from '../auth/types';
 
-import { PrepayDto, PrepayVo } from './payment.dto';
+import { CustomerPaymentVo, PrepayDto, PrepayVo } from './payment.dto';
 import { PaymentService } from './payment.service';
 
 @ApiTags('payment')
@@ -24,5 +24,15 @@ export class PaymentController {
   @ApiOkResponse({ type: PrepayVo })
   async prepay(@CurrentUser() principal: CurrentPrincipal, @Body() dto: PrepayDto): Promise<PrepayVo> {
     return this.service.prepay(principal.principalId, dto);
+  }
+
+  @Get(':payOrderId')
+  @ApiOperation({ summary: '用户端支付状态查询(本人)' })
+  @ApiOkResponse({ type: CustomerPaymentVo })
+  async getOne(
+    @CurrentUser() principal: CurrentPrincipal,
+    @Param('payOrderId') payOrderId: string,
+  ): Promise<CustomerPaymentVo> {
+    return this.service.getForCustomer(principal.principalId, payOrderId);
   }
 }

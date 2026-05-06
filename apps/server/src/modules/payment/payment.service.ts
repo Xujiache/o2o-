@@ -1,4 +1,10 @@
-import { Inject, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ErrorCode } from '@o2o/contracts';
 import type Redis from 'ioredis';
@@ -20,7 +26,7 @@ import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
 import { IntegrationGatewayService } from '../integration-gateway/integration-gateway.service';
 
-import { type PrepayDto, type PrepayVo } from './payment.dto';
+import { type CustomerPaymentVo, type PrepayDto, type PrepayVo } from './payment.dto';
 
 const NONCE_PREFIX = 'pay:cb:nonce:';
 const NONCE_TTL_SECONDS = 60;
@@ -41,6 +47,32 @@ export class PaymentService {
     private readonly eventBus: DomainEventBus,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
   ) {}
+
+  async getForCustomer(customerId: string, payOrderId: string): Promise<CustomerPaymentVo> {
+    const p = await this.payRepo.findOne({ where: { paymentOrderId: payOrderId } });
+    if (!p) {
+      throw new NotFoundException({ code: ErrorCode.DATA_NOT_FOUND, message: 'pay order not found' });
+    }
+    // 越权检查:校验该 bizId 订单归属本 customer
+    if (p.bizType === 'FOOD') {
+      const o = await this.orderRepo.findOne({ where: { foodOrderId: p.bizId } });
+      if (!o || o.customerId !== customerId) {
+        throw new ForbiddenException({ code: ErrorCode.FORBIDDEN, message: 'not your payment' });
+      }
+    } else {
+      const e = await this.errandOrderRepo.findOne({ where: { errandOrderId: p.bizId } });
+      if (!e || e.customerId !== customerId) {
+        throw new ForbiddenException({ code: ErrorCode.FORBIDDEN, message: 'not your payment' });
+      }
+    }
+    return {
+      payOrderId: p.paymentOrderId,
+      payStatus: p.status,
+      paidAt: p.paidAt ? Number(p.paidAt) : null,
+      amountFen: p.paidAmount ?? p.payableAmount,
+      channel: p.payChannel,
+    };
+  }
 
   async prepay(customerId: string, dto: PrepayDto): Promise<PrepayVo> {
     // 1. 校验订单(本人 + WAIT_PAY)— 按 bizType 路由到不同订单表

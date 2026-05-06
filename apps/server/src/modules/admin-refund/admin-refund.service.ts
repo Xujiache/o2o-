@@ -105,6 +105,36 @@ export class AdminRefundService {
     };
   }
 
+  /**
+   * stage 10:第三方退款回调入口(stage 11 接真 wxpay)
+   * - 验签 mock + nonce 防重(简化:基于 providerRefundId 唯一)
+   * - 找 refund_order(by providerRefundId 或 refundNo)→ 设 SUCCESS/FAILED
+   */
+  async handleProviderCallback(
+    channel: 'wxpay' | 'alipay',
+    providerRefundId: string,
+    refundNo: string,
+    succeeded: boolean,
+  ): Promise<{ ok: true; duplicate?: boolean }> {
+    if (!providerRefundId || !refundNo) {
+      throw new NotFoundException('invalid callback payload');
+    }
+    const r = await this.repo.findOne({ where: { refundNo } });
+    if (!r) {
+      // stage 10 仅做骨架,真实场景需告警 + 写入 integration_request_log
+      return { ok: true };
+    }
+    if (r.status === 'SUCCESS' || r.status === 'FAILED') {
+      return { ok: true, duplicate: true };
+    }
+    r.status = succeeded ? 'SUCCESS' : 'FAILED';
+    r.providerRefundId = providerRefundId;
+    r.provider = channel;
+    r.updatedAt = String(Date.now());
+    await this.repo.save(r);
+    return { ok: true };
+  }
+
   private genRefundNo(now: number): string {
     const d = new Date(now);
     const yyyymmdd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
