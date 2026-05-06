@@ -82,6 +82,7 @@ import { ProductModule } from './modules/product/product.module';
 import { ProductQueryModule } from './modules/product-query/product-query.module';
 import { ProhibitedItemModule } from './modules/prohibited-item/prohibited-item.module';
 import { PublicStoreReadonlyModule } from './modules/public-store-readonly/public-store-readonly.module';
+import { PushDeviceModule } from './modules/push-device/push-device.module';
 import { RealnameModule } from './modules/realname/realname.module';
 import { RiderAssessmentModule } from './modules/rider-assessment/rider-assessment.module';
 import { RiderAuthModule } from './modules/rider-auth/rider-auth.module';
@@ -217,6 +218,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     CustomerOrdersModule,
     AdminOrdersModule,
     AdminPaymentModule,
+    PushDeviceModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
