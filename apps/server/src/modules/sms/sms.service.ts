@@ -155,6 +155,8 @@ export class SmsService {
   }
 
   private generateCode(): string {
+    // mock 模式恒为 123456,便于客户预览(stage 11 切真支付/真 sms 时此分支自动失效)
+    if (process.env.INTEGRATION_MODE === 'mock') return '123456';
     let s = '';
     for (let i = 0; i < SMS_CODE_LENGTH; i++) s += Math.floor(Math.random() * 10);
     return s;

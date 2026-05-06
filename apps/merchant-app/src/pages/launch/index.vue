@@ -21,6 +21,10 @@ onLoad(async () => {
   }
 });
 
+function gotoLogin(): void {
+  uni.navigateTo({ url: '/pages/login/index' });
+}
+
 function gotoAuditPending(): void {
   uni.navigateTo({ url: '/pages/audit/pending' });
 }
@@ -52,7 +56,8 @@ function gotoMaintenance(): void {
     </view>
 
     <view class="actions">
-      <button class="actions__btn" @click="gotoAuditPending">审核中占位</button>
+      <button class="actions__btn" @click="gotoLogin">立即登录</button>
+      <button class="actions__btn actions__btn--ghost" @click="gotoAuditPending">审核中占位</button>
       <button class="actions__btn actions__btn--ghost" @click="gotoForbidden">无权限</button>
       <button class="actions__btn actions__btn--ghost" @click="gotoNetwork">网络错误</button>
       <button class="actions__btn actions__btn--ghost" @click="gotoMaintenance">系统维护</button>

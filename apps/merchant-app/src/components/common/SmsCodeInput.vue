@@ -5,9 +5,9 @@ interface Props {
 defineProps<Props>();
 const emit = defineEmits<{ (e: 'update:modelValue', val: string): void }>();
 
-function onInput(e: Event): void {
-  const target = e.target as HTMLInputElement;
-  emit('update:modelValue', target.value.replace(/\D/g, '').slice(0, 6));
+function onInput(e: Event & { detail?: { value?: string } }): void {
+  const raw = String(e.detail?.value ?? (e.target as HTMLInputElement | null)?.value ?? '');
+  emit('update:modelValue', raw.replace(/\D/g, '').slice(0, 6));
 }
 </script>
 

@@ -9,9 +9,10 @@ const emit = defineEmits<{ (e: 'update:modelValue', val: string): void }>();
 
 const valid = computed(() => /^1[3-9]\d{9}$/.test(props.modelValue));
 
-function onInput(e: Event): void {
-  const target = e.target as HTMLInputElement;
-  emit('update:modelValue', target.value.replace(/\D/g, '').slice(0, 11));
+function onInput(e: Event & { detail?: { value?: string } }): void {
+  // uniapp h5/小程序/app 多端兼容:detail.value 优先,fallback 到原生 target.value
+  const raw = e.detail?.value ?? (e.target as HTMLInputElement | null)?.value ?? '';
+  emit('update:modelValue', String(raw).replace(/\D/g, '').slice(0, 11));
 }
 </script>
 

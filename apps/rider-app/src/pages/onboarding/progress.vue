@@ -10,7 +10,13 @@ async function load(): Promise<void> {
   loading.value = true;
   try {
     const r = await getOnboardingStatus();
-    if (r.code === '0' && r.data) status.value = r.data;
+    if (r.code === '0' && r.data) {
+      status.value = r.data;
+      // 已审核通过 → 直接进工作台,免得用户再点一次按钮
+      if (r.data.auditStatus === 'approved') {
+        uni.reLaunch({ url: '/pages/workbench/index' });
+      }
+    }
   } finally {
     loading.value = false;
   }

@@ -2,6 +2,7 @@ import type { DataSource } from 'typeorm';
 
 import { seedAdminUser } from './admin-user.seed';
 import { seedCitySites } from './city-site.seed';
+import { seedDemoData } from './demo.seed';
 import { seedDicts } from './dict.seed';
 import { seedErrandPricing } from './errand-pricing.seed';
 import { seedErrandTypes } from './errand-type.seed';
@@ -60,6 +61,14 @@ export async function runSeeds(ds: DataSource): Promise<void> {
   // Stage 8 — 骑手端调度轨迹收益考核配置
   const stage8CfgCount = await seedStage8SysConfig(ds);
   console.info(`[seed] sys_config (stage 8): ${stage8CfgCount}`);
+
+  // 演示数据(仅在 SEED_DEMO=1 时执行;客户预览用,stage 11 真上线前删除)
+  if (process.env.SEED_DEMO === '1') {
+    const demo = await seedDemoData(ds);
+    console.info(
+      `[seed] DEMO: customers=${demo.customers} merchants=${demo.merchants} stores=${demo.stores} products=${demo.products} riders=${demo.riders}`,
+    );
+  }
 
   console.info('[seed] done');
 }

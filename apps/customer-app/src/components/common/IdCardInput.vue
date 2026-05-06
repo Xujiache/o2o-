@@ -9,12 +9,12 @@ const emit = defineEmits<{ (e: 'update:modelValue', val: string): void }>();
 
 const valid = computed(() => isValidIdCard(props.modelValue));
 
-function onInput(e: Event): void {
-  const target = e.target as HTMLInputElement;
+function onInput(e: Event & { detail?: { value?: string } }): void {
+  const raw = String(e.detail?.value ?? (e.target as HTMLInputElement | null)?.value ?? '');
   // 18 位身份证最后一位可能为 X
   emit(
     'update:modelValue',
-    target.value
+    raw
       .replace(/[^0-9Xx]/g, '')
       .slice(0, 18)
       .toUpperCase(),

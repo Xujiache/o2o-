@@ -19,9 +19,9 @@ function checkIdCard(no: string): boolean {
 
 const valid = computed(() => !props.modelValue || checkIdCard(props.modelValue));
 
-function onInput(e: Event): void {
-  const target = e.target as HTMLInputElement;
-  const v = target.value.replace(/[^\dXx]/g, '').slice(0, 18);
+function onInput(e: Event & { detail?: { value?: string } }): void {
+  const raw = String(e.detail?.value ?? (e.target as HTMLInputElement | null)?.value ?? '');
+  const v = raw.replace(/[^\dXx]/g, '').slice(0, 18);
   emit('update:modelValue', v);
 }
 </script>

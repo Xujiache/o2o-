@@ -6,6 +6,7 @@
     { "path": "pages/error/network", "style": { "navigationBarTitleText": "网络错误" } },
     { "path": "pages/error/maintenance", "style": { "navigationBarTitleText": "系统维护中" } },
     { "path": "pages/login/index", "style": { "navigationBarTitleText": "登录" } },
+    { "path": "pages/login/verify", "style": { "navigationBarTitleText": "短信验证" } },
     { "path": "pages/onboarding/apply", "style": { "navigationBarTitleText": "入驻申请" } },
     { "path": "pages/workbench/index", "style": { "navigationBarTitleText": "商家工作台" } },
     { "path": "pages/store/settings", "style": { "navigationBarTitleText": "店铺设置" } },

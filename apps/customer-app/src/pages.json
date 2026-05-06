@@ -68,7 +68,15 @@
     { "path": "pages/errand/order/detail", "style": { "navigationBarTitleText": "订单详情" } },
     { "path": "pages/errand/track/index", "style": { "navigationBarTitleText": "配送轨迹" } },
     { "path": "pages/errand/address-picker/index", "style": { "navigationBarTitleText": "选择地址" } },
-    { "path": "pages/errand/image-upload/index", "style": { "navigationBarTitleText": "上传图片" } }
+    { "path": "pages/errand/image-upload/index", "style": { "navigationBarTitleText": "上传图片" } },
+    { "path": "pages/login/verify", "style": { "navigationBarTitleText": "短信验证" } },
+    { "path": "pages/login/wechat", "style": { "navigationBarTitleText": "微信登录" } },
+    { "path": "pages/address/list", "style": { "navigationBarTitleText": "我的地址" } },
+    { "path": "pages/address/edit", "style": { "navigationBarTitleText": "编辑地址" } },
+    { "path": "pages/me/index", "style": { "navigationBarTitleText": "我的" } },
+    { "path": "pages/me/notification", "style": { "navigationBarTitleText": "消息设置" } },
+    { "path": "pages/me/security", "style": { "navigationBarTitleText": "账号安全" } },
+    { "path": "pages/profile/realname", "style": { "navigationBarTitleText": "实名认证" } }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
