@@ -218,6 +218,36 @@ export const routes: RouteRecordRaw[] = [
           permission: 'admin:menu:violations',
         },
       },
+      {
+        path: 'admin/marketing/coupons',
+        component: () => import('@/views/marketing/coupons/index.vue'),
+        meta: { title: '优惠券', menu: true, icon: 'Discount', permission: 'admin:menu:marketing' },
+      },
+      {
+        path: 'admin/rate-rules',
+        component: () => import('@/views/rate-rules/index.vue'),
+        meta: { title: '费率配置', menu: true, icon: 'Money', permission: 'admin:menu:rate-rules' },
+      },
+      {
+        path: 'admin/refunds',
+        component: () => import('@/views/refunds/index.vue'),
+        meta: { title: '退款执行', menu: true, icon: 'CreditCard', permission: 'admin:menu:refunds' },
+      },
+      {
+        path: 'admin/exceptions',
+        component: () => import('@/views/exceptions/index.vue'),
+        meta: { title: '异常订单', menu: true, icon: 'CircleClose', permission: 'admin:menu:risk' },
+      },
+      {
+        path: 'admin/dashboard',
+        component: () => import('@/views/dashboard/index.vue'),
+        meta: { title: '数据大屏', menu: true, icon: 'DataAnalysis', permission: 'admin:menu:dashboard' },
+      },
+      {
+        path: 'admin/exports',
+        component: () => import('@/views/exports/index.vue'),
+        meta: { title: '报表导出', menu: true, icon: 'Download', permission: 'admin:menu:exports' },
+      },
     ],
   },
   {

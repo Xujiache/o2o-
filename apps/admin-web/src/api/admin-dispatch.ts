@@ -38,3 +38,18 @@ export function listDispatchTasks(params?: {
 export function getDispatchDetail(id: string): Promise<ApiResponse<AdminDispatchDetailVo>> {
   return request({ url: `/api/v1/admin/dispatch-tasks/${id}`, method: 'GET' });
 }
+
+export interface ManualAssignDto {
+  riderId: string;
+  reason?: string;
+}
+
+export interface ManualAssignVo {
+  taskId: string;
+  dispatchStatus: string;
+  assignedAt: number;
+}
+
+export function manualAssign(taskId: string, dto: ManualAssignDto): Promise<ApiResponse<ManualAssignVo>> {
+  return request({ url: `/api/v1/admin/dispatch/tasks/${taskId}/assign`, method: 'POST', data: dto });
+}
