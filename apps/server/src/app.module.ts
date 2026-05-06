@@ -26,6 +26,7 @@ import { AdminAfterSaleModule } from './modules/admin-after-sale/admin-after-sal
 import { AdminAuthModule } from './modules/admin-auth/admin-auth.module';
 import { AdminCategoryModule } from './modules/admin-category/admin-category.module';
 import { AdminCityModule } from './modules/admin-city/admin-city.module';
+import { AdminDispatchModule } from './modules/admin-dispatch/admin-dispatch.module';
 import { AdminErrandOrderModule } from './modules/admin-errand-order/admin-errand-order.module';
 import { AdminFoodOrderModule } from './modules/admin-food-order/admin-food-order.module';
 import { AdminMerchantModule } from './modules/admin-merchant/admin-merchant.module';
@@ -35,7 +36,9 @@ import { AdminRolePermissionModule } from './modules/admin-role-permission/admin
 import { AdminSettlementModule } from './modules/admin-settlement/admin-settlement.module';
 import { AdminSystemConfigModule } from './modules/admin-system-config/admin-system-config.module';
 import { AdminThirdPartyConfigModule } from './modules/admin-third-party-config/admin-third-party-config.module';
+import { AdminTrackReplayModule } from './modules/admin-track-replay/admin-track-replay.module';
 import { AdminUserModule } from './modules/admin-user/admin-user.module';
+import { AdminViolationsModule } from './modules/admin-violations/admin-violations.module';
 import { AdminWithdrawalModule } from './modules/admin-withdrawal/admin-withdrawal.module';
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -72,12 +75,15 @@ import { ProductQueryModule } from './modules/product-query/product-query.module
 import { ProhibitedItemModule } from './modules/prohibited-item/prohibited-item.module';
 import { PublicStoreReadonlyModule } from './modules/public-store-readonly/public-store-readonly.module';
 import { RealnameModule } from './modules/realname/realname.module';
+import { RiderAssessmentModule } from './modules/rider-assessment/rider-assessment.module';
 import { RiderAuthModule } from './modules/rider-auth/rider-auth.module';
+import { RiderEarningModule } from './modules/rider-earning/rider-earning.module';
 import { RiderLocationModule } from './modules/rider-location/rider-location.module';
 import { RiderOnboardingModule } from './modules/rider-onboarding/rider-onboarding.module';
 import { RiderProfileModule } from './modules/rider-profile/rider-profile.module';
 import { RiderTaskModule } from './modules/rider-task/rider-task.module';
 import { RiderTaskPoolModule } from './modules/rider-task-pool/rider-task-pool.module';
+import { RiderWithdrawalModule } from './modules/rider-withdrawal/rider-withdrawal.module';
 import { RiskModule } from './modules/risk/risk.module';
 import { SmsModule } from './modules/sms/sms.module';
 import { StockModule } from './modules/stock/stock.module';
@@ -87,6 +93,7 @@ import { SystemModule } from './modules/system/system.module';
 import { TrackModule } from './modules/track/track.module';
 import { TrackQueryModule } from './modules/track-query/track-query.module';
 import { UserProfileModule } from './modules/user-profile/user-profile.module';
+import { ViolationModule } from './modules/violation/violation.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 
 @Module({
@@ -186,6 +193,13 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     DispatchModule,
     RiderTaskModule,
     TrackModule,
+    RiderEarningModule,
+    RiderWithdrawalModule,
+    RiderAssessmentModule,
+    ViolationModule,
+    AdminDispatchModule,
+    AdminTrackReplayModule,
+    AdminViolationsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
