@@ -14,7 +14,9 @@ import { AccountDisabledSubscriber } from './subscribers/account-disabled.subscr
 import { AdminLoggedInSubscriber } from './subscribers/admin-logged-in.subscriber';
 import { AfterSaleAppliedSubscriber } from './subscribers/after-sale-applied.subscriber';
 import { AfterSaleReviewedByMerchantSubscriber } from './subscribers/after-sale-reviewed-by-merchant.subscriber';
+import { ArbitrationCompletedSubscriber } from './subscribers/arbitration-completed.subscriber';
 import { ConfigChangedSubscriber } from './subscribers/config-changed.subscriber';
+import { CouponPublishedSubscriber } from './subscribers/coupon-published.subscriber';
 import { CustomerAccountDisabledSubscriber } from './subscribers/customer-account-disabled.subscriber';
 import { CustomerLoggedInSubscriber } from './subscribers/customer-logged-in.subscriber';
 import { CustomerRealnameVerifiedSubscriber } from './subscribers/customer-realname-verified.subscriber';
@@ -22,6 +24,7 @@ import { CustomerRegisteredSubscriber } from './subscribers/customer-registered.
 import { DispatchStartedSubscriber } from './subscribers/dispatch-started.subscriber';
 import { FileUploadedSubscriber } from './subscribers/file-uploaded.subscriber';
 import { FoodReadyForPickupSubscriber } from './subscribers/food-ready-for-pickup.subscriber';
+import { ManualDispatchCreatedSubscriber } from './subscribers/manual-dispatch-created.subscriber';
 import { MerchantApprovedSubscriber } from './subscribers/merchant-approved.subscriber';
 import { MerchantAuditedSubscriber } from './subscribers/merchant-audited.subscriber';
 import { MerchantOrderAcceptedSubscriber } from './subscribers/merchant-order-accepted.subscriber';
@@ -30,7 +33,11 @@ import { MerchantOrderRejectedSubscriber } from './subscribers/merchant-order-re
 import { MerchantSettlementGeneratedSubscriber } from './subscribers/merchant-settlement-generated.subscriber';
 import { MerchantSubmittedSubscriber } from './subscribers/merchant-submitted.subscriber';
 import { MerchantWithdrawRequestedSubscriber } from './subscribers/merchant-withdraw-requested.subscriber';
+import { OrderReassignedSubscriber } from './subscribers/order-reassigned.subscriber';
 import { OrderReviewSubmittedSubscriber } from './subscribers/order-review-submitted.subscriber';
+import { RateRuleChangedSubscriber } from './subscribers/rate-rule-changed.subscriber';
+import { RefundExecutedSubscriber } from './subscribers/refund-executed.subscriber';
+import { ReportGeneratedSubscriber } from './subscribers/report-generated.subscriber';
 import { RiderApprovedSubscriber } from './subscribers/rider-approved.subscriber';
 import { RiderArrivedPickupSubscriber } from './subscribers/rider-arrived-pickup.subscriber';
 import { RiderAuditedSubscriber } from './subscribers/rider-audited.subscriber';
@@ -102,6 +109,14 @@ import { ThirdPartyConfigChangedSubscriber } from './subscribers/third-party-con
     RiderDeliveredSubscriber,
     RiderExceptionReportedSubscriber,
     RiderEarningGeneratedSubscriber,
+    // Stage 9
+    ManualDispatchCreatedSubscriber,
+    OrderReassignedSubscriber,
+    ArbitrationCompletedSubscriber,
+    RefundExecutedSubscriber,
+    CouponPublishedSubscriber,
+    RateRuleChangedSubscriber,
+    ReportGeneratedSubscriber,
   ],
   exports: [DomainEventBus],
 })
