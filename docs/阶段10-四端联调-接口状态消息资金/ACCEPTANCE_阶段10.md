@@ -66,10 +66,10 @@
 
 ```
 c502240  Wave 1 — T01-T03 push_device 表/迁移 + 2 权限 + events spec + Wave0 4 文档
-c... (TBD) Wave 2 — T04-T07 4 timeline 接口
-c... (TBD) Wave 3 — T08-T11 payment GET + callback 路径整改
-c... (TBD) Wave 4 — T12 push-device 模块 + 三端 token 共用
-c... (TBD) Wave 5 — T13 ACCEPTANCE/FINAL/TODO + 三表
+a94c9b9  Wave 2 — T04-T07 4 timeline 接口
+415eb5a  Wave 3 — T08-T11 payment GET + callback 路径整改
+0ad2f64  Wave 4 — T12 push-device 模块 + 三端 token 共用
+9bc6d1f  Wave 5 — T13 ACCEPTANCE/FINAL/TODO + 三表
 ```
 
 ## 5. 未做项与 stage 11 移交
