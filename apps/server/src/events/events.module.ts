@@ -19,6 +19,7 @@ import { CustomerAccountDisabledSubscriber } from './subscribers/customer-accoun
 import { CustomerLoggedInSubscriber } from './subscribers/customer-logged-in.subscriber';
 import { CustomerRealnameVerifiedSubscriber } from './subscribers/customer-realname-verified.subscriber';
 import { CustomerRegisteredSubscriber } from './subscribers/customer-registered.subscriber';
+import { DispatchStartedSubscriber } from './subscribers/dispatch-started.subscriber';
 import { FileUploadedSubscriber } from './subscribers/file-uploaded.subscriber';
 import { FoodReadyForPickupSubscriber } from './subscribers/food-ready-for-pickup.subscriber';
 import { MerchantApprovedSubscriber } from './subscribers/merchant-approved.subscriber';
@@ -31,16 +32,22 @@ import { MerchantSubmittedSubscriber } from './subscribers/merchant-submitted.su
 import { MerchantWithdrawRequestedSubscriber } from './subscribers/merchant-withdraw-requested.subscriber';
 import { OrderReviewSubmittedSubscriber } from './subscribers/order-review-submitted.subscriber';
 import { RiderApprovedSubscriber } from './subscribers/rider-approved.subscriber';
+import { RiderArrivedPickupSubscriber } from './subscribers/rider-arrived-pickup.subscriber';
 import { RiderAuditedSubscriber } from './subscribers/rider-audited.subscriber';
+import { RiderDeliveredSubscriber } from './subscribers/rider-delivered.subscriber';
+import { RiderEarningGeneratedSubscriber } from './subscribers/rider-earning-generated.subscriber';
+import { RiderExceptionReportedSubscriber } from './subscribers/rider-exception-reported.subscriber';
 import { RiderLocationUpdatedSubscriber } from './subscribers/rider-location-updated.subscriber';
 import { RiderOfflineSubscriber } from './subscribers/rider-offline.subscriber';
 import { RiderOnlineSubscriber } from './subscribers/rider-online.subscriber';
+import { RiderPickedUpSubscriber } from './subscribers/rider-picked-up.subscriber';
 import { RiderSubmittedSubscriber } from './subscribers/rider-submitted.subscriber';
+import { RiderTaskAcceptedSubscriber } from './subscribers/rider-task-accepted.subscriber';
 import { RoleChangedSubscriber } from './subscribers/role-changed.subscriber';
 import { StockLowSubscriber } from './subscribers/stock-low.subscriber';
 import { StoreStatusChangedSubscriber } from './subscribers/store-status-changed.subscriber';
 import { ThirdPartyConfigChangedSubscriber } from './subscribers/third-party-config-changed.subscriber';
-// Stage 7
+// Stage 8
 
 @Global()
 @Module({
@@ -87,6 +94,14 @@ import { ThirdPartyConfigChangedSubscriber } from './subscribers/third-party-con
     OrderReviewSubmittedSubscriber,
     MerchantSettlementGeneratedSubscriber,
     MerchantWithdrawRequestedSubscriber,
+    // Stage 8
+    DispatchStartedSubscriber,
+    RiderTaskAcceptedSubscriber,
+    RiderArrivedPickupSubscriber,
+    RiderPickedUpSubscriber,
+    RiderDeliveredSubscriber,
+    RiderExceptionReportedSubscriber,
+    RiderEarningGeneratedSubscriber,
   ],
   exports: [DomainEventBus],
 })

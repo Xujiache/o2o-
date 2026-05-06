@@ -6,6 +6,7 @@ import {
   AccountDisableRecord,
   CustomerAddress,
   CustomerUser,
+  DispatchTask,
   ErrandOrder,
   ErrandTask,
   ErrandTimeline,
@@ -27,13 +28,17 @@ import {
   RiderAccount,
   RiderApplication,
   RiderAuditLog,
+  RiderEarning,
   RiderLocation,
   RiderStatus,
+  RiderTask,
+  RiderViolation,
   SmsCode,
   StockLock,
   Store,
   SysAuditLog,
   SysConfig,
+  TrackPoint,
 } from '../database/entities';
 import { EventsModule } from '../events/events.module';
 import { AuthEntitiesModule } from '../modules/auth/auth-entities.module';
@@ -46,7 +51,9 @@ import { ConfigCacheRefreshJob } from './jobs/config-cache-refresh.job';
 import { ConfigChangeAggregateJob } from './jobs/config-change-aggregate.job';
 import { DailyStatisticsSnapshotJob } from './jobs/daily-statistics-snapshot.job';
 import { DefaultAddressUniquenessJob } from './jobs/default-address-uniqueness.job';
+import { DeliveryTimeoutMarkJob } from './jobs/delivery-timeout-mark.job';
 import { DisabledAccountTokenBroadcastJob } from './jobs/disabled-account-token-broadcast.job';
+import { DispatchTimeoutRetryJob } from './jobs/dispatch-timeout-retry.job';
 import { ExpiredCleanupJob } from './jobs/expired-cleanup.job';
 import { LicenseExpiryReminderJob } from './jobs/license-expiry-reminder.job';
 import { LoginAnomalyDetectionJob } from './jobs/login-anomaly-detection.job';
@@ -61,14 +68,17 @@ import { RealnameRetryJob } from './jobs/realname-retry.job';
 import { ReservedErrandDispatchJob } from './jobs/reserved-errand-dispatch.job';
 import { ReservedOrderDispatchJob } from './jobs/reserved-order-dispatch.job';
 import { RiderAuditTimeoutReminderJob } from './jobs/rider-audit-timeout-reminder.job';
+import { RiderEarningDailySettleJob } from './jobs/rider-earning-daily-settle.job';
 import { RiderHealthCertExpiryReminderJob } from './jobs/rider-health-cert-expiry-reminder.job';
 import { RiderHeartbeatTimeoutOfflineJob } from './jobs/rider-heartbeat-timeout-offline.job';
 import { RiderLocationArchiveJob } from './jobs/rider-location-archive.job';
+import { RiderViolationDeductJob } from './jobs/rider-violation-deduct.job';
 import { SmsCodeExpiredCleanupJob } from './jobs/sms-code-expired-cleanup.job';
 import { SoldOutAutoOffShelfJob } from './jobs/sold-out-auto-off-shelf.job';
 import { StockAlertScanJob } from './jobs/stock-alert-scan.job';
 import { T1MerchantSettlementJob } from './jobs/t1-merchant-settlement.job';
 import { ThirdPartyRetryJob } from './jobs/third-party-retry.job';
+import { TrackCompressJob } from './jobs/track-compress.job';
 import { WaitPayTimeoutCloseErrandJob } from './jobs/wait-pay-timeout-close-errand.job';
 import { WaitPayTimeoutCloseJob } from './jobs/wait-pay-timeout-close.job';
 import { WithdrawalStatusPollJob } from './jobs/withdrawal-status-poll.job';
@@ -118,6 +128,12 @@ import { SchedulerController } from './scheduler.controller';
       MerchantWithdrawal,
       OrderReview,
       Store,
+      // Stage 8
+      DispatchTask,
+      RiderTask,
+      RiderViolation,
+      RiderEarning,
+      TrackPoint,
     ]),
     EventsModule,
     IntegrationGatewayModule,
@@ -165,6 +181,12 @@ import { SchedulerController } from './scheduler.controller';
     T1MerchantSettlementJob,
     WithdrawalStatusPollJob,
     DailyStatisticsSnapshotJob,
+    // Stage 8
+    DispatchTimeoutRetryJob,
+    TrackCompressJob,
+    DeliveryTimeoutMarkJob,
+    RiderEarningDailySettleJob,
+    RiderViolationDeductJob,
   ],
   exports: [ConfigCacheRefreshJob],
 })
