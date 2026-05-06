@@ -38,6 +38,6 @@ describe('Stage 1 EventName 扩展', () => {
   });
 
   it('Object.values(EventName) 含 stage 0 5 + stage 1 5 + stage 2 6 + stage 3 5 + stage 4 6 + stage 5 6 + stage 6 6 = 39', () => {
-    expect(Object.values(EventName)).toHaveLength(48);
+    expect(Object.values(EventName)).toHaveLength(55);
   });
 });

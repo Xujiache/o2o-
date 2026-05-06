@@ -223,6 +223,34 @@ const PERMISSIONS: PermRow[] = [
     parentCode: 'admin:menu:withdrawals',
     sort: 1,
   },
+  // Stage 8 — 平台 Web 调度监控/轨迹回放/违规
+  { code: 'admin:menu:dispatch', name: '调度监控菜单', scope: 'admin', type: 'menu', sort: 700 },
+  {
+    code: 'admin:dispatch:view',
+    name: '调度监控查询',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:dispatch',
+    sort: 1,
+  },
+  { code: 'admin:menu:track-replay', name: '轨迹回放菜单', scope: 'admin', type: 'menu', sort: 710 },
+  {
+    code: 'admin:track-replay:view',
+    name: '轨迹回放查询',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:track-replay',
+    sort: 1,
+  },
+  { code: 'admin:menu:violations', name: '违规记录菜单', scope: 'admin', type: 'menu', sort: 720 },
+  {
+    code: 'admin:violations:view',
+    name: '违规记录查询',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:violations',
+    sort: 1,
+  },
 ];
 
 export async function seedRolesAndPermissions(
@@ -311,6 +339,13 @@ export async function seedRolesAndPermissions(
     ['AUDITOR', 'admin:settlements:view'],
     ['AUDITOR', 'admin:menu:withdrawals'],
     ['AUDITOR', 'admin:withdrawals:view'],
+    // Stage 8 — AUDITOR 可见调度/轨迹回放/违规(只读)
+    ['AUDITOR', 'admin:menu:dispatch'],
+    ['AUDITOR', 'admin:dispatch:view'],
+    ['AUDITOR', 'admin:menu:track-replay'],
+    ['AUDITOR', 'admin:track-replay:view'],
+    ['AUDITOR', 'admin:menu:violations'],
+    ['AUDITOR', 'admin:violations:view'],
     // SUPER_ADMIN 全量已通过 ...PERMISSIONS.map 覆盖
   ];
 

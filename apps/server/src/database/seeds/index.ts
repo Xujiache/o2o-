@@ -10,6 +10,7 @@ import { seedPlatformCategories } from './platform-category.seed';
 import { seedProhibitedItems } from './prohibited-item.seed';
 import { seedRolesAndPermissions } from './role-permission.seed';
 import { seedStage7SysConfig } from './sys-config-stage7.seed';
+import { seedStage8SysConfig } from './sys-config-stage8.seed';
 import { seedSysConfig } from './sys-config.seed';
 import { seedThirdPartyConfig } from './third-party-config.seed';
 
@@ -55,6 +56,10 @@ export async function runSeeds(ds: DataSource): Promise<void> {
   // Stage 7 — 商家端订单售后结算配置
   const stage7CfgCount = await seedStage7SysConfig(ds);
   console.info(`[seed] sys_config (stage 7): ${stage7CfgCount}`);
+
+  // Stage 8 — 骑手端调度轨迹收益考核配置
+  const stage8CfgCount = await seedStage8SysConfig(ds);
+  console.info(`[seed] sys_config (stage 8): ${stage8CfgCount}`);
 
   console.info('[seed] done');
 }

@@ -59,6 +59,14 @@ export const EventName = {
   OrderReviewSubmitted: 'domain.order-review.submitted',
   MerchantSettlementGenerated: 'domain.merchant-settlement.generated',
   MerchantWithdrawRequested: 'domain.merchant-withdrawal.requested',
+  // Stage 8 — 骑手端调度轨迹收益考核 7 个事件
+  DispatchStarted: 'domain.dispatch.started',
+  RiderTaskAccepted: 'domain.rider-task.accepted',
+  RiderArrivedPickup: 'domain.rider-task.arrived-pickup',
+  RiderPickedUp: 'domain.rider-task.picked-up',
+  RiderDelivered: 'domain.rider-task.delivered',
+  RiderExceptionReported: 'domain.rider-task.exception-reported',
+  RiderEarningGenerated: 'domain.rider-earning.generated',
 } as const;
 
 export type EventName = (typeof EventName)[keyof typeof EventName];
@@ -459,6 +467,71 @@ export interface MerchantWithdrawRequestedPayload {
   requestedAt: number;
 }
 
+// === Stage 8 — 骑手端调度轨迹收益考核事件 payload ===
+
+export interface DispatchStartedPayload {
+  dispatchTaskId: string;
+  bizType: 'FOOD' | 'ERRAND';
+  bizOrderId: string;
+  bizTaskId: string | null;
+  candidateRiderIds: string[];
+  dispatchedAt: number;
+}
+
+export interface RiderTaskAcceptedPayload {
+  riderTaskId: string;
+  dispatchTaskId: string;
+  riderId: string;
+  bizType: 'FOOD' | 'ERRAND';
+  bizOrderId: string;
+  acceptedAt: number;
+}
+
+export interface RiderArrivedPickupPayload {
+  riderTaskId: string;
+  riderId: string;
+  bizType: 'FOOD' | 'ERRAND';
+  bizOrderId: string;
+  lng: number;
+  lat: number;
+  arrivedAt: number;
+}
+
+export interface RiderPickedUpPayload {
+  riderTaskId: string;
+  riderId: string;
+  bizType: 'FOOD' | 'ERRAND';
+  bizOrderId: string;
+  pickedUpAt: number;
+}
+
+export interface RiderDeliveredPayload {
+  riderTaskId: string;
+  riderId: string;
+  bizType: 'FOOD' | 'ERRAND';
+  bizOrderId: string;
+  deliveryProof: string | null;
+  deliveredAt: number;
+}
+
+export interface RiderExceptionReportedPayload {
+  riderViolationId: string;
+  riderTaskId: string;
+  riderId: string;
+  exceptionType: 'EXCEPTION' | 'LATE' | 'COMPLAINT' | 'FRAUD';
+  description: string;
+  platformHandleRequired: boolean;
+  reportedAt: number;
+}
+
+export interface RiderEarningGeneratedPayload {
+  riderEarningId: string;
+  riderId: string;
+  settleDate: number;
+  totalAmount: string;
+  generatedAt: number;
+}
+
 export type EventPayloadMap = {
   [EventName.ConfigChanged]: ConfigChangedPayload;
   [EventName.PermissionChanged]: PermissionChangedPayload;
@@ -508,4 +581,11 @@ export type EventPayloadMap = {
   [EventName.OrderReviewSubmitted]: OrderReviewSubmittedPayload;
   [EventName.MerchantSettlementGenerated]: MerchantSettlementGeneratedPayload;
   [EventName.MerchantWithdrawRequested]: MerchantWithdrawRequestedPayload;
+  [EventName.DispatchStarted]: DispatchStartedPayload;
+  [EventName.RiderTaskAccepted]: RiderTaskAcceptedPayload;
+  [EventName.RiderArrivedPickup]: RiderArrivedPickupPayload;
+  [EventName.RiderPickedUp]: RiderPickedUpPayload;
+  [EventName.RiderDelivered]: RiderDeliveredPayload;
+  [EventName.RiderExceptionReported]: RiderExceptionReportedPayload;
+  [EventName.RiderEarningGenerated]: RiderEarningGeneratedPayload;
 };

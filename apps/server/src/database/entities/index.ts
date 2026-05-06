@@ -74,3 +74,11 @@ export * from './review-reply.entity';
 export * from './merchant-statistics-snapshot.entity';
 export * from './merchant-settlement.entity';
 export * from './merchant-withdrawal.entity';
+// Stage 8 — 骑手端调度轨迹收益考核 7 张新表
+export * from './dispatch-task.entity';
+export * from './rider-task.entity';
+export * from './track-point.entity';
+export * from './rider-earning.entity';
+export * from './rider-withdrawal.entity';
+export * from './rider-assessment.entity';
+export * from './rider-violation.entity';
