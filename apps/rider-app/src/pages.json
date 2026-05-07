@@ -58,7 +58,7 @@
     {
       "path": "pages/tasks/available",
       "style": {
-        "navigationBarTitleText": "接单大厅"
+        "navigationBarTitleText": "可接任务列表"
       }
     },
     { "path": "pages/tasks/hall", "style": { "navigationBarTitleText": "接单大厅" } },
@@ -110,5 +110,18 @@
     "navigationBarTitleText": "O2O 骑手端",
     "navigationBarBackgroundColor": "#FFFFFF",
     "backgroundColor": "#F5F5F5"
+  },
+  "tabBar": {
+    "color": "#8A94A6",
+    "selectedColor": "#14B8A6",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/workbench/index", "text": "工作台" },
+      { "pagePath": "pages/tasks/hall", "text": "大厅" },
+      { "pagePath": "pages/tasks/current", "text": "任务" },
+      { "pagePath": "pages/earnings/index", "text": "收益" },
+      { "pagePath": "pages/profile/index", "text": "我的" }
+    ]
   }
 }

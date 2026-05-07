@@ -25,7 +25,7 @@ async function onAuthorize(): Promise<void> {
     if (bindMobileRequired) {
       uni.redirectTo({ url: '/pages/login/index?bindWechat=1' });
     } else {
-      uni.reLaunch({ url: '/pages/me/index' });
+      uni.switchTab({ url: '/pages/me/index' });
     }
   } catch (err) {
     errorMsg.value = err instanceof Error ? err.message : '微信授权失败';

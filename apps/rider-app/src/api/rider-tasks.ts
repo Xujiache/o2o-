@@ -14,6 +14,12 @@ export interface RiderTaskDetailVo {
   pickedUpAt: number | null;
   deliveredAt: number | null;
   etaAt: number | null;
+  /** 跑腿订单类型;FOOD 任务为 null */
+  errandTypeCode: 'BUY' | 'DELIVER' | 'HELP' | 'CUSTOM' | null;
+  /** 是否需要骑手核验取件码(仅 ERRAND + DELIVER) */
+  requirePickupCode: boolean;
+  /** 是否需要骑手核验收货码(ERRAND 全部类型) */
+  requireDeliveryCode: boolean;
 }
 
 export interface AcceptTaskVo {
@@ -51,6 +57,11 @@ export function getTaskDetail(taskId: string): Promise<ApiResponse<RiderTaskDeta
   return request<RiderTaskDetailVo>({ url: `/api/v1/r/tasks/${taskId}`, method: 'GET' });
 }
 
+/** 当前骑手进行中的任务,无任务返回 data=null */
+export function getMyCurrentTask(): Promise<ApiResponse<RiderTaskDetailVo | null>> {
+  return request<RiderTaskDetailVo | null>({ url: '/api/v1/r/tasks/my-current', method: 'GET' });
+}
+
 export function acceptTask(taskId: string, body?: { lng?: number; lat?: number }): Promise<ApiResponse<AcceptTaskVo>> {
   return request<AcceptTaskVo>({ url: `/api/v1/r/tasks/${taskId}/accept`, method: 'POST', data: body ?? {} });
 }
@@ -68,7 +79,7 @@ export function pickupTask(
 
 export function deliveredTask(
   taskId: string,
-  body: { deliveryProof?: string; lng: number; lat: number },
+  body: { deliveryProof?: string; deliveryCode?: string; lng: number; lat: number },
 ): Promise<ApiResponse<DeliveredVo>> {
   return request<DeliveredVo>({ url: `/api/v1/r/tasks/${taskId}/delivered`, method: 'POST', data: body });
 }

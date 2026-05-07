@@ -10,6 +10,7 @@ import type { CurrentPrincipal } from '../auth/types';
 import {
   AcceptOrderDto,
   AcceptOrderVo,
+  MerchantOrderDetailVo,
   MerchantOrderListVo,
   MerchantOrderTimelineVo,
   PendingListQueryDto,
@@ -81,5 +82,13 @@ export class MerchantOrderController {
     @Body() dto: ReadyOrderDto,
   ): Promise<ReadyOrderVo> {
     return this.service.ready(p.principalId, orderId, dto);
+  }
+
+  /** 必须放在所有 :orderId/* 子路径之后,否则 :orderId 通配会先匹配 */
+  @Get(':orderId')
+  @ApiOperation({ summary: '商家订单详情(本店,含商品/金额/地址/时间线/允许操作)' })
+  @ApiOkResponse({ type: MerchantOrderDetailVo })
+  async detail(@CurrentUser() p: CurrentPrincipal, @Param('orderId') orderId: string): Promise<MerchantOrderDetailVo> {
+    return this.service.getDetail(p.principalId, orderId);
   }
 }

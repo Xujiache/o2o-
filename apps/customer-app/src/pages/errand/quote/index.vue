@@ -1,47 +1,7 @@
-<template>
-  <view class="page">
-    <text class="title">跑腿报价</text>
-    <view v-if="loading">加载中...</view>
-    <view v-else-if="!quote">
-      <text>报价失败,请返回重试</text>
-    </view>
-    <view v-else>
-      <view class="row">
-        <text class="label">基础费</text>
-        <text class="value">¥{{ formatYuan(quote.baseFee) }}</text>
-      </view>
-      <view class="row">
-        <text class="label">距离费</text>
-        <text class="value">¥{{ formatYuan(quote.distanceFee) }}</text>
-      </view>
-      <view class="row">
-        <text class="label">加急/重量费</text>
-        <text class="value">¥{{ formatYuan(quote.urgentFee) }}</text>
-      </view>
-      <view class="row total">
-        <text class="label">应付</text>
-        <text class="value">¥{{ formatYuan(quote.payableAmount) }}</text>
-      </view>
-      <view class="row">
-        <text class="label">距离</text>
-        <text class="value">{{ quote.distanceMeters }} m</text>
-      </view>
-      <view v-if="quote.prohibitedWarnings.length > 0" class="warnings">
-        <text class="warn-title">违禁品提示</text>
-        <view v-for="w in quote.prohibitedWarnings" :key="w.keyword" class="warn-item">
-          <text>{{ w.keyword }} - {{ w.description }}</text>
-        </view>
-      </view>
-      <view class="actions">
-        <button @click="goConfirm">下一步:确认下单</button>
-      </view>
-    </view>
-  </view>
-</template>
-
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 
+import SvgIcon from '@/components/common/SvgIcon.vue';
 import { useErrandFormStore } from '@/stores/errand-form';
 import { useErrandQuoteStore } from '@/stores/errand-quote';
 import { formatYuan } from '@/utils/format-price';
@@ -67,48 +27,235 @@ function goConfirm(): void {
 }
 </script>
 
+<template>
+  <view class="quote">
+    <view v-if="loading" class="quote__loading">报价计算中…</view>
+    <view v-else-if="!quote" class="quote__error">
+      <SvgIcon name="alert-triangle" :size="80" color="#d33" />
+      <text class="quote__error-title">报价获取失败</text>
+      <text class="quote__error-msg">请返回上一页重新提交</text>
+    </view>
+
+    <template v-else>
+      <!-- 大额头 -->
+      <view class="quote__hero">
+        <text class="quote__eyebrow">本次费用</text>
+        <text class="quote__amount">¥{{ formatYuan(quote.payableAmount) }}</text>
+        <view class="quote__hero-meta">
+          <text class="quote__hero-meta-item">距离 {{ quote.distanceMeters }} m</text>
+        </view>
+      </view>
+
+      <!-- 价格分项 -->
+      <view class="quote__card">
+        <text class="quote__card-title">费用明细</text>
+        <view class="quote__row">
+          <text class="quote__row-label">基础费</text>
+          <text class="quote__row-value">¥{{ formatYuan(quote.baseFee) }}</text>
+        </view>
+        <view class="quote__row">
+          <text class="quote__row-label">距离费</text>
+          <text class="quote__row-value">¥{{ formatYuan(quote.distanceFee) }}</text>
+        </view>
+        <view class="quote__row">
+          <text class="quote__row-label">加急 / 重量费</text>
+          <text class="quote__row-value">¥{{ formatYuan(quote.urgentFee) }}</text>
+        </view>
+        <view class="quote__row quote__row--total">
+          <text class="quote__row-label">应付总额</text>
+          <text class="quote__row-pay">¥{{ formatYuan(quote.payableAmount) }}</text>
+        </view>
+      </view>
+
+      <!-- 违禁品提示 -->
+      <view v-if="quote.prohibitedWarnings.length > 0" class="quote__warn">
+        <view class="quote__warn-head">
+          <SvgIcon name="alert-triangle" :size="28" color="#d33" />
+          <text class="quote__warn-title">违禁品提示</text>
+        </view>
+        <view v-for="w in quote.prohibitedWarnings" :key="w.keyword" class="quote__warn-item">
+          <text class="quote__warn-keyword">{{ w.keyword }}</text>
+          <text class="quote__warn-desc">{{ w.description }}</text>
+        </view>
+      </view>
+
+      <view class="quote__bar">
+        <button class="quote__cta" @click="goConfirm">下一步:确认下单</button>
+      </view>
+    </template>
+  </view>
+</template>
+
 <style scoped>
-.page {
-  padding: 20px;
+.quote {
+  min-height: 100vh;
+  padding: 0 0 200rpx;
+  background: #f5f6f8;
 }
-.title {
-  font-size: 22px;
-  font-weight: bold;
+.quote__loading,
+.quote__error {
+  text-align: center;
+  padding: 160rpx 40rpx;
+  color: #8a94a6;
+  font-size: 26rpx;
+}
+.quote__error {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  align-items: center;
+}
+.quote__error-icon {
+  font-size: 96rpx;
+}
+.quote__error-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #172033;
+}
+.quote__error-msg {
+  font-size: 24rpx;
+  color: #8a94a6;
+}
+
+.quote__hero {
+  padding: 60rpx 32rpx 80rpx;
+  background: linear-gradient(135deg, #5b5ff8 0%, #00b8d9 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+}
+.quote__eyebrow {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.86);
+  letter-spacing: 1rpx;
+}
+.quote__amount {
+  font-size: 96rpx;
+  font-weight: 800;
+  letter-spacing: -2rpx;
+  line-height: 1;
+}
+.quote__hero-meta {
+  margin-top: 8rpx;
+  display: flex;
+  gap: 12rpx;
+}
+.quote__hero-meta-item {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.86);
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.quote__card {
+  margin: -36rpx 24rpx 0;
+  padding: 32rpx 28rpx 16rpx;
+  background: #fff;
+  border-radius: 28rpx;
+  box-shadow: 0 18rpx 48rpx rgba(31, 41, 55, 0.08);
+}
+.quote__card-title {
   display: block;
-  margin-bottom: 16px;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #172033;
+  margin-bottom: 8rpx;
 }
-.row {
+.quote__row {
   display: flex;
   justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid rgba(31, 41, 55, 0.06);
 }
-.row.total {
-  font-weight: bold;
-  font-size: 18px;
+.quote__row:last-child {
+  border-bottom: none;
 }
-.label {
-  color: #666;
+.quote__row--total {
+  padding-top: 24rpx;
+  margin-top: 8rpx;
+  border-top: 2rpx solid rgba(31, 41, 55, 0.08);
+  border-bottom: none;
 }
-.value {
-  color: #333;
+.quote__row-label {
+  font-size: 26rpx;
+  color: #5a6275;
 }
-.warnings {
-  margin-top: 16px;
-  padding: 12px;
-  background: #fff8e1;
-  border-radius: 6px;
+.quote__row-value {
+  font-size: 28rpx;
+  color: #172033;
+  font-weight: 600;
 }
-.warn-title {
-  font-weight: bold;
-  display: block;
-  margin-bottom: 4px;
+.quote__row--total .quote__row-label {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #172033;
 }
-.warn-item {
-  font-size: 13px;
-  color: #ed6c02;
+.quote__row-pay {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #ff4d4f;
 }
-.actions {
-  margin-top: 24px;
+
+.quote__warn {
+  margin: 24rpx;
+  padding: 24rpx 28rpx;
+  background: linear-gradient(135deg, #fff8e1, #ffefc7);
+  border-radius: 24rpx;
+}
+.quote__warn-head {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+.quote__warn-icon {
+  font-size: 32rpx;
+}
+.quote__warn-title {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #ad6800;
+}
+.quote__warn-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  padding: 12rpx 0;
+  border-top: 1rpx solid rgba(173, 104, 0, 0.12);
+}
+.quote__warn-keyword {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #ad6800;
+}
+.quote__warn-desc {
+  font-size: 22rpx;
+  color: #8c4a00;
+  line-height: 1.4;
+}
+
+.quote__bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 20rpx 24rpx calc(env(safe-area-inset-bottom, 0rpx) + 24rpx);
+  background: rgba(245, 246, 248, 0.96);
+  backdrop-filter: blur(12rpx);
+  z-index: 50;
+}
+.quote__cta {
+  background: linear-gradient(135deg, #5b5ff8, #00b8d9);
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 700;
+  border-radius: 999rpx;
+  padding: 24rpx 0;
+  box-shadow: 0 16rpx 40rpx rgba(91, 95, 248, 0.32);
 }
 </style>

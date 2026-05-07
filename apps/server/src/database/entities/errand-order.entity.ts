@@ -87,6 +87,19 @@ export class ErrandOrder {
   @Column({ name: 'completed_at', type: 'bigint', nullable: true })
   completedAt!: string | null;
 
+  /**
+   * 取件码 — 仅 typeCode=DELIVER 生成(代送场景:用户出示给骑手核验取货).
+   * 其他类型(BUY/HELP/CUSTOM)由骑手自取/自办,无需取件码,字段为 null.
+   */
+  @Column({ name: 'pickup_code', type: 'varchar', length: 8, nullable: true })
+  pickupCode!: string | null;
+
+  /**
+   * 收货码 — 全部类型都生成(送达/完成时收件人/用户出示给骑手核验).
+   */
+  @Column({ name: 'delivery_code', type: 'varchar', length: 8, nullable: true })
+  deliveryCode!: string | null;
+
   @Column({ name: 'created_at', type: 'bigint' })
   createdAt!: string;
 

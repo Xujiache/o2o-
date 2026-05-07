@@ -8,10 +8,18 @@ interface State {
   submitted: SubmitVo | null;
   storeId: string | null;
   payChannel: 'wxpay' | 'alipay';
+  /** 跨页面选地址回传:address/list 写入,confirm 消费一次后清空 */
+  pickedAddressId: string | null;
 }
 
 export const useFoodOrderStore = defineStore('food-order', {
-  state: (): State => ({ preview: null, submitted: null, storeId: null, payChannel: 'wxpay' }),
+  state: (): State => ({
+    preview: null,
+    submitted: null,
+    storeId: null,
+    payChannel: 'wxpay',
+    pickedAddressId: null,
+  }),
   actions: {
     setPreview(p: PreviewVo, storeId: string): void {
       this.preview = p;
@@ -22,6 +30,14 @@ export const useFoodOrderStore = defineStore('food-order', {
     },
     setPayChannel(c: 'wxpay' | 'alipay'): void {
       this.payChannel = c;
+    },
+    pickAddress(id: string): void {
+      this.pickedAddressId = id;
+    },
+    consumePickedAddress(): string | null {
+      const id = this.pickedAddressId;
+      this.pickedAddressId = null;
+      return id;
     },
     reset(): void {
       this.preview = null;

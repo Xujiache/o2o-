@@ -59,7 +59,7 @@ async function onSubmit(): Promise<void> {
   try {
     await auth.loginByMobile(mobile.value, code.value);
     auth.clearSmsCountdown();
-    uni.reLaunch({ url: '/pages/me/index' });
+    uni.switchTab({ url: '/pages/me/index' });
   } catch (err) {
     errorMsg.value = err instanceof Error ? err.message : '登录失败';
   } finally {

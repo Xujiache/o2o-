@@ -32,6 +32,21 @@ import { RiderTaskService } from './rider-task.service';
 export class RiderTaskController {
   constructor(private readonly service: RiderTaskService) {}
 
+  /** 必须放在 :taskId 之前,避免 'my-current' 被当 taskId 通配 */
+  @Get('my-current')
+  @RequirePermission('rider:self')
+  @ApiOperation({ summary: '当前进行中任务(ASSIGNED/ARRIVED_PICKUP/PICKED_UP),最新一条' })
+  async myCurrent(@CurrentUser() p: CurrentPrincipal): Promise<RiderTaskDetailVo | null> {
+    return this.service.myCurrent(p.principalId);
+  }
+
+  @Get('my-in-progress')
+  @RequirePermission('rider:self')
+  @ApiOperation({ summary: '当前所有进行中任务列表(并发接单),最多 20 条' })
+  async myInProgress(@CurrentUser() p: CurrentPrincipal): Promise<RiderTaskDetailVo[]> {
+    return this.service.myInProgress(p.principalId);
+  }
+
   @Get(':taskId')
   @RequirePermission('rider:self')
   @ApiOperation({ summary: '骑手任务详情' })

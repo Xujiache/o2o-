@@ -19,8 +19,8 @@ const BASE_URL = 'http://127.0.0.1:3000';
 
 export interface MerchantRequestOptions {
   url: string;
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  data?: Record<string, unknown> | unknown[];
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  data?: unknown;
   params?: Record<string, unknown>;
   header?: Record<string, string>;
   idempotent?: boolean;
@@ -59,8 +59,8 @@ function rawRequest<T>(options: MerchantRequestOptions): Promise<ApiResponse<T>>
   return new Promise<ApiResponse<T>>((resolve, reject) => {
     uni.request({
       url: BASE_URL + options.url + buildQuery(options.params),
-      method,
-      data: options.data,
+      method: method as never,
+      data: options.data as never,
       header: headers,
       timeout: options.timeout ?? 15000,
       success(res) {

@@ -11,5 +11,10 @@ const storage = new Map<string, string>();
   navigateTo: vi.fn(),
   request: vi.fn(),
   uploadFile: vi.fn(),
-  getLocation: vi.fn(),
+  // 定位授权:测试默认通过
+  authorize: vi.fn((opt: { success?: () => void }) => opt.success?.()),
+  // 单点定位:测试默认返回北京天安门附近(与 demo seed 一致)
+  getLocation: vi.fn((opt: { success?: (res: { latitude: number; longitude: number; accuracy: number }) => void }) =>
+    opt.success?.({ latitude: 39.9042, longitude: 116.4074, accuracy: 50 }),
+  ),
 };

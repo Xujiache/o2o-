@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onLoad } from '@dcloudio/uni-app';
+import { ref } from 'vue';
 
+import SvgIcon from '@/components/common/SvgIcon.vue';
 import { submitReview } from '@/api/food-review';
 
 const orderId = ref('');
@@ -37,10 +39,8 @@ async function submit(): Promise<void> {
   }
 }
 
-onMounted(() => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const opts = (uni as any).getLaunchOptionsSync?.() ?? {};
-  orderId.value = (opts.query?.orderId ?? '') as string;
+onLoad((options) => {
+  orderId.value = (options?.orderId as string) ?? '';
 });
 </script>
 
@@ -48,7 +48,9 @@ onMounted(() => {
   <view class="review">
     <view class="review__title">评价订单</view>
     <view class="review__rating">
-      <text v-for="i in 5" :key="i" :class="{ on: i <= rating }" @tap="rating = i">★</text>
+      <view v-for="i in 5" :key="i" :class="{ on: i <= rating }" class="review__star" @tap="rating = i">
+        <SvgIcon name="star" :size="56" :color="i <= rating ? '#ffb400' : '#ddd'" />
+      </view>
     </view>
     <textarea v-model="content" placeholder="说点什么(0-500 字)" maxlength="500" class="review__content" />
     <view class="review__row">
@@ -69,12 +71,12 @@ onMounted(() => {
   margin-bottom: 20rpx;
 }
 .review__rating {
-  font-size: 60rpx;
-  color: #ddd;
+  display: flex;
+  gap: 12rpx;
   margin: 30rpx 0;
 }
-.review__rating text.on {
-  color: #ffb400;
+.review__star {
+  display: flex;
 }
 .review__content {
   width: 100%;

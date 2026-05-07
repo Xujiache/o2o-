@@ -1,17 +1,23 @@
 <script setup lang="ts">
+import { onShow } from '@dcloudio/uni-app';
 import { onMounted } from 'vue';
 
+import FloatTabBar from '@/components/common/FloatTabBar.vue';
 import { useEarningStore } from '@/stores/earning';
 import { fmtCents } from '@/utils/earning-formula';
 
 const store = useEarningStore();
 
 onMounted(() => store.load());
+onShow(() => uni.hideTabBar({ animation: false }));
 </script>
 
 <template>
   <view class="ec">
-    <view class="ec__title">收益中心</view>
+    <view class="ec__hero">
+      <text class="ec__title">收益中心</text>
+      <text class="ec__sub">收入、奖励、扣款与结算记录</text>
+    </view>
     <view v-if="store.data" class="ec__summary">
       <view class="ec__cell"
         ><text>总收入</text><text class="ec__amt">¥{{ fmtCents(store.data.totalIncome) }}</text></view
@@ -37,23 +43,37 @@ onMounted(() => store.load());
         >
       </view>
     </view>
+    <FloatTabBar active="earnings" />
   </view>
 </template>
 
 <style scoped>
 .ec {
-  padding: 24rpx;
+  padding: 28rpx 24rpx 200rpx;
+}
+.ec__hero {
+  padding: 34rpx;
+  border-radius: 34rpx;
+  color: #fff;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  box-shadow: 0 24rpx 64rpx rgba(20, 184, 166, 0.26);
 }
 .ec__title {
-  font-size: 32rpx;
-  font-weight: 600;
-  padding: 16rpx 0;
+  display: block;
+  font-size: 42rpx;
+  font-weight: 800;
+}
+.ec__sub {
+  display: block;
+  margin-top: 8rpx;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 24rpx;
 }
 .ec__summary {
   background: #fff;
-  border-radius: 12rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
+  border-radius: 28rpx;
+  padding: 28rpx;
+  margin: 18rpx 0 16rpx;
 }
 .ec__cell {
   display: flex;
@@ -78,8 +98,8 @@ onMounted(() => store.load());
 }
 .ec__list {
   background: #fff;
-  border-radius: 12rpx;
-  padding: 16rpx;
+  border-radius: 28rpx;
+  padding: 24rpx;
 }
 .ec__item {
   padding: 12rpx 0;

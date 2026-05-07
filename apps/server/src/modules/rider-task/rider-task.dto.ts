@@ -23,6 +23,8 @@ export class PickupDto {
 
 export class DeliveredDto {
   @ApiProperty({ required: false }) @IsOptional() @IsString() deliveryProof?: string;
+  /** 跑腿订单收货码 — bizType=ERRAND 时必填,FOOD 忽略 */
+  @ApiProperty({ required: false }) @IsOptional() @IsString() deliveryCode?: string;
   @ApiProperty() @IsNumber() lng!: number;
   @ApiProperty() @IsNumber() lat!: number;
 }
@@ -61,6 +63,12 @@ export class RiderTaskDetailVo {
   @ApiProperty({ nullable: true }) pickedUpAt!: number | null;
   @ApiProperty({ nullable: true }) deliveredAt!: number | null;
   @ApiProperty({ nullable: true }) etaAt!: number | null;
+  /** 跑腿订单类型(BUY/DELIVER/HELP/CUSTOM),非跑腿任务为 null */
+  @ApiProperty({ nullable: true }) errandTypeCode!: 'BUY' | 'DELIVER' | 'HELP' | 'CUSTOM' | null;
+  /** 是否需要骑手核验取件码(仅 ERRAND + DELIVER 类型为 true) */
+  @ApiProperty() requirePickupCode!: boolean;
+  /** 是否需要骑手核验收货码(ERRAND 全部类型为 true) */
+  @ApiProperty() requireDeliveryCode!: boolean;
 }
 
 export class AcceptTaskVo {

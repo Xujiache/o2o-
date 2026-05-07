@@ -78,6 +78,7 @@ import { MerchantStatisticsModule } from './modules/merchant-statistics/merchant
 import { MerchantWithdrawalModule } from './modules/merchant-withdrawal/merchant-withdrawal.module';
 import { MessageSettingModule } from './modules/message-setting/message-setting.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { PointsModule } from './modules/points/points.module';
 import { ProductModule } from './modules/product/product.module';
 import { ProductQueryModule } from './modules/product-query/product-query.module';
 import { ProhibitedItemModule } from './modules/prohibited-item/prohibited-item.module';
@@ -219,6 +220,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     AdminOrdersModule,
     AdminPaymentModule,
     PushDeviceModule,
+    PointsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

@@ -100,6 +100,47 @@ export class FileService {
     return { fileId, url, expireAt, size: putRes.size };
   }
 
+  /**
+   * 按 fileId 解析当前可用的下载 URL.
+   * 已存的 presigned URL 未过期则复用,已过期则重新签发并落库.
+   * 若 fileId 不存在或对应 file_object 已删除,返回 null.
+   */
+  async resolveUrl(fileId: string | null | undefined): Promise<string | null> {
+    if (!fileId) return null;
+    const row = await this.repo.findOne({ where: { fileId } });
+    if (!row) return null;
+
+    const now = Date.now();
+    if (row.url && Number(row.expireAt) > now + 60_000) return row.url; // 还有 1min 余裕
+
+    try {
+      const newUrl = await this.integration.storage.getPresignedGetUrl({
+        bucket: row.bucket,
+        key: row.objectKey,
+        expiresInSeconds: PRESIGN_TTL_SECONDS,
+      });
+      const newExpire = now + PRESIGN_TTL_SECONDS * 1000;
+      await this.repo.update({ fileId }, { url: newUrl, expireAt: String(newExpire) });
+      return newUrl;
+    } catch (err) {
+      this.logger.warn({ err, fileId }, 'resolveUrl failed, returning stale url');
+      return row.url ?? null;
+    }
+  }
+
+  /** 批量版本,优化 N+1 — N 张店铺图同时解析 */
+  async resolveUrls(fileIds: Array<string | null | undefined>): Promise<Record<string, string | null>> {
+    const valid = fileIds.filter((id): id is string => Boolean(id));
+    if (valid.length === 0) return {};
+    const result: Record<string, string | null> = {};
+    await Promise.all(
+      Array.from(new Set(valid)).map(async (id) => {
+        result[id] = await this.resolveUrl(id);
+      }),
+    );
+    return result;
+  }
+
   private guessExtension(mime: string, originalName: string): string {
     const fromName = originalName.match(/\.(\w{1,8})$/);
     if (fromName) return `.${fromName[1]!.toLowerCase()}`;

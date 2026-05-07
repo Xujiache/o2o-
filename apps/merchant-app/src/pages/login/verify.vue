@@ -58,7 +58,7 @@ async function onSubmit(): Promise<void> {
     if (auth.accountStatus === 'pending') {
       uni.reLaunch({ url: '/pages/onboarding/progress' });
     } else {
-      uni.reLaunch({ url: '/pages/workbench/index' });
+      uni.switchTab({ url: '/pages/workbench/index' });
     }
   } catch (err) {
     errorMsg.value = err instanceof Error ? err.message : '登录失败';

@@ -35,3 +35,19 @@ export interface ListStoresQuery {
 export function listFoodStores(q: ListStoresQuery): Promise<ApiResponse<FoodStoreListPageVo>> {
   return request<FoodStoreListPageVo>({ url: '/api/v1/c/food/stores', method: 'GET', data: q });
 }
+
+export interface PublicStoreDetailVo {
+  storeId: string;
+  name: string;
+  avatarFileId?: string | null;
+  businessScope: string;
+  minOrderAmount: string;
+  deliveryFee: string;
+  intro?: string | null;
+  notice?: string | null;
+  businessHours: Array<{ dayOfWeek: number; startTime: string; endTime: string }>;
+}
+
+export function getPublicStoreDetail(storeId: string): Promise<ApiResponse<PublicStoreDetailVo>> {
+  return request<PublicStoreDetailVo>({ url: `/api/v1/pub/stores/${storeId}`, method: 'GET' });
+}

@@ -142,14 +142,35 @@ describe('ProductService', () => {
       }),
     } as unknown as jest.Mocked<DomainEventBus>;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fileRepo: any = {
+      createQueryBuilder: jest.fn(() => ({
+        where: jest.fn().mockReturnThis(),
+        getMany: jest.fn(async () => []),
+      })),
+    };
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const fileService: any = {
+      resolveUrls: jest.fn(async (ids: Array<string | null>) => {
+        const out: Record<string, string | null> = {};
+        for (const id of ids) {
+          if (id) out[id] = `http://mock-cdn/${id}.jpg`;
+        }
+        return out;
+      }),
+      resolveUrl: jest.fn(async (id: string | null) => (id ? `http://mock-cdn/${id}.jpg` : null)),
+    };
+    /* eslint-enable @typescript-eslint/no-explicit-any */
     svc = new ProductService(
       storeRepo,
       catRepo,
       productRepo,
       skuRepo,
       promoRepo,
+      fileRepo,
       dataSource as unknown as DataSource,
       bus,
+      fileService,
     );
   });
 

@@ -33,6 +33,10 @@ function toggle(key: keyof Settings, value: boolean): void {
   settings.value[key] = value;
   persist();
 }
+
+function getSwitchValue(e: Event): boolean {
+  return Boolean((e as unknown as { detail?: { value?: boolean } }).detail?.value);
+}
 </script>
 
 <template>
@@ -42,24 +46,15 @@ function toggle(key: keyof Settings, value: boolean): void {
 
     <view class="notification__row">
       <text>订单状态推送</text>
-      <switch
-        :checked="settings.orderNotify"
-        @change="(e) => toggle('orderNotify', (e as unknown as { detail: { value: boolean } }).detail.value)"
-      />
+      <switch :checked="settings.orderNotify" @change="(e) => toggle('orderNotify', getSwitchValue(e))" />
     </view>
     <view class="notification__row">
       <text>活动通知</text>
-      <switch
-        :checked="settings.activityNotify"
-        @change="(e) => toggle('activityNotify', (e as unknown as { detail: { value: boolean } }).detail.value)"
-      />
+      <switch :checked="settings.activityNotify" @change="(e) => toggle('activityNotify', getSwitchValue(e))" />
     </view>
     <view class="notification__row">
       <text>短信通知</text>
-      <switch
-        :checked="settings.smsNotify"
-        @change="(e) => toggle('smsNotify', (e as unknown as { detail: { value: boolean } }).detail.value)"
-      />
+      <switch :checked="settings.smsNotify" @change="(e) => toggle('smsNotify', getSwitchValue(e))" />
     </view>
   </view>
 </template>

@@ -57,6 +57,11 @@ const QUOTE_KEY_PREFIX = 'errand:quote:';
 const ORDER_EXPIRE_MS = 15 * 60 * 1000; // 15 min
 const ORDER_NO_INCR_KEY_PREFIX = 'errand:order:incr:';
 
+/** 4 位数字校验码 — 用于跑腿取件/收货码,易于口头沟通 */
+function generateVerifyCode(): string {
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
+
 @Injectable()
 export class ErrandOrderService {
   constructor(
@@ -229,6 +234,10 @@ export class ErrandOrderService {
     const expireAt = now + ORDER_EXPIRE_MS;
     const orderNo = await this.generateOrderNo();
 
+    // 取件码 / 收货码 — DELIVER 双码,其他类型单收货码
+    const deliveryCode = generateVerifyCode();
+    const pickupCode = quote.typeCode === 'DELIVER' ? generateVerifyCode() : null;
+
     let orderId = '';
     await this.dataSource.transaction(async (em: EntityManager) => {
       const ins = await em.getRepository(ErrandOrder).insert({
@@ -245,6 +254,8 @@ export class ErrandOrderService {
         urgentLevel: quote.urgentLevel,
         reservedTime: quote.reservedTime,
         expireAt: String(expireAt),
+        pickupCode,
+        deliveryCode,
         createdAt: String(now),
         updatedAt: String(now),
       });
@@ -441,6 +452,8 @@ export class ErrandOrderService {
       actions: this.computeActions(order.status),
       rider: task?.riderId ? { riderId: task.riderId, status: task.status } : null,
       paidAt: order.paidAt != null ? Number(order.paidAt) : null,
+      pickupCode: order.pickupCode,
+      deliveryCode: order.deliveryCode,
     };
   }
 

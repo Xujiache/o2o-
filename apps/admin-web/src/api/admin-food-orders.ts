@@ -13,7 +13,32 @@ export type FoodOrderStatus =
   | 'DELIVERING'
   | 'DELIVERED'
   | 'COMPLETED'
-  | 'CANCELLED';
+  | 'CANCELLED'
+  | 'REFUNDING'
+  | 'REFUNDED'
+  | 'AFTER_SALE';
+
+export const FOOD_ORDER_STATUS_LABEL: Record<FoodOrderStatus, string> = {
+  WAIT_PAY: '待支付',
+  PAID_WAIT_MERCHANT: '待接单',
+  MERCHANT_ACCEPTED: '已接单',
+  PREPARING: '备货中',
+  READY_FOR_PICKUP: '已出餐',
+  RIDER_ASSIGNED: '骑手已接单',
+  PICKED_UP: '已取餐',
+  DELIVERING: '配送中',
+  DELIVERED: '已送达',
+  COMPLETED: '已完成',
+  CANCELLED: '已取消',
+  REFUNDING: '退款中',
+  REFUNDED: '已退款',
+  AFTER_SALE: '售后中',
+};
+
+export const FOOD_ORDER_STATUS_OPTIONS: Array<{ label: string; value: FoodOrderStatus | '' }> = [
+  { label: '全部', value: '' },
+  ...Object.entries(FOOD_ORDER_STATUS_LABEL).map(([value, label]) => ({ value: value as FoodOrderStatus, label })),
+];
 
 export const AdminFoodOrderEndpoints = {
   List: '/api/v1/admin/food-orders',

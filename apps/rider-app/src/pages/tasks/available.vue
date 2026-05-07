@@ -39,7 +39,8 @@ function formatMin(ms: number): string {
 
 <template>
   <view class="tasks">
-    <view class="tasks__title">接单大厅</view>
+    <view class="tasks__title">可接任务列表</view>
+    <view class="tasks__hint">兼容入口;底部 Tab 的“大厅”使用 pages/tasks/hall。</view>
     <view v-if="loading" class="tasks__loading">加载中...</view>
     <view v-else-if="errorMsg" class="tasks__error">{{ errorMsg }}</view>
     <view v-else-if="items.length === 0" class="tasks__empty">
@@ -71,6 +72,11 @@ function formatMin(ms: number): string {
 .tasks__title {
   font-size: 36rpx;
   font-weight: 600;
+}
+.tasks__hint {
+  margin-top: 8rpx;
+  color: #8a94a6;
+  font-size: 24rpx;
 }
 .tasks__loading,
 .tasks__error,

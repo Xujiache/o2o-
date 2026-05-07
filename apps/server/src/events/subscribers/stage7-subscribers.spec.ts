@@ -94,10 +94,13 @@ describe('Stage 7 subscribers', () => {
   });
 
   describe('FoodReadyForPickupSubscriber', () => {
-    it('audit + push 骑手', async () => {
+    it('audit + push 骑手 + 触发 dispatch', async () => {
       const audit = fakeAudit();
       const gw = fakeGateway();
-      await new FoodReadyForPickupSubscriber(audit, gw).handle({
+      const dispatch = {
+        dispatch: jest.fn(async () => ({ dispatchTaskId: 'dt1' })),
+      } as never;
+      await new FoodReadyForPickupSubscriber(audit, gw, dispatch).handle({
         orderId: '510001',
         storeId: '20001',
         merchantId: '30001',
@@ -105,6 +108,10 @@ describe('Stage 7 subscribers', () => {
       });
       expect(audit.writeAudit).toHaveBeenCalledWith(expect.objectContaining({ afterStatus: 'READY_FOR_PICKUP' }));
       expect(gw.getui.pushOne).toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((dispatch as any).dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ bizType: 'FOOD', bizOrderId: '510001' }),
+      );
     });
   });
 

@@ -109,6 +109,44 @@ export class RiderTaskService {
     if (task.riderId !== riderId) {
       throw new ForbiddenException({ code: ErrorCode.FORBIDDEN, message: 'not your task' });
     }
+    return this.toDetailVo(task);
+  }
+
+  /** 当前进行中任务(ASSIGNED/ARRIVED_PICKUP/PICKED_UP),最新一条(兼容旧 my-current 单任务页面) */
+  async myCurrent(riderId: string): Promise<RiderTaskDetailVo | null> {
+    const task = await this.taskRepo
+      .createQueryBuilder('t')
+      .where('t.rider_id = :riderId', { riderId })
+      .andWhere("t.status IN ('ASSIGNED','ARRIVED_PICKUP','PICKED_UP')")
+      .orderBy('t.accepted_at', 'DESC')
+      .limit(1)
+      .getOne();
+    return task ? this.toDetailVo(task) : null;
+  }
+
+  /**
+   * 当前所有进行中任务列表(并发接单时用),按接单时间倒序.
+   * 上限 20 条防恶意刷,正常骑手不应超过 5-8 单.
+   */
+  async myInProgress(riderId: string): Promise<RiderTaskDetailVo[]> {
+    const tasks = await this.taskRepo
+      .createQueryBuilder('t')
+      .where('t.rider_id = :riderId', { riderId })
+      .andWhere("t.status IN ('ASSIGNED','ARRIVED_PICKUP','PICKED_UP')")
+      .orderBy('t.accepted_at', 'DESC')
+      .limit(20)
+      .getMany();
+    return Promise.all(tasks.map((t) => this.toDetailVo(t)));
+  }
+
+  private async toDetailVo(task: RiderTask): Promise<RiderTaskDetailVo> {
+    let errandTypeCode: 'BUY' | 'DELIVER' | 'HELP' | 'CUSTOM' | null = null;
+    if (task.bizType === 'ERRAND') {
+      const order = await this.errandOrderRepo.findOne({ where: { errandOrderId: task.bizOrderId } });
+      errandTypeCode = order?.typeCode ?? null;
+    }
+    const requirePickupCode = task.bizType === 'ERRAND' && errandTypeCode === 'DELIVER';
+    const requireDeliveryCode = task.bizType === 'ERRAND' && errandTypeCode !== null;
     return {
       taskId: task.riderTaskId,
       dispatchTaskId: task.dispatchTaskId,
@@ -121,6 +159,9 @@ export class RiderTaskService {
       pickedUpAt: task.pickedUpAt ? Number(task.pickedUpAt) : null,
       deliveredAt: task.deliveredAt ? Number(task.deliveredAt) : null,
       etaAt: task.etaAt ? Number(task.etaAt) : null,
+      errandTypeCode,
+      requirePickupCode,
+      requireDeliveryCode,
     };
   }
 
@@ -139,8 +180,15 @@ export class RiderTaskService {
         message: `dispatch task already ${dispatch.status}`,
       });
     }
-    if (dispatch.candidateRiderIds && !dispatch.candidateRiderIds.includes(riderId)) {
-      throw new ForbiddenException({ code: ErrorCode.FORBIDDEN, message: 'not in candidate list' });
+    // candidate 列表非空才校验;String() 兼容 typeorm bigint 反序列化为 string|number
+    if (dispatch.candidateRiderIds && dispatch.candidateRiderIds.length > 0) {
+      const ids = dispatch.candidateRiderIds.map((id) => String(id));
+      if (!ids.includes(String(riderId))) {
+        this.logger.warn(
+          `[rider-task.accept] rider ${riderId} not in candidates [${ids.join(',')}] of dispatch ${dispatchTaskId}`,
+        );
+        throw new ForbiddenException({ code: ErrorCode.FORBIDDEN, message: 'not in candidate list' });
+      }
     }
 
     const now = Date.now();
@@ -224,8 +272,31 @@ export class RiderTaskService {
     return { taskId: riderTaskId, status: 'ARRIVED_PICKUP', arrivedAt: now };
   }
 
-  async pickup(riderId: string, riderTaskId: string, _dto: PickupDto): Promise<PickupVo> {
+  async pickup(riderId: string, riderTaskId: string, dto: PickupDto): Promise<PickupVo> {
     const task = await this.loadTaskAndCheckStatus(riderId, riderTaskId, ['ARRIVED_PICKUP', 'ASSIGNED']);
+
+    // 跑腿 + DELIVER:必须核验取件码(用户出示给骑手)
+    if (task.bizType === 'ERRAND') {
+      const errand = await this.errandOrderRepo.findOne({ where: { errandOrderId: task.bizOrderId } });
+      if (errand?.typeCode === 'DELIVER') {
+        const submitted = (dto.pickupCode ?? '').trim();
+        if (!submitted) {
+          throw new UnprocessableEntityException({
+            code: ErrorCode.INVALID_PARAM,
+            detail: 'PICKUP_CODE_REQUIRED',
+            message: '请输入取件码',
+          });
+        }
+        if (errand.pickupCode && submitted !== errand.pickupCode) {
+          throw new UnprocessableEntityException({
+            code: ErrorCode.STATUS_INVALID,
+            detail: 'PICKUP_CODE_MISMATCH',
+            message: '取件码错误,请向用户重新核对',
+          });
+        }
+      }
+    }
+
     const now = Date.now();
     task.status = 'PICKED_UP';
     task.pickedUpAt = String(now);
@@ -261,6 +332,29 @@ export class RiderTaskService {
 
   async delivered(riderId: string, riderTaskId: string, dto: DeliveredDto): Promise<DeliveredVo> {
     const task = await this.loadTaskAndCheckStatus(riderId, riderTaskId, ['PICKED_UP', 'DELIVERING']);
+
+    // 跑腿:全部类型都需要核验收货码
+    if (task.bizType === 'ERRAND') {
+      const errand = await this.errandOrderRepo.findOne({ where: { errandOrderId: task.bizOrderId } });
+      if (errand) {
+        const submitted = (dto.deliveryCode ?? '').trim();
+        if (!submitted) {
+          throw new UnprocessableEntityException({
+            code: ErrorCode.INVALID_PARAM,
+            detail: 'DELIVERY_CODE_REQUIRED',
+            message: '请输入收货码',
+          });
+        }
+        if (errand.deliveryCode && submitted !== errand.deliveryCode) {
+          throw new UnprocessableEntityException({
+            code: ErrorCode.STATUS_INVALID,
+            detail: 'DELIVERY_CODE_MISMATCH',
+            message: '收货码错误,请向用户重新核对',
+          });
+        }
+      }
+    }
+
     const now = Date.now();
     task.status = 'DELIVERED';
     task.deliveredAt = String(now);

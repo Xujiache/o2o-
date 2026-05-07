@@ -5,6 +5,7 @@
   "description": "O2O 商家端 Uni-app(仅 Android APP / iOS APP,禁止 Web/小程序)",
   "scripts": {
     "dev": "uni -p app",
+    "dev:h5": "uni",
     "dev:app": "uni -p app",
     "build": "uni build -p app",
     "build:app": "uni build -p app",

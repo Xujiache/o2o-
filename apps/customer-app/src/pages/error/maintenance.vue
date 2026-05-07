@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import SvgIcon from '@/components/common/SvgIcon.vue';
+
 function retry(): void {
   uni.reLaunch({ url: '/pages/launch/index' });
 }
@@ -6,7 +8,9 @@ function retry(): void {
 
 <template>
   <view class="page">
-    <view class="page__icon">🔧</view>
+    <view class="page__icon">
+      <SvgIcon name="wrench" :size="100" color="#5a6275" />
+    </view>
     <view class="page__title">系统维护中</view>
     <text class="page__desc">服务正在升级,稍后再试。</text>
     <button class="page__btn" @click="retry">刷新</button>

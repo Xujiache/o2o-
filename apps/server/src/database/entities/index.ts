@@ -89,6 +89,7 @@ export * from './after-sale-arbitration.entity';
 export * from './refund-order.entity';
 export * from './coupon-rule.entity';
 export * from './points-rule.entity';
+export * from './points-record.entity';
 export * from './rate-rule.entity';
 export * from './dashboard-snapshot.entity';
 export * from './export-task.entity';

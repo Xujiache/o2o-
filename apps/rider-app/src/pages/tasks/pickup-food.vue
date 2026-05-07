@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onLoad } from '@dcloudio/uni-app';
+import { ref } from 'vue';
 
 import { useTaskStore } from '@/stores/task';
 
@@ -14,7 +15,7 @@ async function submit(): Promise<void> {
     const ok = await store.pickup(taskId.value, { itemCheckResult: itemCheckResult.value });
     if (ok) {
       uni.showToast({ title: '已取餐', icon: 'success' });
-      setTimeout(() => uni.redirectTo({ url: `/pages/tasks/current?taskId=${taskId.value}` }), 600);
+      setTimeout(() => uni.switchTab({ url: '/pages/tasks/current' }), 600);
     } else {
       uni.showToast({ title: '操作失败', icon: 'none' });
     }
@@ -23,10 +24,8 @@ async function submit(): Promise<void> {
   }
 }
 
-onMounted(() => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const opts = (uni as any).getLaunchOptionsSync?.() ?? {};
-  taskId.value = (opts.query?.taskId ?? '') as string;
+onLoad((options) => {
+  taskId.value = (options?.taskId as string) ?? '';
 });
 </script>
 

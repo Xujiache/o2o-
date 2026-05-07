@@ -7,15 +7,17 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ErrorCode } from '@o2o/contracts';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
-import { FoodOrder, MerchantOrderActionLog, OrderTimeline, Store } from '../../database/entities';
+import { FoodOrder, FoodOrderItem, MerchantOrderActionLog, OrderTimeline, Store } from '../../database/entities';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
 
 import type {
   AcceptOrderDto,
   AcceptOrderVo,
+  MerchantOrderDetailVo,
+  MerchantOrderItemVo,
   MerchantOrderListItemVo,
   MerchantOrderListVo,
   MerchantOrderTimelineVo,
@@ -34,16 +36,76 @@ const MERCHANT_NEXT_ACTIONS: Record<string, string[]> = {
 const DEFAULT_EXPECTED_READY_MIN = 15;
 const ACCEPT_DEADLINE_MS = 10 * 60 * 1000;
 
+function maskMobile(mobile: string | null | undefined): string {
+  if (!mobile || mobile.length < 7) return mobile ?? '';
+  return `${mobile.slice(0, 3)}****${mobile.slice(-4)}`;
+}
+
 @Injectable()
 export class MerchantOrderService {
   constructor(
     @InjectRepository(FoodOrder) private readonly orderRepo: Repository<FoodOrder>,
+    @InjectRepository(FoodOrderItem) private readonly orderItemRepo: Repository<FoodOrderItem>,
     @InjectRepository(Store) private readonly storeRepo: Repository<Store>,
     @InjectRepository(MerchantOrderActionLog)
     private readonly actionLogRepo: Repository<MerchantOrderActionLog>,
     @InjectRepository(OrderTimeline) private readonly timelineRepo: Repository<OrderTimeline>,
     private readonly eventBus: DomainEventBus,
   ) {}
+
+  async getDetail(merchantId: string, orderId: string): Promise<MerchantOrderDetailVo> {
+    const store = await this.resolveStoreOrThrow(merchantId);
+    const order = await this.orderRepo.findOne({ where: { foodOrderId: orderId } });
+    if (!order) {
+      throw new NotFoundException({ code: ErrorCode.DATA_NOT_FOUND, message: 'order not found' });
+    }
+    if (order.storeId !== store.storeId) {
+      throw new ForbiddenException({ code: ErrorCode.FORBIDDEN, message: 'not your store order' });
+    }
+    const itemRows = await this.orderItemRepo.find({ where: { foodOrderId: orderId } });
+    const items: MerchantOrderItemVo[] = itemRows.map((it) => ({
+      skuId: it.skuId,
+      name: it.skuSnapshot?.name ?? '',
+      spec: it.skuSnapshot?.spec ?? null,
+      quantity: it.quantity,
+      unitPriceCents: it.unitPrice,
+      subTotalCents: it.subTotal,
+    }));
+    const timelineRows = await this.timelineRepo.find({
+      where: { orderId, bizType: 'FOOD' },
+      order: { createdAt: 'ASC' },
+    });
+    const addr = order.addressSnapshot;
+    return {
+      orderId: order.foodOrderId,
+      orderNo: order.orderNo,
+      status: order.status,
+      goodsAmountCents: order.goodsAmount,
+      deliveryFeeCents: order.deliveryFee,
+      discountAmountCents: order.discountAmount,
+      payableAmountCents: order.payableAmount,
+      userRemark: order.remark,
+      createdAt: Number(order.createdAt),
+      acceptedAt: order.acceptedAt ? Number(order.acceptedAt) : null,
+      readyAt: order.readyAt ? Number(order.readyAt) : null,
+      address: addr
+        ? {
+            consignee: addr.consignee,
+            mobileMasked: maskMobile(addr.mobile),
+            detail: [addr.province, addr.city, addr.district, addr.detail].filter(Boolean).join(' '),
+          }
+        : null,
+      items,
+      timeline: timelineRows.map((r) => ({
+        at: Number(r.createdAt),
+        fromStatus: r.fromStatus,
+        toStatus: r.toStatus,
+        actor: r.actorType,
+        reason: r.reason,
+      })),
+      allowedMerchantActions: MERCHANT_NEXT_ACTIONS[order.status] ?? [],
+    };
+  }
 
   async getTimeline(merchantId: string, orderId: string): Promise<MerchantOrderTimelineVo> {
     const store = await this.resolveStoreOrThrow(merchantId);
@@ -82,9 +144,23 @@ export class MerchantOrderService {
     const pageNo = Math.max(1, query.pageNo ?? 1);
     const pageSize = Math.max(1, Math.min(100, query.pageSize ?? 20));
 
+    // status 不传默认 PAID_WAIT_MERCHANT(待接单);传 'ALL' 不过滤;传逗号分隔则 IN
+    const statusFilter = query.status?.trim();
+    const where: Record<string, unknown> = { storeId: store.storeId };
+    if (!statusFilter) {
+      where.status = 'PAID_WAIT_MERCHANT';
+    } else if (statusFilter !== 'ALL') {
+      const statuses = statusFilter
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (statuses.length === 1) where.status = statuses[0];
+      else if (statuses.length > 1) where.status = In(statuses);
+    }
+
     const [rows, total] = await this.orderRepo.findAndCount({
-      where: { storeId: store.storeId, status: 'PAID_WAIT_MERCHANT' },
-      order: { createdAt: 'ASC' },
+      where,
+      order: { createdAt: 'DESC' },
       skip: (pageNo - 1) * pageSize,
       take: pageSize,
     });

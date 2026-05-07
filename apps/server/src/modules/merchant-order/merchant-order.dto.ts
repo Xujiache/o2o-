@@ -27,6 +27,15 @@ export class PendingListQueryDto {
   @IsInt()
   @Min(1)
   pageSize?: number;
+
+  @ApiProperty({
+    required: false,
+    description: '订单状态过滤,逗号分隔多个;不传时仅返回 PAID_WAIT_MERCHANT(待接单)',
+    example: 'MERCHANT_ACCEPTED,PREPARING',
+  })
+  @IsOptional()
+  @IsString()
+  status?: string;
 }
 
 export class AcceptOrderDto {
@@ -87,4 +96,37 @@ export class ReadyOrderVo {
   @ApiProperty() orderId!: string;
   @ApiProperty() status!: string;
   @ApiProperty() readyAt!: number;
+}
+
+export class MerchantOrderItemVo {
+  @ApiProperty() skuId!: string;
+  @ApiProperty() name!: string;
+  @ApiProperty({ nullable: true }) spec!: string | null;
+  @ApiProperty() quantity!: number;
+  @ApiProperty() unitPriceCents!: string;
+  @ApiProperty() subTotalCents!: string;
+}
+
+export class MerchantOrderAddressVo {
+  @ApiProperty() consignee!: string;
+  @ApiProperty() mobileMasked!: string;
+  @ApiProperty() detail!: string;
+}
+
+export class MerchantOrderDetailVo {
+  @ApiProperty() orderId!: string;
+  @ApiProperty() orderNo!: string;
+  @ApiProperty() status!: string;
+  @ApiProperty() goodsAmountCents!: string;
+  @ApiProperty() deliveryFeeCents!: string;
+  @ApiProperty() discountAmountCents!: string;
+  @ApiProperty() payableAmountCents!: string;
+  @ApiProperty({ nullable: true }) userRemark!: string | null;
+  @ApiProperty() createdAt!: number;
+  @ApiProperty({ nullable: true }) acceptedAt!: number | null;
+  @ApiProperty({ nullable: true }) readyAt!: number | null;
+  @ApiProperty({ type: () => MerchantOrderAddressVo, nullable: true }) address!: MerchantOrderAddressVo | null;
+  @ApiProperty({ type: [MerchantOrderItemVo] }) items!: MerchantOrderItemVo[];
+  @ApiProperty({ type: [MerchantTimelineItemVo] }) timeline!: MerchantTimelineItemVo[];
+  @ApiProperty({ type: [String] }) allowedMerchantActions!: string[];
 }

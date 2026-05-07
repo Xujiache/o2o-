@@ -8,6 +8,7 @@
     { "path": "pages/login/index", "style": { "navigationBarTitleText": "登录" } },
     { "path": "pages/login/verify", "style": { "navigationBarTitleText": "短信验证" } },
     { "path": "pages/onboarding/apply", "style": { "navigationBarTitleText": "入驻申请" } },
+    { "path": "pages/onboarding/progress", "style": { "navigationBarTitleText": "审核进度" } },
     { "path": "pages/workbench/index", "style": { "navigationBarTitleText": "商家工作台" } },
     { "path": "pages/store/settings", "style": { "navigationBarTitleText": "店铺设置" } },
     { "path": "pages/store/business-status", "style": { "navigationBarTitleText": "营业开关" } },
@@ -36,5 +37,18 @@
     "navigationBarTitleText": "O2O 商家端",
     "navigationBarBackgroundColor": "#FFFFFF",
     "backgroundColor": "#F5F5F5"
+  },
+  "tabBar": {
+    "color": "#8A94A6",
+    "selectedColor": "#B7791F",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/workbench/index", "text": "工作台" },
+      { "pagePath": "pages/orders/pending", "text": "订单" },
+      { "pagePath": "pages/products/list", "text": "商品" },
+      { "pagePath": "pages/statistics/index", "text": "统计" },
+      { "pagePath": "pages/me/index", "text": "我的" }
+    ]
   }
 }

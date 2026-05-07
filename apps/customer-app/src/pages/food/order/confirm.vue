@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { onLoad, onShow } from '@dcloudio/uni-app';
 import { computed, onMounted, ref } from 'vue';
 
+import SvgIcon from '@/components/common/SvgIcon.vue';
+import { type AddressItemVo, getAddresses } from '@/api';
 import { previewOrder, type PreviewVo, submitOrder } from '@/api/food-orders';
 import { useFoodCartStore } from '@/stores/food-cart';
 import { useFoodOrderStore } from '@/stores/food-order';
@@ -10,28 +13,56 @@ const cart = useFoodCartStore();
 const orderStore = useFoodOrderStore();
 
 const storeId = ref('');
-const addressId = ref('60001'); // stage 5 简化:默认地址 id
+const address = ref<AddressItemVo | null>(null);
+const addressLoading = ref(false);
 const deliveryType = ref<'instant' | 'reserved'>('instant');
 const reservedTime = ref<number | undefined>(undefined);
 const payChannel = ref<'wxpay' | 'alipay'>('wxpay');
 const remark = ref('');
 const preview = ref<PreviewVo | null>(null);
+const previewError = ref('');
 const loading = ref(false);
 const submitting = ref(false);
 
 const items = computed(() => cart.cart?.items ?? []);
+const hasAddress = computed(() => !!address.value);
+
+async function loadDefaultAddress(): Promise<void> {
+  addressLoading.value = true;
+  try {
+    const r = await getAddresses(1, 50);
+    if (r.code === '0' && r.data) {
+      const list = r.data.list;
+      address.value = list.find((a) => a.isDefault) ?? list[0] ?? null;
+    }
+  } finally {
+    addressLoading.value = false;
+  }
+}
+
+async function loadAddressById(addressId: string): Promise<void> {
+  const r = await getAddresses(1, 50);
+  if (r.code === '0' && r.data) {
+    address.value = r.data.list.find((a) => a.addressId === addressId) ?? address.value;
+  }
+}
 
 async function loadPreview(): Promise<void> {
   if (!cart.cart || items.value.length === 0) {
-    uni.showToast({ title: '购物车为空', icon: 'none' });
+    previewError.value = '购物车为空';
+    return;
+  }
+  if (!address.value) {
+    previewError.value = '请先选择收件地址';
     return;
   }
   loading.value = true;
+  previewError.value = '';
   try {
     const r = await previewOrder({
       storeId: storeId.value,
       items: items.value.map((it) => ({ skuId: it.skuId, quantity: it.quantity })),
-      addressId: addressId.value,
+      addressId: address.value.addressId,
       deliveryType: deliveryType.value,
       reservedTime: reservedTime.value,
     });
@@ -39,7 +70,8 @@ async function loadPreview(): Promise<void> {
       preview.value = r.data;
       orderStore.setPreview(r.data, storeId.value);
     } else {
-      uni.showToast({ title: r.message ?? '试算失败', icon: 'none' });
+      previewError.value = r.message ?? '试算失败';
+      preview.value = null;
     }
   } finally {
     loading.value = false;
@@ -68,125 +100,365 @@ async function submit(): Promise<void> {
   }
 }
 
-onMounted(() => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const opts = (uni as any).getLaunchOptionsSync?.() ?? {};
-  storeId.value = (opts.query?.storeId ?? cart.currentStoreId ?? '') as string;
+function gotoPickAddress(): void {
+  uni.navigateTo({ url: '/pages/address/list?selectMode=1' });
+}
+
+function gotoNewAddress(): void {
+  uni.navigateTo({ url: '/pages/address/edit' });
+}
+
+onLoad((options) => {
+  storeId.value = ((options?.storeId as string) ?? cart.currentStoreId ?? '') as string;
+});
+
+onMounted(async () => {
+  await loadDefaultAddress();
   void loadPreview();
+});
+
+// 从 address/list 选地址回传后,onShow 触发 → 消费 pickedAddressId 并刷新试算
+onShow(async () => {
+  const picked = orderStore.consumePickedAddress();
+  if (picked) {
+    await loadAddressById(picked);
+    void loadPreview();
+  }
 });
 </script>
 
 <template>
   <view class="confirm">
-    <view class="confirm__title">确认订单</view>
-    <view class="confirm__row">
-      <text>地址</text>
-      <text>地址 #{{ addressId }}(stage 5 默认)</text>
+    <!-- 地址卡 -->
+    <view class="confirm__addr" @tap="gotoPickAddress">
+      <view v-if="addressLoading" class="confirm__addr-loading">加载地址中…</view>
+      <template v-else-if="address">
+        <view class="confirm__addr-row">
+          <text class="confirm__addr-name">{{ address.receiverName }}</text>
+          <text class="confirm__addr-mobile">{{ address.mobileMasked }}</text>
+        </view>
+        <text class="confirm__addr-detail">{{ address.detail }}</text>
+        <text class="confirm__addr-arrow">›</text>
+      </template>
+      <template v-else>
+        <text class="confirm__addr-empty">暂无收件地址</text>
+        <text class="confirm__addr-add" @tap.stop="gotoNewAddress">+ 新增地址</text>
+      </template>
     </view>
-    <view class="confirm__row">
-      <text>配送方式</text>
-      <picker
-        :range="['即时配送', '预约配送']"
-        :value="deliveryType === 'instant' ? 0 : 1"
-        @change="
-          deliveryType = $event.detail.value === 0 ? 'instant' : 'reserved';
-          loadPreview();
-        "
-      >
-        {{ deliveryType === 'instant' ? '即时' : '预约' }}
-      </picker>
-    </view>
-    <view class="confirm__row confirm__row--disabled">
-      <text>优惠券</text>
-      <text>暂无可用</text>
-    </view>
-    <view class="confirm__row confirm__row--disabled">
-      <text>积分抵扣</text>
-      <text>暂未开放</text>
-    </view>
-    <view class="confirm__items">
-      <view v-for="it in items" :key="it.cartItemId" class="confirm__item">
-        <text>{{ it.name }} {{ it.specValue }} × {{ it.quantity }}</text>
-        <text>¥ {{ formatYuan(it.subTotal) }}</text>
+
+    <!-- 商家 / 商品 -->
+    <view class="confirm__card">
+      <view class="confirm__card-h">订单详情</view>
+      <view v-for="it in items" :key="it.cartItemId" class="confirm__line">
+        <text class="confirm__line-name"
+          >{{ it.name }} <text class="confirm__line-spec">{{ it.specValue }}</text></text
+        >
+        <text class="confirm__line-qty">× {{ it.quantity }}</text>
+        <text class="confirm__line-sub">¥{{ formatYuan(it.subTotal) }}</text>
       </view>
     </view>
-    <view v-if="preview" class="confirm__amount">
-      <view
-        ><text>商品</text><text>¥ {{ formatYuan(preview.goodsAmount) }}</text></view
-      >
-      <view
-        ><text>配送费</text><text>¥ {{ formatYuan(preview.deliveryFee) }}</text></view
-      >
-      <view class="confirm__pay"
-        ><text>合计</text><text>¥ {{ formatYuan(preview.payableAmount) }}</text></view
-      >
+
+    <!-- 配送 -->
+    <view class="confirm__card">
+      <view class="confirm__row">
+        <text class="confirm__row-label">配送方式</text>
+        <picker
+          :range="['即时配送', '预约配送']"
+          :value="deliveryType === 'instant' ? 0 : 1"
+          @change="
+            deliveryType = $event.detail.value === 0 ? 'instant' : 'reserved';
+            void loadPreview();
+          "
+        >
+          <text class="confirm__row-value">{{ deliveryType === 'instant' ? '即时配送' : '预约配送' }} ›</text>
+        </picker>
+      </view>
+      <view class="confirm__row confirm__row--mute">
+        <text class="confirm__row-label">优惠券</text>
+        <text class="confirm__row-value">暂无可用</text>
+      </view>
+      <view class="confirm__row confirm__row--mute">
+        <text class="confirm__row-label">积分抵扣</text>
+        <text class="confirm__row-value">暂未开放</text>
+      </view>
     </view>
-    <view class="confirm__channel">
-      <text>支付方式</text>
-      <text :class="{ active: payChannel === 'wxpay' }" @tap="payChannel = 'wxpay'">微信</text>
-      <text :class="{ active: payChannel === 'alipay' }" @tap="payChannel = 'alipay'">支付宝</text>
+
+    <!-- 金额 -->
+    <view v-if="preview" class="confirm__card">
+      <view class="confirm__amt">
+        <text>商品金额</text><text>¥{{ formatYuan(preview.goodsAmount) }}</text>
+      </view>
+      <view class="confirm__amt">
+        <text>配送费</text><text>¥{{ formatYuan(preview.deliveryFee) }}</text>
+      </view>
+      <view v-if="Number(preview.discountAmount) > 0" class="confirm__amt">
+        <text>优惠</text><text>-¥{{ formatYuan(preview.discountAmount) }}</text>
+      </view>
+      <view class="confirm__amt confirm__amt--total">
+        <text>实付</text><text class="confirm__amt-pay">¥{{ formatYuan(preview.payableAmount) }}</text>
+      </view>
     </view>
-    <button type="warn" :loading="submitting" :disabled="!preview" @tap="submit">提交订单</button>
+    <view v-else-if="loading" class="confirm__hint">试算中…</view>
+    <view v-else-if="previewError" class="confirm__hint confirm__hint--err">{{ previewError }}</view>
+
+    <!-- 支付方式 -->
+    <view class="confirm__card">
+      <view class="confirm__row-label">支付方式</view>
+      <view class="confirm__channels">
+        <view
+          class="confirm__channel"
+          :class="{ 'confirm__channel--active': payChannel === 'wxpay' }"
+          @tap="payChannel = 'wxpay'"
+        >
+          <SvgIcon name="wechat" :size="32" color="#07c160" />
+          <text>微信支付</text>
+        </view>
+        <view
+          class="confirm__channel"
+          :class="{ 'confirm__channel--active': payChannel === 'alipay' }"
+          @tap="payChannel = 'alipay'"
+        >
+          <SvgIcon name="alipay" :size="32" color="#1677ff" />
+          <text>支付宝</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部提交栏 -->
+    <view class="confirm__bottom">
+      <view class="confirm__bottom-amt">
+        <text class="confirm__bottom-label">合计</text>
+        <text class="confirm__bottom-pay">¥{{ preview ? formatYuan(preview.payableAmount) : '--' }}</text>
+      </view>
+      <button
+        class="confirm__bottom-btn"
+        :disabled="!preview || submitting || !hasAddress"
+        :loading="submitting"
+        @tap="submit"
+      >
+        {{ submitting ? '提交中…' : '提交订单' }}
+      </button>
+    </view>
   </view>
 </template>
 
 <style scoped>
 .confirm {
-  padding: 20rpx;
+  min-height: 100vh;
+  padding: 24rpx 24rpx 200rpx;
+  background: #f5f6f8;
 }
-.confirm__title {
+
+.confirm__addr {
+  position: relative;
+  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  border-radius: 24rpx;
+  padding: 32rpx 56rpx 32rpx 32rpx;
+  color: #fff;
+  margin-bottom: 16rpx;
+  box-shadow: 0 18rpx 40rpx rgba(255, 107, 53, 0.24);
+}
+.confirm__addr-loading,
+.confirm__addr-empty {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.92);
+}
+.confirm__addr-add {
+  display: inline-block;
+  margin-left: 24rpx;
+  font-size: 24rpx;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+}
+.confirm__addr-row {
+  display: flex;
+  gap: 16rpx;
+  align-items: baseline;
+}
+.confirm__addr-name {
   font-size: 32rpx;
+  font-weight: 700;
+}
+.confirm__addr-mobile {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.86);
+}
+.confirm__addr-detail {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.94);
+}
+.confirm__addr-arrow {
+  position: absolute;
+  right: 28rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 40rpx;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.confirm__card {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 8rpx 24rpx rgba(31, 41, 55, 0.04);
+}
+.confirm__card-h {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #172033;
+  margin-bottom: 16rpx;
+}
+.confirm__line {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid rgba(31, 41, 55, 0.05);
+  font-size: 26rpx;
+}
+.confirm__line:last-child {
+  border-bottom: 0;
+}
+.confirm__line-name {
+  flex: 1;
+  color: #172033;
+}
+.confirm__line-spec {
+  color: #8a94a6;
+  font-size: 22rpx;
+  margin-left: 8rpx;
+}
+.confirm__line-qty {
+  color: #8a94a6;
+  font-size: 24rpx;
+}
+.confirm__line-sub {
+  color: #ff4d4f;
+  font-size: 26rpx;
   font-weight: 600;
-  margin-bottom: 20rpx;
 }
 .confirm__row {
-  background: #fff;
-  padding: 24rpx;
   display: flex;
   justify-content: space-between;
-  margin-bottom: 12rpx;
-  border-radius: 12rpx;
+  align-items: center;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid rgba(31, 41, 55, 0.05);
 }
-.confirm__row--disabled {
-  color: #999;
+.confirm__row:last-child {
+  border-bottom: 0;
 }
-.confirm__items {
-  background: #fff;
-  padding: 24rpx;
-  border-radius: 12rpx;
-  margin-bottom: 12rpx;
+.confirm__row-label {
+  font-size: 26rpx;
+  color: #5a6275;
 }
-.confirm__item {
+.confirm__row-value {
+  font-size: 26rpx;
+  color: #172033;
+}
+.confirm__row--mute .confirm__row-value {
+  color: #c5c9d2;
+}
+
+.confirm__amt {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 12rpx;
+  font-size: 26rpx;
+  color: #5a6275;
+  padding: 8rpx 0;
 }
-.confirm__amount {
-  background: #fff;
-  padding: 24rpx;
-  border-radius: 12rpx;
-  margin-bottom: 20rpx;
+.confirm__amt--total {
+  margin-top: 12rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid rgba(31, 41, 55, 0.06);
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #172033;
 }
-.confirm__amount > view {
+.confirm__amt-pay {
+  color: #ff4d4f;
+  font-size: 36rpx;
+}
+.confirm__hint {
+  text-align: center;
+  padding: 24rpx 0;
+  color: #8a94a6;
+  font-size: 26rpx;
+}
+.confirm__hint--err {
+  color: #ff4d4f;
+}
+
+.confirm__channels {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 8rpx;
-}
-.confirm__pay {
-  font-weight: 600;
-  color: #ff6633;
+  gap: 16rpx;
+  margin-top: 16rpx;
 }
 .confirm__channel {
+  flex: 1;
   display: flex;
-  gap: 20rpx;
   align-items: center;
-  background: #fff;
+  justify-content: center;
+  gap: 12rpx;
   padding: 24rpx;
-  border-radius: 12rpx;
-  margin-bottom: 20rpx;
+  border-radius: 16rpx;
+  background: #f5f6f8;
+  font-size: 26rpx;
+  color: #5a6275;
+  border: 2rpx solid transparent;
 }
-.confirm__channel text.active {
-  color: #1989fa;
+.confirm__channel-icon {
+  font-size: 30rpx;
+}
+.confirm__channel--active {
+  border-color: #ff7a45;
+  background: rgba(255, 122, 69, 0.08);
+  color: #ff6b35;
   font-weight: 600;
+}
+
+.confirm__bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding: 16rpx 24rpx 32rpx;
+  background: #fff;
+  box-shadow: 0 -8rpx 24rpx rgba(31, 41, 55, 0.08);
+}
+.confirm__bottom-amt {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+}
+.confirm__bottom-label {
+  font-size: 24rpx;
+  color: #5a6275;
+}
+.confirm__bottom-pay {
+  font-size: 38rpx;
+  color: #ff4d4f;
+  font-weight: 700;
+}
+.confirm__bottom-btn {
+  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  color: #fff;
+  border-radius: 999rpx;
+  padding: 0 56rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+.confirm__bottom-btn[disabled] {
+  background: #c5c9d2;
+  color: #fff;
 }
 </style>

@@ -138,7 +138,19 @@ describe('FoodHomeService', () => {
       }),
     } as unknown as jest.Mocked<Repository<Store>>;
 
-    svc = new FoodHomeService(cityRepo, categoryRepo, storeRepo);
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const fakeFileService: any = {
+      resolveUrls: jest.fn(async (ids: Array<string | null>) => {
+        const out: Record<string, string | null> = {};
+        for (const id of ids) {
+          if (id) out[id] = `http://mock-cdn/${id}.jpg`;
+        }
+        return out;
+      }),
+      resolveUrl: jest.fn(async (id: string | null) => (id ? `http://mock-cdn/${id}.jpg` : null)),
+    };
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+    svc = new FoodHomeService(cityRepo, categoryRepo, storeRepo, fakeFileService);
   });
 
   it('合法 cityCode → 返 cityCode + categories(takeaway 顶级 enabled)+ recommendedStores(online)', async () => {

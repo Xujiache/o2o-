@@ -5,6 +5,8 @@ import {
   acceptTask,
   arrivePickup as apiArrivePickup,
   deliveredTask as apiDelivered,
+  getMyCurrentTask,
+  getMyInProgressTasks,
   getTaskDetail,
   pickupTask as apiPickup,
   reportException as apiException,
@@ -13,6 +15,7 @@ import {
 
 export const useTaskStore = defineStore('rider-task', () => {
   const current = ref<RiderTaskDetailVo | null>(null);
+  const inProgress = ref<RiderTaskDetailVo[]>([]);
   const loading = ref(false);
 
   async function load(taskId: string): Promise<void> {
@@ -20,6 +23,32 @@ export const useTaskStore = defineStore('rider-task', () => {
     try {
       const r = await getTaskDetail(taskId);
       if (r.code === '0' && r.data) current.value = r.data;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /** 拉当前进行中任务(单任务模式,兼容旧入口) */
+  async function loadMyCurrent(): Promise<void> {
+    loading.value = true;
+    try {
+      const r = await getMyCurrentTask();
+      if (r.code === '0') current.value = r.data ?? null;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /** 拉所有进行中任务列表(支持并发接单) */
+  async function loadInProgress(): Promise<void> {
+    loading.value = true;
+    try {
+      const r = await getMyInProgressTasks();
+      if (r.code === '0') {
+        inProgress.value = r.data ?? [];
+        // 兼容老页面:current 同步指向最新一条
+        current.value = inProgress.value[0] ?? null;
+      }
     } finally {
       loading.value = false;
     }
@@ -53,7 +82,7 @@ export const useTaskStore = defineStore('rider-task', () => {
 
   async function delivered(
     taskId: string,
-    body: { deliveryProof?: string; lng: number; lat: number },
+    body: { deliveryProof?: string; deliveryCode?: string; lng: number; lat: number },
   ): Promise<boolean> {
     const r = await apiDelivered(taskId, body);
     if (r.code === '0' && current.value) {
@@ -78,5 +107,17 @@ export const useTaskStore = defineStore('rider-task', () => {
     return r.code === '0';
   }
 
-  return { current, loading, load, accept, arrivePickup, pickup, delivered, reportException };
+  return {
+    current,
+    inProgress,
+    loading,
+    load,
+    loadMyCurrent,
+    loadInProgress,
+    accept,
+    arrivePickup,
+    pickup,
+    delivered,
+    reportException,
+  };
 });

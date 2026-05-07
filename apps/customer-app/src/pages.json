@@ -73,6 +73,8 @@
     { "path": "pages/login/wechat", "style": { "navigationBarTitleText": "微信登录" } },
     { "path": "pages/address/list", "style": { "navigationBarTitleText": "我的地址" } },
     { "path": "pages/address/edit", "style": { "navigationBarTitleText": "编辑地址" } },
+    { "path": "pages/address/city", "style": { "navigationBarTitleText": "选择城市" } },
+    { "path": "pages/address/map", "style": { "navigationBarTitleText": "地图选点" } },
     { "path": "pages/me/index", "style": { "navigationBarTitleText": "我的" } },
     { "path": "pages/me/notification", "style": { "navigationBarTitleText": "消息设置" } },
     { "path": "pages/me/security", "style": { "navigationBarTitleText": "账号安全" } },
@@ -83,5 +85,17 @@
     "navigationBarTitleText": "O2O 用户端",
     "navigationBarBackgroundColor": "#FFFFFF",
     "backgroundColor": "#F5F5F5"
+  },
+  "tabBar": {
+    "color": "#8A94A6",
+    "selectedColor": "#FF6B35",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/food/home/index", "text": "首页" },
+      { "pagePath": "pages/errand/home/index", "text": "跑腿" },
+      { "pagePath": "pages/food/order/list", "text": "订单" },
+      { "pagePath": "pages/me/index", "text": "我的" }
+    ]
   }
 }

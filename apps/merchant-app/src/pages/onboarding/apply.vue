@@ -28,6 +28,12 @@ const storePhotoFile1 = ref('');
 const submitting = ref(false);
 const errorMsg = ref('');
 const okMsg = ref('');
+const foodPermitFileId = computed({
+  get: () => form.value.foodPermitFileId ?? '',
+  set: (val: string) => {
+    form.value.foodPermitFileId = val;
+  },
+});
 
 const canSubmit = computed(
   () =>
@@ -84,7 +90,10 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <view class="apply">
-    <view class="apply__title">商家入驻申请</view>
+    <view class="apply__hero">
+      <text class="apply__title">商家入驻申请</text>
+      <text class="apply__subtitle">提交资质后，平台将在 1-2 个工作日内完成审核</text>
+    </view>
 
     <text class="apply__sect">手机号 + 验证码</text>
     <MobileInput v-model="form.mobile" />
@@ -95,7 +104,7 @@ async function onSubmit(): Promise<void> {
 
     <text class="apply__sect">资质文件</text>
     <UploadField v-model="form.licenseFileId" label="营业执照" biz-type="merchant-license" />
-    <UploadField v-model="form.foodPermitFileId" label="食品许可证(可选)" biz-type="merchant-food-permit" />
+    <UploadField v-model="foodPermitFileId" label="食品许可证(可选)" biz-type="merchant-food-permit" />
     <UploadField v-model="form.idCardFrontFileId" label="法人身份证(正面)" biz-type="merchant-legal" />
     <UploadField v-model="form.idCardBackFileId" label="法人身份证(背面)" biz-type="merchant-legal" />
     <UploadField v-model="storePhotoFile1" label="门店实拍图(至少 1 张)" biz-type="store-photo" />
@@ -119,18 +128,34 @@ async function onSubmit(): Promise<void> {
 
 <style scoped>
 .apply {
-  padding: 32rpx;
+  padding: 28rpx 24rpx 56rpx;
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: 14rpx;
+}
+.apply__hero {
+  margin-bottom: 12rpx;
+  padding: 36rpx;
+  border-radius: 34rpx;
+  background: linear-gradient(135deg, #1f2937, #b7791f);
+  color: #fff;
+  box-shadow: 0 24rpx 64rpx rgba(183, 121, 31, 0.24);
 }
 .apply__title {
-  font-size: 40rpx;
-  font-weight: 600;
+  display: block;
+  font-size: 42rpx;
+  font-weight: 800;
+}
+.apply__subtitle {
+  display: block;
+  margin-top: 10rpx;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 24rpx;
 }
 .apply__sect {
   font-size: 26rpx;
-  color: #888;
+  color: #7a4a0a;
+  font-weight: 700;
   margin-top: 24rpx;
 }
 .apply__sms-row {
@@ -140,7 +165,7 @@ async function onSubmit(): Promise<void> {
 }
 .apply__sms-btn {
   flex-shrink: 0;
-  background: #4c84ff;
+  background: linear-gradient(135deg, #ffb400, #b7791f);
   color: #fff;
   font-size: 24rpx;
   padding: 12rpx 24rpx;
@@ -148,17 +173,20 @@ async function onSubmit(): Promise<void> {
 }
 .apply__field {
   font-size: 30rpx;
-  padding: 18rpx 0;
-  border-bottom: 1rpx solid #ddd;
+  padding: 22rpx 24rpx;
+  border-radius: 22rpx;
+  background: #fff;
+  border: 1rpx solid rgba(23, 32, 51, 0.06);
 }
 .apply__submit {
   margin-top: 48rpx;
-  background: #4c84ff;
+  background: linear-gradient(135deg, #ffb400, #b7791f);
   color: #fff;
-  border-radius: 12rpx;
+  border-radius: 999rpx;
+  font-weight: 700;
 }
 .apply__submit[disabled] {
-  background: #c5d4ff;
+  background: #f9dd9a;
 }
 .apply__ok {
   color: #52c41a;

@@ -1,14 +1,30 @@
 <script setup lang="ts">
+import { onLoad, onShow } from '@dcloudio/uni-app';
 import { ref } from 'vue';
 
 import { type FoodStoreItem, listFoodStores } from '@/api/food-stores';
+import { readStoredFoodCity, resolveFoodCityName } from '@/utils/food-city';
 
-const cityCode = ref('BJ');
+const storedCity = readStoredFoodCity();
+const cityCode = ref(storedCity.code);
+const cityName = ref(storedCity.name);
+const routeCityCode = ref('');
 const keyword = ref('');
 const sort = ref<'distance' | 'sales' | 'rating' | 'recent'>('recent');
 const list = ref<FoodStoreItem[]>([]);
 const total = ref(0);
 const loading = ref(false);
+
+function syncCity(): void {
+  if (routeCityCode.value) {
+    cityCode.value = routeCityCode.value;
+    cityName.value = resolveFoodCityName(routeCityCode.value);
+    return;
+  }
+  const city = readStoredFoodCity();
+  cityCode.value = city.code;
+  cityName.value = city.name;
+}
 
 async function search(): Promise<void> {
   loading.value = true;
@@ -32,6 +48,17 @@ async function search(): Promise<void> {
 function gotoStore(storeId: string): void {
   uni.navigateTo({ url: `/pages/food/store/detail?storeId=${storeId}` });
 }
+
+onLoad((options) => {
+  routeCityCode.value = (options?.cityCode as string | undefined) ?? '';
+  const kw = (options?.keyword as string | undefined) ?? '';
+  if (kw) keyword.value = decodeURIComponent(kw);
+  syncCity();
+  // 带关键词进入时自动搜索一次
+  if (keyword.value) void search();
+});
+
+onShow(syncCity);
 </script>
 
 <template>
@@ -40,6 +67,7 @@ function gotoStore(storeId: string): void {
       <input v-model="keyword" placeholder="搜索店铺/菜品" class="search__input" @confirm="search" />
       <button size="mini" @tap="search">搜索</button>
     </view>
+    <view class="search__city">当前城市: {{ cityName }}({{ cityCode }})</view>
     <view class="search__sort">
       <text
         v-for="s in ['recent', 'distance', 'sales', 'rating']"
@@ -72,6 +100,11 @@ function gotoStore(storeId: string): void {
   display: flex;
   gap: 12rpx;
   margin-bottom: 20rpx;
+}
+.search__city {
+  margin-bottom: 16rpx;
+  color: #8a94a6;
+  font-size: 24rpx;
 }
 .search__input {
   flex: 1;

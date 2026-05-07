@@ -80,4 +80,8 @@ export class RiderProfileVo {
   @ApiProperty()
   @Expose()
   creditScore!: number;
+
+  @ApiProperty({ enum: ['online', 'offline', 'busy'], description: '当前在线状态(刷新后保留)' })
+  @Expose()
+  onlineStatus!: 'online' | 'offline' | 'busy';
 }

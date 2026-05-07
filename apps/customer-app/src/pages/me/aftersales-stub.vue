@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import SvgIcon from '@/components/common/SvgIcon.vue';
+
 function back(): void {
   uni.navigateBack();
 }
@@ -6,7 +8,9 @@ function back(): void {
 
 <template>
   <view class="stub">
-    <view class="stub__icon">🛟</view>
+    <view class="stub__icon">
+      <SvgIcon name="life-buoy" :size="120" color="#0f766e" />
+    </view>
     <view class="stub__title">售后申请</view>
     <view class="stub__msg">售后系统将在 stage 7 上线,届时可在此发起退款 / 退货 / 投诉。</view>
     <button @tap="back">返回</button>

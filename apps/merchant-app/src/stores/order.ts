@@ -14,10 +14,10 @@ export const useOrderStore = defineStore('merchant-order', () => {
   const total = ref(0);
   const loading = ref(false);
 
-  async function refresh(): Promise<void> {
+  async function refresh(status?: string): Promise<void> {
     loading.value = true;
     try {
-      const r = await listPendingOrders({ pageNo: 1, pageSize: 50 });
+      const r = await listPendingOrders({ pageNo: 1, pageSize: 50, status });
       if (r.code === '0' && r.data) {
         pending.value = r.data.items;
         total.value = r.data.total;

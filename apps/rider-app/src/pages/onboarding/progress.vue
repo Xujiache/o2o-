@@ -14,7 +14,7 @@ async function load(): Promise<void> {
       status.value = r.data;
       // 已审核通过 → 直接进工作台,免得用户再点一次按钮
       if (r.data.auditStatus === 'approved') {
-        uni.reLaunch({ url: '/pages/workbench/index' });
+        uni.switchTab({ url: '/pages/workbench/index' });
       }
     }
   } finally {
@@ -29,13 +29,16 @@ function onResubmit(): void {
 }
 
 function gotoWorkbench(): void {
-  uni.reLaunch({ url: '/pages/workbench/index' });
+  uni.switchTab({ url: '/pages/workbench/index' });
 }
 </script>
 
 <template>
   <view class="progress">
-    <view class="progress__title">入驻审核进度</view>
+    <view class="progress__hero">
+      <text class="progress__title">入驻审核进度</text>
+      <text class="progress__sub">实时查看审核状态，通过后可进入工作台接单</text>
+    </view>
     <view v-if="loading" class="progress__loading">加载中...</view>
     <view v-else-if="status?.hasApplication" class="progress__card">
       <view class="progress__row">
@@ -65,11 +68,25 @@ function gotoWorkbench(): void {
 
 <style scoped>
 .progress {
-  padding: 32rpx;
+  padding: 28rpx 24rpx 56rpx;
+}
+.progress__hero {
+  padding: 34rpx;
+  border-radius: 34rpx;
+  color: #fff;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  box-shadow: 0 24rpx 64rpx rgba(20, 184, 166, 0.26);
 }
 .progress__title {
-  font-size: 36rpx;
-  font-weight: 600;
+  display: block;
+  font-size: 42rpx;
+  font-weight: 800;
+}
+.progress__sub {
+  display: block;
+  margin-top: 8rpx;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 24rpx;
 }
 .progress__loading,
 .progress__empty {
@@ -80,7 +97,7 @@ function gotoWorkbench(): void {
 }
 .progress__card {
   background: #fff;
-  border-radius: 12rpx;
+  border-radius: 28rpx;
   padding: 32rpx;
   margin-top: 24rpx;
   display: flex;
@@ -113,8 +130,9 @@ function gotoWorkbench(): void {
 }
 .progress__btn {
   margin-top: 32rpx;
-  background: #4c84ff;
+  background: linear-gradient(135deg, #14b8a6, #0f766e);
   color: #fff;
-  border-radius: 12rpx;
+  border-radius: 999rpx;
+  font-weight: 700;
 }
 </style>

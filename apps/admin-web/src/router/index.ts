@@ -97,6 +97,11 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/views/merchants/stores.vue'),
         meta: { title: '店铺管控', menu: true, icon: 'Goods', permission: 'admin:merchants:view' },
       },
+      {
+        path: 'admin/merchants/statistics',
+        component: () => import('@/views/merchants/statistics.vue'),
+        meta: { title: '商家经营快照', menu: true, icon: 'TrendCharts', permission: 'admin:settlements:view' },
+      },
       // Stage 3 — 骑手管理
       {
         path: 'admin/riders/audit',

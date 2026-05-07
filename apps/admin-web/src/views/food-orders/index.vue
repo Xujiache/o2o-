@@ -3,6 +3,8 @@ import { onMounted, reactive, ref } from 'vue';
 
 import {
   type AdminFoodOrderListItem,
+  FOOD_ORDER_STATUS_LABEL,
+  FOOD_ORDER_STATUS_OPTIONS,
   type FoodOrderStatus,
   getTimelineStats,
   listFoodOrders,
@@ -18,14 +20,7 @@ const stats = ref<TimelineStatsVo | null>(null);
 const drawerVisible = ref(false);
 const drawerOrderId = ref<string | null>(null);
 
-const STATUS_OPTIONS: Array<{ label: string; value: FoodOrderStatus | '' }> = [
-  { label: '全部', value: '' },
-  { label: '待支付', value: 'WAIT_PAY' },
-  { label: '等商家', value: 'PAID_WAIT_MERCHANT' },
-  { label: '配送中', value: 'DELIVERING' },
-  { label: '已完成', value: 'COMPLETED' },
-  { label: '已取消', value: 'CANCELLED' },
-];
+const STATUS_OPTIONS = FOOD_ORDER_STATUS_OPTIONS;
 
 const query = reactive<{
   status: FoodOrderStatus | '';
@@ -75,6 +70,7 @@ function viewDetail(row: AdminFoodOrderListItem): void {
 
 const fmtDate = (ts: number): string => new Date(ts).toLocaleString();
 const fmtYuan = (cents: string): string => (Number(cents) / 100).toFixed(2);
+const statusLabel = (status: FoodOrderStatus): string => FOOD_ORDER_STATUS_LABEL[status] ?? status;
 
 onMounted(() => {
   void fetchList();
@@ -121,7 +117,7 @@ onMounted(() => {
       <template #header>外卖订单</template>
       <el-form :model="query" :inline="true">
         <el-form-item label="状态">
-          <el-select v-model="query.status" placeholder="全部" clearable style="width: 140px">
+          <el-select v-model="query.status" placeholder="全部" clearable style="width: 160px">
             <el-option v-for="o in STATUS_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
           </el-select>
         </el-form-item>
@@ -148,7 +144,11 @@ onMounted(() => {
 
       <el-table :data="list" v-loading="loading" stripe>
         <el-table-column label="订单号" prop="orderNo" width="180" />
-        <el-table-column label="状态" prop="status" width="160" />
+        <el-table-column label="状态" prop="status" width="140">
+          <template #default="{ row }">
+            <el-tag size="small">{{ statusLabel(row.status) }}</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="支付" prop="payStatus" width="100" />
         <el-table-column label="用户" prop="customerId" width="120" />
         <el-table-column label="店铺" prop="storeId" width="100" />

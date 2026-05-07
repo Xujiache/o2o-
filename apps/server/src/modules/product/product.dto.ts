@@ -241,6 +241,9 @@ export class ProductItemVo {
   hasSku!: number;
   @ApiProperty({ required: false })
   coverImageFileId?: string | null;
+
+  @ApiProperty({ required: false, description: '封面图 presigned URL,fileId 反查 file_object 拼装' })
+  imageUrl?: string | null;
 }
 
 export class ProductPageVo {

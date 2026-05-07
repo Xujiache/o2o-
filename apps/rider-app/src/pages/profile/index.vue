@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { onShow } from '@dcloudio/uni-app';
 import { computed, onMounted, ref } from 'vue';
 
 import { getProfile, updateProfile, type RiderProfileVo, type VehicleType } from '@/api';
+import FloatTabBar from '@/components/common/FloatTabBar.vue';
 import { useAuthStore } from '@/stores/auth';
 
 const auth = useAuthStore();
@@ -30,6 +32,7 @@ async function load(): Promise<void> {
 }
 
 onMounted(load);
+onShow(() => uni.hideTabBar({ animation: false }));
 
 async function save(): Promise<void> {
   saving.value = true;
@@ -57,7 +60,10 @@ async function onLogout(): Promise<void> {
 
 <template>
   <view class="profile">
-    <view class="profile__title">个人资料</view>
+    <view class="profile__hero">
+      <text class="profile__title">个人资料</text>
+      <text class="profile__sub">账号资质、健康证与车辆信息</text>
+    </view>
     <view v-if="profile" class="profile__card">
       <view class="profile__row"
         ><text>骑手 ID</text><text>{{ profile.riderId }}</text></view
@@ -102,23 +108,38 @@ async function onLogout(): Promise<void> {
     </view>
 
     <button class="profile__btn profile__btn--danger" @click="onLogout">退出登录</button>
+    <FloatTabBar active="profile" />
   </view>
 </template>
 
 <style scoped>
 .profile {
-  padding: 32rpx;
+  padding: 28rpx 24rpx 200rpx;
   display: flex;
   flex-direction: column;
   gap: 24rpx;
 }
+.profile__hero {
+  padding: 34rpx;
+  border-radius: 34rpx;
+  color: #fff;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  box-shadow: 0 24rpx 64rpx rgba(20, 184, 166, 0.26);
+}
 .profile__title {
-  font-size: 36rpx;
-  font-weight: 600;
+  display: block;
+  font-size: 42rpx;
+  font-weight: 800;
+}
+.profile__sub {
+  display: block;
+  margin-top: 8rpx;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 24rpx;
 }
 .profile__card {
   background: #fff;
-  border-radius: 12rpx;
+  border-radius: 28rpx;
   padding: 32rpx;
   display: flex;
   flex-direction: column;
@@ -140,15 +161,17 @@ async function onLogout(): Promise<void> {
   font-size: 28rpx;
 }
 .profile__btn {
-  background: #4c84ff;
+  background: linear-gradient(135deg, #14b8a6, #0f766e);
   color: #fff;
-  border-radius: 12rpx;
+  border-radius: 999rpx;
   margin-top: 16rpx;
+  font-weight: 700;
 }
 .profile__btn--ghost {
   background: #fff;
-  color: #4c84ff;
-  border: 1rpx solid #4c84ff;
+  color: #0f766e;
+  border: 1rpx solid rgba(20, 184, 166, 0.3);
+  box-shadow: none;
 }
 .profile__btn--danger {
   background: #ff4d4f;

@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { onShow } from '@dcloudio/uni-app';
 import { onMounted, ref } from 'vue';
 
+import FloatTabBar from '@/components/common/FloatTabBar.vue';
 import { type FoodOrderStatus, listOrders, type OrderListItem } from '@/api/food-orders';
 import { formatYuan } from '@/utils/format-price';
 
@@ -60,10 +62,16 @@ function gotoDetail(orderId: string): void {
 }
 
 onMounted(load);
+onShow(() => uni.hideTabBar({ animation: false }));
 </script>
 
 <template>
   <view class="orders">
+    <view class="orders__hero">
+      <text class="orders__eyebrow">Order Center</text>
+      <text class="orders__title">我的订单</text>
+      <text class="orders__subtitle">外卖订单状态、售后与配送详情统一追踪</text>
+    </view>
     <view class="orders__tabs">
       <text
         v-for="t in ['all', 'WAIT_PAY', 'progress', 'COMPLETED'] as TabKey[]"
@@ -89,38 +97,68 @@ onMounted(load);
         <view class="orders__amount">合计 ¥ {{ formatYuan(o.payableAmount) }}</view>
       </view>
     </view>
+    <FloatTabBar active="orders" />
   </view>
 </template>
 
 <style scoped>
 .orders {
-  padding: 20rpx;
+  padding: 28rpx 24rpx 200rpx;
+}
+.orders__hero {
+  margin-bottom: 22rpx;
+  padding: 34rpx;
+  border-radius: 32rpx;
+  color: #fff;
+  background: linear-gradient(135deg, #273248, #56637a);
+  box-shadow: 0 20rpx 54rpx rgba(23, 32, 51, 0.2);
+}
+.orders__eyebrow,
+.orders__subtitle {
+  display: block;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 23rpx;
+}
+.orders__title {
+  display: block;
+  margin: 12rpx 0 8rpx;
+  font-size: 42rpx;
+  font-weight: 800;
 }
 .orders__tabs {
   display: flex;
-  gap: 24rpx;
+  justify-content: space-between;
   background: #fff;
-  padding: 24rpx;
-  border-radius: 12rpx;
+  padding: 12rpx;
+  border-radius: 999rpx;
   margin-bottom: 16rpx;
 }
+.orders__tabs text {
+  flex: 1;
+  text-align: center;
+  padding: 14rpx 0;
+  border-radius: 999rpx;
+  color: #7a8497;
+}
 .orders__tabs text.active {
-  color: #1989fa;
-  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  font-weight: 700;
 }
 .orders__row {
   background: #fff;
-  padding: 24rpx;
-  border-radius: 12rpx;
-  margin-bottom: 12rpx;
+  padding: 28rpx;
+  border-radius: 28rpx;
+  margin-bottom: 16rpx;
 }
 .orders__head {
   display: flex;
   justify-content: space-between;
   margin-bottom: 8rpx;
+  font-weight: 700;
 }
 .orders__status {
-  color: #ff6633;
+  color: #ff6b35;
 }
 .orders__brief {
   color: #555;

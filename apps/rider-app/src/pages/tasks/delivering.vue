@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onLoad } from '@dcloudio/uni-app';
+import { ref } from 'vue';
 
 import { useTaskStore } from '@/stores/task';
 
@@ -14,10 +15,8 @@ function goDelivered(): void {
   uni.navigateTo({ url: `/pages/tasks/delivered?taskId=${taskId.value}` });
 }
 
-onMounted(() => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const opts = (uni as any).getLaunchOptionsSync?.() ?? {};
-  taskId.value = (opts.query?.taskId ?? '') as string;
+onLoad((options) => {
+  taskId.value = (options?.taskId as string) ?? '';
   if (taskId.value) void store.load(taskId.value);
 });
 </script>

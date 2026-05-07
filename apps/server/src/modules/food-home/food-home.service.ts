@@ -4,6 +4,7 @@ import { ErrorCode } from '@o2o/contracts';
 import { Repository } from 'typeorm';
 
 import { CitySite, PlatformCategory, Store } from '../../database/entities';
+import { FileService } from '../file/file.service';
 
 import {
   type FoodHomeBannerVo,
@@ -20,6 +21,7 @@ export class FoodHomeService {
     @InjectRepository(CitySite) private readonly cityRepo: Repository<CitySite>,
     @InjectRepository(PlatformCategory) private readonly categoryRepo: Repository<PlatformCategory>,
     @InjectRepository(Store) private readonly storeRepo: Repository<Store>,
+    private readonly fileService: FileService,
   ) {}
 
   async getHome(cityCode: string, lng?: number, lat?: number): Promise<FoodHomeVo> {
@@ -59,10 +61,12 @@ export class FoodHomeService {
       .limit(MAX_RECOMMENDED_STORES)
       .getMany();
 
+    // 批量解析 avatarFileId → 真实可下载 URL
+    const urlMap = await this.fileService.resolveUrls(stores.map((s) => s.avatarFileId));
     const recommendedStores: FoodHomeRecommendedStoreVo[] = stores.map((s) => ({
       storeId: s.storeId,
       name: s.name,
-      iconUrl: s.avatarFileId,
+      iconUrl: s.avatarFileId ? (urlMap[s.avatarFileId] ?? null) : null,
       distance: this.mockDistance(lng, lat),
       sales: 0,
       rating: 5,

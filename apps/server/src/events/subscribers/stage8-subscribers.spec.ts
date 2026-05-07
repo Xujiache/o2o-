@@ -123,7 +123,15 @@ describe('Stage 8 subscribers', () => {
     it('audit + sms', async () => {
       const audit = fakeAudit();
       const gw = fakeGateway();
-      await new RiderDeliveredSubscriber(audit, gw).handle({
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      const fakeEarningRepo: any = {
+        insert: jest.fn(async () => ({ identifiers: [{ riderEarningId: 'E1' }] })),
+        findOne: jest.fn(async () => null),
+      };
+      const fakeSysConfigRepo: any = { findOne: jest.fn(async () => null) };
+      const fakeEventBus: any = { publish: jest.fn(async () => ({ eventId: 'e1' })) };
+      /* eslint-enable @typescript-eslint/no-explicit-any */
+      await new RiderDeliveredSubscriber(audit, gw, fakeEarningRepo, fakeSysConfigRepo, fakeEventBus).handle({
         riderTaskId: 'RT1',
         riderId: '30001',
         bizType: 'FOOD',

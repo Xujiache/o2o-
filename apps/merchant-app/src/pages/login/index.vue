@@ -31,49 +31,79 @@ function onApply(): void {
 
 <template>
   <view class="login">
-    <view class="login__title">商家登录</view>
-    <text class="login__hint">未入驻商家请先提交资料</text>
+    <view class="login__hero">
+      <text class="login__badge">Merchant App</text>
+      <view class="login__title">商家登录</view>
+      <text class="login__hint">管理订单、商品、结算与门店运营</text>
+    </view>
 
-    <MobileInput v-model="mobile" />
+    <view class="login__panel">
+      <MobileInput v-model="mobile" />
 
-    <button class="login__btn" :disabled="!canSend" @click="onSendSms">
-      {{ sending ? '发送中...' : '获取验证码' }}
-    </button>
+      <button class="login__btn" :disabled="!canSend" @click="onSendSms">
+        {{ sending ? '发送中...' : '获取验证码' }}
+      </button>
 
-    <text v-if="errorMsg" class="login__error">{{ errorMsg }}</text>
+      <text v-if="errorMsg" class="login__error">{{ errorMsg }}</text>
 
-    <button class="login__btn login__btn--ghost" @click="onApply">提交入驻申请</button>
+      <button class="login__btn login__btn--ghost" @click="onApply">提交入驻申请</button>
+    </view>
   </view>
 </template>
 
 <style scoped>
 .login {
-  padding: 80rpx 48rpx;
+  padding: 56rpx 32rpx;
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+  gap: 32rpx;
+}
+.login__hero {
+  padding: 54rpx 36rpx;
+  border-radius: 36rpx;
+  color: #fff;
+  background: linear-gradient(135deg, #1f2937, #b7791f);
+  box-shadow: 0 24rpx 64rpx rgba(183, 121, 31, 0.26);
+}
+.login__badge {
+  display: inline-flex;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 22rpx;
 }
 .login__title {
-  font-size: 48rpx;
-  font-weight: 600;
+  margin-top: 24rpx;
+  font-size: 54rpx;
+  font-weight: 800;
 }
 .login__hint {
+  display: block;
+  margin-top: 12rpx;
   font-size: 26rpx;
-  color: #888;
+  color: rgba(255, 255, 255, 0.88);
+}
+.login__panel {
+  padding: 32rpx;
+  border-radius: 32rpx;
+  background: #fff;
+  box-shadow: 0 18rpx 48rpx rgba(31, 41, 55, 0.08);
 }
 .login__btn {
   margin-top: 32rpx;
-  background: #4c84ff;
+  background: linear-gradient(135deg, #ffb400, #b7791f);
   color: #fff;
-  border-radius: 12rpx;
+  border-radius: 999rpx;
+  font-weight: 700;
 }
 .login__btn[disabled] {
-  background: #c5d4ff;
+  background: #f9dd9a;
 }
 .login__btn--ghost {
   background: #fff;
-  color: #4c84ff;
-  border: 1rpx solid #4c84ff;
+  color: #b7791f;
+  border: 1rpx solid rgba(183, 121, 31, 0.3);
+  box-shadow: none;
 }
 .login__error {
   color: #ff4d4f;

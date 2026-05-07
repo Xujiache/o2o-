@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onLoad } from '@dcloudio/uni-app';
+import { ref } from 'vue';
 
 import { applyAfterSale } from '@/api/food-after-sale';
 
@@ -38,10 +39,8 @@ async function submit(): Promise<void> {
   }
 }
 
-onMounted(() => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const opts = (uni as any).getLaunchOptionsSync?.() ?? {};
-  orderId.value = (opts.query?.orderId ?? '') as string;
+onLoad((options) => {
+  orderId.value = (options?.orderId as string) ?? '';
 });
 </script>
 

@@ -20,8 +20,8 @@ const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://127.0.
 
 export interface CustomerRequestOptions {
   url: string;
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  data?: Record<string, unknown> | unknown[];
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  data?: unknown;
   params?: Record<string, unknown>;
   header?: Record<string, string>;
   /** 写接口默认 true,GET 默认 false */
@@ -62,8 +62,8 @@ function rawRequest<T>(options: CustomerRequestOptions): Promise<ApiResponse<T>>
   return new Promise<ApiResponse<T>>((resolve, reject) => {
     uni.request({
       url: BASE_URL + options.url + buildQuery(options.params),
-      method,
-      data: options.data,
+      method: method as never,
+      data: options.data as never,
       header: headers,
       timeout: options.timeout ?? 15000,
       success(res) {

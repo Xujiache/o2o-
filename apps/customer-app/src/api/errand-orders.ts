@@ -60,6 +60,10 @@ export interface ErrandOrderDetailVo extends ErrandOrderListItemVo {
   actions: string[];
   rider: { riderId: string; status: string } | null;
   paidAt: number | null;
+  /** 取件码 — 仅 typeCode=DELIVER 有 */
+  pickupCode: string | null;
+  /** 收货码 — 全部类型在付款后均有 */
+  deliveryCode: string | null;
 }
 
 export type ListStatusTab = 'ALL' | 'WAIT_PAY' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';

@@ -13,7 +13,7 @@ const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://127.0.
 export interface RiderRequestOptions {
   url: string;
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
-  data?: Record<string, unknown> | unknown[];
+  data?: unknown;
   params?: Record<string, unknown>;
   header?: Record<string, string>;
   idempotent?: boolean;
@@ -61,7 +61,7 @@ export function request<T = unknown>(options: RiderRequestOptions): Promise<ApiR
     uni.request({
       url: BASE_URL + options.url + buildQuery(options.params),
       method: method as never,
-      data: options.data,
+      data: options.data as never,
       header: headers,
       timeout: options.timeout ?? 15000,
       async success(res) {

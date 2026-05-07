@@ -194,6 +194,45 @@ export interface ProductItemVo {
   saleStatus: string;
   hasSku: number;
   coverImageFileId?: string | null;
+  imageUrl?: string | null;
+}
+
+export interface ProductSkuVo {
+  skuId: string;
+  productId: string;
+  specValue: string;
+  price: string;
+  stock: number;
+  stockLocked: number;
+}
+
+export interface MerchantProductDetailVo {
+  productId: string;
+  storeId: string;
+  categoryId: string;
+  name: string;
+  description: string | null;
+  coverImageFileId: string | null;
+  imageUrl: string | null;
+  images: string[] | null;
+  price: string;
+  originalPrice: string | null;
+  stock: number;
+  stockAlertThreshold: number;
+  hasSku: number;
+  saleStatus: string;
+  skus: ProductSkuVo[];
+}
+
+export interface UpdateProductReq {
+  categoryId?: string;
+  name?: string;
+  description?: string;
+  coverImageFileId?: string;
+  images?: string[];
+  price?: number;
+  stock?: number;
+  stockAlertThreshold?: number;
 }
 export interface ProductPageVo {
   pageNo: number;
@@ -278,6 +317,24 @@ export function createCategory(body: { name: string; displayOrder?: number }): P
   return request<CategoryVo>({ url: Endpoints.ProductCategories, method: 'POST', data: body });
 }
 
+export function updateCategory(
+  categoryId: string,
+  body: { name?: string; displayOrder?: number },
+): Promise<ApiResponse<CategoryVo>> {
+  return request<CategoryVo>({
+    url: `${Endpoints.ProductCategories}/${categoryId}`,
+    method: 'PATCH' as const,
+    data: body as never,
+  });
+}
+
+export function deleteCategory(categoryId: string): Promise<ApiResponse<{ ok: boolean }>> {
+  return request<{ ok: boolean }>({
+    url: `${Endpoints.ProductCategories}/${categoryId}`,
+    method: 'DELETE' as const,
+  });
+}
+
 export function listProducts(params: {
   categoryId?: string;
   saleStatus?: string;
@@ -290,6 +347,21 @@ export function listProducts(params: {
 
 export function createProduct(body: CreateProductReq): Promise<ApiResponse<{ productId: string; saleStatus: string }>> {
   return request({ url: Endpoints.Products, method: 'POST', data: body as never });
+}
+
+export function getMerchantProductDetail(productId: string): Promise<ApiResponse<MerchantProductDetailVo>> {
+  return request<MerchantProductDetailVo>({
+    url: `${Endpoints.Products}/${productId}`,
+    method: 'GET',
+  });
+}
+
+export function updateProduct(productId: string, body: UpdateProductReq): Promise<ApiResponse<{ productId: string }>> {
+  return request<{ productId: string }>({
+    url: `${Endpoints.Products}/${productId}`,
+    method: 'PATCH' as const,
+    data: body as never,
+  });
 }
 
 export function setSaleStatus(productId: string, saleStatus: 'on_shelf' | 'off_shelf'): Promise<ApiResponse<unknown>> {

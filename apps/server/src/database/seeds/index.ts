@@ -8,6 +8,7 @@ import { seedErrandPricing } from './errand-pricing.seed';
 import { seedErrandTypes } from './errand-type.seed';
 import { seedErrorCodes } from './error-code.seed';
 import { seedPlatformCategories } from './platform-category.seed';
+import { seedPointsRules } from './points-rule.seed';
 import { seedProhibitedItems } from './prohibited-item.seed';
 import { seedRolesAndPermissions } from './role-permission.seed';
 import { seedStage7SysConfig } from './sys-config-stage7.seed';
@@ -53,6 +54,9 @@ export async function runSeeds(ds: DataSource): Promise<void> {
 
   const prohibitedCount = await seedProhibitedItems(ds);
   console.info(`[seed] prohibited_item: ${prohibitedCount}`);
+
+  const pointsRuleCount = await seedPointsRules(ds);
+  console.info(`[seed] points_rule: ${pointsRuleCount}`);
 
   // Stage 7 — 商家端订单售后结算配置
   const stage7CfgCount = await seedStage7SysConfig(ds);

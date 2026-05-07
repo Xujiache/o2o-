@@ -57,7 +57,7 @@ export type Platform = 'app-android' | 'app-ios';
 
 export interface SendSmsCodeReq {
   mobile: string;
-  scene: 'login';
+  scene: 'login' | 'sensitive';
 }
 export interface SendSmsCodeVo {
   sendResult: boolean;
@@ -144,6 +144,7 @@ export interface RiderProfileVo {
   approvedAt?: string | null;
   vehicle?: { vehicleType: string; plateNo?: string | null; brand?: string | null } | null;
   creditScore: number;
+  onlineStatus: 'online' | 'offline' | 'busy';
 }
 
 export interface UpdateProfileReq {

@@ -22,6 +22,8 @@ export interface MerchantOrderListVo {
 export function listPendingOrders(params?: {
   pageNo?: number;
   pageSize?: number;
+  /** 不传时仅返回 PAID_WAIT_MERCHANT;传 'ALL' 不过滤;逗号分隔多个状态走 IN */
+  status?: string;
 }): Promise<ApiResponse<MerchantOrderListVo>> {
   return request({ url: '/api/v1/m/food-orders/pending', method: 'GET', params });
 }
@@ -67,4 +69,49 @@ export function readyOrder(orderId: string, readyRemark?: string): Promise<ApiRe
     method: 'POST',
     data: { readyRemark },
   });
+}
+
+export interface MerchantOrderItemVo {
+  skuId: string;
+  name: string;
+  spec: string | null;
+  quantity: number;
+  unitPriceCents: string;
+  subTotalCents: string;
+}
+
+export interface MerchantOrderAddressVo {
+  consignee: string;
+  mobileMasked: string;
+  detail: string;
+}
+
+export interface MerchantOrderTimelineEntryVo {
+  at: number;
+  fromStatus: string | null;
+  toStatus: string;
+  actor: string;
+  reason: string | null;
+}
+
+export interface MerchantOrderDetailVo {
+  orderId: string;
+  orderNo: string;
+  status: string;
+  goodsAmountCents: string;
+  deliveryFeeCents: string;
+  discountAmountCents: string;
+  payableAmountCents: string;
+  userRemark: string | null;
+  createdAt: number;
+  acceptedAt: number | null;
+  readyAt: number | null;
+  address: MerchantOrderAddressVo | null;
+  items: MerchantOrderItemVo[];
+  timeline: MerchantOrderTimelineEntryVo[];
+  allowedMerchantActions: string[];
+}
+
+export function getMerchantOrderDetail(orderId: string): Promise<ApiResponse<MerchantOrderDetailVo>> {
+  return request({ url: `/api/v1/m/food-orders/${orderId}`, method: 'GET' });
 }

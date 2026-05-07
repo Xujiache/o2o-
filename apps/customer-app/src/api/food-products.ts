@@ -13,6 +13,7 @@ export interface FoodProduct {
   name: string;
   description?: string | null;
   coverImageFileId?: string | null;
+  imageUrl?: string | null;
   basePrice: string;
   originalPrice?: string | null;
   saleStatus: 'on_shelf' | 'off_shelf' | 'sold_out' | 'draft';

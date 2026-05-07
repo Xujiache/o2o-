@@ -13,6 +13,7 @@
     "dev:customer": "pnpm --filter @o2o/customer-app dev",
     "dev:customer:h5": "pnpm --filter @o2o/customer-app dev:h5",
     "dev:merchant": "pnpm --filter @o2o/merchant-app dev",
+    "dev:merchant:h5": "pnpm --filter @o2o/merchant-app dev:h5",
     "dev:rider": "pnpm --filter @o2o/rider-app dev",
     "dev:rider:h5": "pnpm --filter @o2o/rider-app dev:h5",
     "dev:admin": "pnpm --filter @o2o/admin-web dev",

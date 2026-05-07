@@ -4,6 +4,7 @@ import { computed, ref } from 'vue';
 import { realnameVerify, sendSmsCode } from '@/api';
 import IdCardInput from '@/components/common/IdCardInput.vue';
 import SmsCodeInput from '@/components/common/SmsCodeInput.vue';
+import SvgIcon from '@/components/common/SvgIcon.vue';
 
 const realName = ref('');
 const idCardNo = ref('');
@@ -93,7 +94,8 @@ async function onSubmit(): Promise<void> {
     <view class="realname__title">实名认证</view>
 
     <view v-if="result?.status === 'success'" class="realname__alert realname__alert--ok">
-      认证成功 ✓
+      <SvgIcon name="check-circle" :size="32" color="#1e8e3e" />
+      <text>认证成功</text>
       <text v-if="result.verifiedAt" class="realname__time">{{ new Date(result.verifiedAt).toLocaleString() }}</text>
     </view>
     <view v-else-if="result?.status === 'failed'" class="realname__alert realname__alert--fail">

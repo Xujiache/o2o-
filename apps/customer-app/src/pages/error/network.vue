@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import SvgIcon from '@/components/common/SvgIcon.vue';
+
 function retry(): void {
   uni.reLaunch({ url: '/pages/launch/index' });
 }
@@ -6,7 +8,9 @@ function retry(): void {
 
 <template>
   <view class="page">
-    <view class="page__icon">📡</view>
+    <view class="page__icon">
+      <SvgIcon name="radio-tower" :size="100" color="#5a6275" />
+    </view>
     <view class="page__title">网络错误</view>
     <text class="page__desc">连接服务器失败,请检查网络后重试。</text>
     <button class="page__btn" @click="retry">重试</button>

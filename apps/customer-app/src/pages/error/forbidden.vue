@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import SvgIcon from '@/components/common/SvgIcon.vue';
+
 function home(): void {
   uni.reLaunch({ url: '/pages/launch/index' });
 }
@@ -6,7 +8,9 @@ function home(): void {
 
 <template>
   <view class="page">
-    <view class="page__icon">⛔</view>
+    <view class="page__icon page__icon--err">
+      <SvgIcon name="ban" :size="100" color="#d33" />
+    </view>
     <view class="page__title">无权限</view>
     <text class="page__desc">您当前账号不可访问此页面。</text>
     <button class="page__btn" @click="home">返回首页</button>

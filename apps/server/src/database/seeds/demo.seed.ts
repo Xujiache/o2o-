@@ -6,7 +6,9 @@
  *
  * 包含:
  *   1 测试用户(13900000001,已实名,默认地址=北京天安门附近)
- *   2 商家(13900020001 老王炸鸡 / 13900020002 美味食堂),状态 active,店铺 online,各 3 商品
+ *   2 商家:
+ *     - 13900020001 老王炸鸡: 4 分类(招牌/套餐/小食/饮料) × 8 商品
+ *     - 13900020002 美味食堂: 4 分类(热菜/凉菜/主食/汤) × 8 商品
  *   1 骑手(13900030001),状态 active,在线,位置=北京中心
  */
 import type { DataSource } from 'typeorm';
@@ -19,8 +21,10 @@ import {
   MessageSetting,
   Product,
   ProductCategory,
+  ProductSku,
   RiderAccount,
   RiderApplication,
+  RiderServiceArea,
   RiderStatus,
   Store,
 } from '../entities';
@@ -35,40 +39,101 @@ interface DemoStat {
   riders: number;
 }
 
+interface MerchantSeedInput {
+  mobile: string;
+  storeName: string;
+  intro: string;
+  categories: Array<{
+    name: string;
+    displayOrder: number;
+    products: Array<{ name: string; priceCents: number; originalCents: number | null; desc: string }>;
+  }>;
+}
+
+const MERCHANT_LAOWANG: MerchantSeedInput = {
+  mobile: '13900020001',
+  storeName: '老王炸鸡(演示)',
+  intro: '正宗炸鸡 30 分钟送达',
+  categories: [
+    {
+      name: '招牌',
+      displayOrder: 1,
+      products: [
+        { name: '香酥大鸡腿', priceCents: 1980, originalCents: 2580, desc: '外酥里嫩,招牌爆款' },
+        { name: '黑椒鸡块汉堡', priceCents: 2680, originalCents: 2980, desc: '现做现卖' },
+      ],
+    },
+    {
+      name: '套餐',
+      displayOrder: 2,
+      products: [{ name: '鸡腿双拼套餐', priceCents: 3980, originalCents: 4580, desc: '鸡腿+鸡块+薯条+饮料' }],
+    },
+    {
+      name: '小食',
+      displayOrder: 3,
+      products: [
+        { name: '黄金薯条', priceCents: 980, originalCents: null, desc: '现炸金黄' },
+        { name: '香脆鸡块(8 块)', priceCents: 1880, originalCents: 2080, desc: '蘸番茄酱更好吃' },
+        { name: '玉米浓汤', priceCents: 580, originalCents: null, desc: '香甜暖胃' },
+      ],
+    },
+    {
+      name: '饮料',
+      displayOrder: 4,
+      products: [
+        { name: '可乐(中)', priceCents: 600, originalCents: null, desc: '冰镇' },
+        { name: '柠檬冰红茶', priceCents: 780, originalCents: null, desc: '解腻提神' },
+      ],
+    },
+  ],
+};
+
+const MERCHANT_MEIWEI: MerchantSeedInput = {
+  mobile: '13900020002',
+  storeName: '美味食堂(演示)',
+  intro: '家常菜 现炒现做',
+  categories: [
+    {
+      name: '热菜',
+      displayOrder: 1,
+      products: [
+        { name: '宫保鸡丁', priceCents: 2580, originalCents: 2880, desc: '微辣下饭' },
+        { name: '番茄炒蛋', priceCents: 1680, originalCents: null, desc: '酸甜开胃' },
+      ],
+    },
+    {
+      name: '凉菜',
+      displayOrder: 2,
+      products: [
+        { name: '拍黄瓜', priceCents: 880, originalCents: null, desc: '蒜香爽脆' },
+        { name: '凉拌木耳', priceCents: 1080, originalCents: null, desc: '醋香开胃' },
+      ],
+    },
+    {
+      name: '主食',
+      displayOrder: 3,
+      products: [
+        { name: '米饭(碗)', priceCents: 200, originalCents: null, desc: '东北珍珠米' },
+        { name: '番茄盖饭', priceCents: 1880, originalCents: null, desc: '汤汁拌饭' },
+      ],
+    },
+    {
+      name: '汤',
+      displayOrder: 4,
+      products: [
+        { name: '紫菜蛋花汤', priceCents: 480, originalCents: null, desc: '暖胃' },
+        { name: '西红柿鸡蛋汤', priceCents: 580, originalCents: null, desc: '酸甜开胃' },
+      ],
+    },
+  ],
+};
+
 export async function seedDemoData(ds: DataSource): Promise<DemoStat> {
   const stat: DemoStat = { customers: 0, merchants: 0, stores: 0, products: 0, riders: 0 };
 
   await seedCustomer(ds, stat);
-  await seedMerchantWithStoreAndProducts(
-    ds,
-    {
-      mobile: '13900020001',
-      storeName: '老王炸鸡(演示)',
-      intro: '正宗炸鸡 30 分钟送达',
-      categoryName: '招牌',
-      products: [
-        { name: '香酥大鸡腿', priceCents: 1980, originalCents: 2580, desc: '外酥里嫩,招牌爆款' },
-        { name: '黑椒鸡块汉堡', priceCents: 2680, originalCents: 2980, desc: '现做现卖' },
-        { name: '可乐(中)', priceCents: 600, originalCents: null, desc: '冰镇' },
-      ],
-    },
-    stat,
-  );
-  await seedMerchantWithStoreAndProducts(
-    ds,
-    {
-      mobile: '13900020002',
-      storeName: '美味食堂(演示)',
-      intro: '家常菜 现炒现做',
-      categoryName: '热菜',
-      products: [
-        { name: '宫保鸡丁套餐', priceCents: 2580, originalCents: 2880, desc: '配米饭+汤' },
-        { name: '番茄炒蛋盖饭', priceCents: 1880, originalCents: null, desc: '清淡好吃' },
-        { name: '紫菜蛋花汤', priceCents: 480, originalCents: null, desc: '暖胃' },
-      ],
-    },
-    stat,
-  );
+  await seedMerchantWithStoreAndProducts(ds, MERCHANT_LAOWANG, stat);
+  await seedMerchantWithStoreAndProducts(ds, MERCHANT_MEIWEI, stat);
   await seedRider(ds, stat);
 
   return stat;
@@ -133,15 +198,7 @@ async function seedCustomer(ds: DataSource, stat: DemoStat): Promise<void> {
   }
 }
 
-// ---------- merchant + store + products ----------
-interface MerchantSeedInput {
-  mobile: string;
-  storeName: string;
-  intro: string;
-  categoryName: string;
-  products: Array<{ name: string; priceCents: number; originalCents: number | null; desc: string }>;
-}
-
+// ---------- merchant + store + categories + products ----------
 async function seedMerchantWithStoreAndProducts(
   ds: DataSource,
   input: MerchantSeedInput,
@@ -151,6 +208,7 @@ async function seedMerchantWithStoreAndProducts(
   const storeRepo = ds.getRepository(Store);
   const catRepo = ds.getRepository(ProductCategory);
   const productRepo = ds.getRepository(Product);
+  const skuRepo = ds.getRepository(ProductSku);
 
   let acct = await acctRepo.findOne({ where: { mobile: input.mobile } });
   if (!acct) {
@@ -191,39 +249,57 @@ async function seedMerchantWithStoreAndProducts(
     stat.stores += 1;
   }
 
-  let cat = await catRepo.findOne({ where: { storeId: store.storeId, name: input.categoryName } });
-  if (!cat) {
-    cat = await catRepo.save(
-      catRepo.create({
-        storeId: store.storeId,
-        name: input.categoryName,
-        displayOrder: 1,
-        createdAt: NOW,
-        updatedAt: NOW,
-      }),
-    );
-  }
+  for (const catInput of input.categories) {
+    let cat = await catRepo.findOne({ where: { storeId: store.storeId, name: catInput.name } });
+    if (!cat) {
+      cat = await catRepo.save(
+        catRepo.create({
+          storeId: store.storeId,
+          name: catInput.name,
+          displayOrder: catInput.displayOrder,
+          createdAt: NOW,
+          updatedAt: NOW,
+        }),
+      );
+    }
 
-  for (const p of input.products) {
-    const existing = await productRepo.findOne({ where: { storeId: store.storeId, name: p.name } });
-    if (existing) continue;
-    await productRepo.insert({
-      storeId: store.storeId,
-      categoryId: cat.categoryId,
-      name: p.name,
-      description: p.desc,
-      coverImageFileId: null,
-      images: null,
-      price: String(p.priceCents),
-      originalPrice: p.originalCents !== null ? String(p.originalCents) : null,
-      stock: 100,
-      stockAlertThreshold: 5,
-      hasSku: 0,
-      saleStatus: 'on_shelf',
-      createdAt: NOW,
-      updatedAt: NOW,
-    });
-    stat.products += 1;
+    for (const p of catInput.products) {
+      let product = await productRepo.findOne({ where: { storeId: store.storeId, name: p.name } });
+      if (!product) {
+        product = await productRepo.save(
+          productRepo.create({
+            storeId: store.storeId,
+            categoryId: cat.categoryId,
+            name: p.name,
+            description: p.desc,
+            coverImageFileId: null,
+            images: null,
+            price: String(p.priceCents),
+            originalPrice: p.originalCents !== null ? String(p.originalCents) : null,
+            stock: 100,
+            stockAlertThreshold: 5,
+            hasSku: 0,
+            saleStatus: 'on_shelf',
+            createdAt: NOW,
+            updatedAt: NOW,
+          }),
+        );
+        stat.products += 1;
+      }
+      // 给每个商品补 1 个默认 SKU,让客户端能加购(cart.service 必须 skuId)
+      const existingSku = await skuRepo.findOne({ where: { productId: product.productId } });
+      if (!existingSku) {
+        await skuRepo.insert({
+          productId: product.productId,
+          specValue: '默认',
+          price: String(p.priceCents),
+          stock: 100,
+          stockLocked: 0,
+          createdAt: NOW,
+          updatedAt: NOW,
+        });
+      }
+    }
   }
 }
 
@@ -289,6 +365,30 @@ async function seedRider(ds: DataSource, stat: DemoStat): Promise<void> {
       deviceToken: 'demo-device-token',
       platform: 'android',
       creditScore: 100,
+      createdAt: NOW,
+      updatedAt: NOW,
+    });
+  }
+
+  // 服务区(北京天安门附近 ~5km 矩形,覆盖 demo 商家与客户地址)
+  const areaRepo = ds.getRepository(RiderServiceArea);
+  const existingArea = await areaRepo.findOne({ where: { riderId: acct.riderId } });
+  if (!existingArea) {
+    await areaRepo.insert({
+      riderId: acct.riderId,
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [116.34, 39.86],
+            [116.45, 39.86],
+            [116.45, 39.95],
+            [116.34, 39.95],
+            [116.34, 39.86],
+          ],
+        ],
+      },
+      maxConcurrentOrders: 3,
       createdAt: NOW,
       updatedAt: NOW,
     });

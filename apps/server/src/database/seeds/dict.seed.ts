@@ -1,4 +1,4 @@
-import type { DataSource } from 'typeorm';
+import { In, Not, type DataSource } from 'typeorm';
 
 import { SysDict } from '../entities';
 
@@ -30,21 +30,16 @@ const TAKEAWAY_STATUS: DictRow[] = [
   { dictType: 'order_takeaway_status', code: 'AFTER_SALE', label: '售后中', sort: 230 },
 ];
 
-/** 跑腿订单状态 */
+/** 跑腿订单状态(以 errand_order.status 为准;加价/退款等是事件或支付状态,不混入订单状态) */
 const ERRAND_STATUS: DictRow[] = [
   { dictType: 'order_errand_status', code: 'WAIT_PAY', label: '待支付', sort: 10 },
-  { dictType: 'order_errand_status', code: 'PAID_WAIT_RIDER', label: '已支付,等待骑手接单', sort: 20 },
-  { dictType: 'order_errand_status', code: 'PRICE_INCREASED', label: '已自动加价', sort: 30 },
-  { dictType: 'order_errand_status', code: 'RIDER_ASSIGNED', label: '骑手已分配', sort: 40 },
-  { dictType: 'order_errand_status', code: 'WAIT_PICKUP', label: '待取件', sort: 50 },
-  { dictType: 'order_errand_status', code: 'PICKED_UP', label: '已取件', sort: 60 },
-  { dictType: 'order_errand_status', code: 'DELIVERING', label: '配送中', sort: 70 },
-  { dictType: 'order_errand_status', code: 'WAIT_CONFIRM', label: '等待用户确认', sort: 80 },
-  { dictType: 'order_errand_status', code: 'COMPLETED', label: '已完成', sort: 90 },
+  { dictType: 'order_errand_status', code: 'PAID', label: '已支付', sort: 20 },
+  { dictType: 'order_errand_status', code: 'DISPATCHING', label: '派单中', sort: 30 },
+  { dictType: 'order_errand_status', code: 'ASSIGNED', label: '骑手已接单', sort: 40 },
+  { dictType: 'order_errand_status', code: 'PICKED_UP', label: '已取件', sort: 50 },
+  { dictType: 'order_errand_status', code: 'DELIVERED', label: '已送达', sort: 60 },
+  { dictType: 'order_errand_status', code: 'COMPLETED', label: '已完成', sort: 70 },
   { dictType: 'order_errand_status', code: 'CANCELLED', label: '已取消', sort: 200 },
-  { dictType: 'order_errand_status', code: 'REFUNDING', label: '退款中', sort: 210 },
-  { dictType: 'order_errand_status', code: 'REFUNDED', label: '已退款', sort: 220 },
-  { dictType: 'order_errand_status', code: 'AFTER_SALE', label: '售后中', sort: 230 },
 ];
 
 /** 城市种子(remark 字段存省份) */
@@ -99,6 +94,10 @@ const ALL_DICTS: DictRow[] = [
 export async function seedDicts(ds: DataSource): Promise<number> {
   const repo = ds.getRepository(SysDict);
   let count = 0;
+  await repo.delete({
+    dictType: 'order_errand_status',
+    code: Not(In(ERRAND_STATUS.map((row) => row.code))),
+  });
   for (const row of ALL_DICTS) {
     const existing = await repo.findOne({ where: { dictType: row.dictType, code: row.code } });
     if (existing) {

@@ -16,6 +16,7 @@ export class FoodProductVo {
   @ApiProperty() @Expose() name!: string;
   @ApiProperty({ required: false }) @Expose() description?: string | null;
   @ApiProperty({ required: false }) @Expose() coverImageFileId?: string | null;
+  @ApiProperty({ required: false, description: '封面图 presigned URL' }) @Expose() imageUrl?: string | null;
   @ApiProperty({ description: '基础价格(分),无 sku 时取此' }) @Expose() basePrice!: string;
   @ApiProperty({ required: false }) @Expose() originalPrice?: string | null;
   @ApiProperty() @Expose() saleStatus!: ProductSaleStatus;

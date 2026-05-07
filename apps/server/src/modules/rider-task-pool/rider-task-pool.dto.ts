@@ -56,8 +56,17 @@ export class TaskItemVo {
   @ApiProperty({ description: '距离(米)' })
   distance!: number;
 
-  @ApiProperty({ description: '酬劳(分)' })
+  @ApiProperty({ description: '总酬劳(分,含平台加急补贴)' })
   reward!: number;
+
+  @ApiProperty({ description: '平台加急补贴(分,N 分钟无人接单累加)', default: 0 })
+  priceIncreaseCents!: number;
+
+  @ApiProperty({ description: '是否处于加急状态(priceIncreaseCents>0,大厅置顶)', default: false })
+  urgent!: boolean;
+
+  @ApiProperty({ description: '已等待分钟数(从派单时间算起)', default: 0 })
+  waitedMinutes!: number;
 
   @ApiProperty({ description: '截止时间(毫秒)' })
   deadline!: number;

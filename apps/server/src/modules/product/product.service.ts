@@ -4,6 +4,7 @@ import { ErrorCode } from '@o2o/contracts';
 import { DataSource, In, MoreThan, Repository } from 'typeorm';
 
 import {
+  FileObject,
   MerchantPromotion,
   Product,
   ProductCategory,
@@ -13,6 +14,7 @@ import {
 } from '../../database/entities';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
+import { FileService } from '../file/file.service';
 
 import {
   BatchSaleStatusDto,
@@ -36,9 +38,24 @@ export class ProductService {
     @InjectRepository(Product) private readonly productRepo: Repository<Product>,
     @InjectRepository(ProductSku) private readonly skuRepo: Repository<ProductSku>,
     @InjectRepository(MerchantPromotion) private readonly promoRepo: Repository<MerchantPromotion>,
+    @InjectRepository(FileObject) private readonly fileRepo: Repository<FileObject>,
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly eventBus: DomainEventBus,
+    private readonly fileService: FileService,
   ) {}
+
+  /**
+   * 批量取 fileId → url 映射(coverImageFileId 反查)
+   * 改为走 FileService.resolveUrls,自动 lazy 重签过期 presigned URL.
+   */
+  private async resolveFileUrls(fileIds: Array<string | null | undefined>): Promise<Map<string, string>> {
+    const obj = await this.fileService.resolveUrls(fileIds);
+    const map = new Map<string, string>();
+    for (const [k, v] of Object.entries(obj)) {
+      if (v) map.set(k, v);
+    }
+    return map;
+  }
 
   // ============= 分类 =============
 
@@ -123,6 +140,7 @@ export class ProductService {
       .take(pageSize);
 
     const [rows, total] = await qb.getManyAndCount();
+    const fileUrlMap = await this.resolveFileUrls(rows.map((p) => p.coverImageFileId));
     return {
       pageNo,
       pageSize,
@@ -137,6 +155,7 @@ export class ProductService {
         saleStatus: p.saleStatus,
         hasSku: p.hasSku,
         coverImageFileId: p.coverImageFileId,
+        imageUrl: p.coverImageFileId ? (fileUrlMap.get(p.coverImageFileId) ?? null) : null,
       })),
     };
   }
@@ -245,12 +264,17 @@ export class ProductService {
     };
   }
 
-  async getProductDetail(merchantId: string, productId: string): Promise<Product & { skus: ProductSku[] }> {
+  async getProductDetail(
+    merchantId: string,
+    productId: string,
+  ): Promise<Product & { skus: ProductSku[]; imageUrl: string | null }> {
     const product = await this.productRepo.findOne({ where: { productId } });
     if (!product) throw new NotFoundException('product not found');
     await this.requireOwnStoreById(merchantId, product.storeId);
     const skus = await this.skuRepo.find({ where: { productId } });
-    return { ...product, skus };
+    const fileUrlMap = await this.resolveFileUrls([product.coverImageFileId]);
+    const imageUrl = product.coverImageFileId ? (fileUrlMap.get(product.coverImageFileId) ?? null) : null;
+    return { ...product, skus, imageUrl };
   }
 
   async updateProduct(merchantId: string, productId: string, dto: UpdateProductDto): Promise<{ productId: string }> {

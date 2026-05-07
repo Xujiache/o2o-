@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onLoad } from '@dcloudio/uni-app';
+import { ref } from 'vue';
 
+import { locationService } from '@/services/location';
 import { useTaskStore } from '@/stores/task';
 
 const store = useTaskStore();
@@ -8,9 +10,7 @@ const taskId = ref('');
 const exceptionType = ref<'EXCEPTION' | 'LATE' | 'COMPLAINT' | 'FRAUD'>('EXCEPTION');
 const description = ref('');
 const submitting = ref(false);
-
-const lng = 116.4 + Math.random() * 0.01;
-const lat = 39.9 + Math.random() * 0.01;
+const locationMsg = ref('');
 
 async function submit(): Promise<void> {
   if (!description.value.trim()) {
@@ -19,15 +19,24 @@ async function submit(): Promise<void> {
   }
   submitting.value = true;
   try {
+    locationMsg.value = '';
+    const point = await locationService.getOnce().catch((err) => {
+      locationMsg.value = err instanceof Error ? err.message : '定位失败';
+      return null;
+    });
+    if (!point) {
+      uni.showToast({ title: locationMsg.value, icon: 'none' });
+      return;
+    }
     const ok = await store.reportException(taskId.value, {
       exceptionType: exceptionType.value,
       description: description.value,
-      lng,
-      lat,
+      lng: point.longitude,
+      lat: point.latitude,
     });
     if (ok) {
       uni.showToast({ title: '已上报,等待平台处理', icon: 'success' });
-      setTimeout(() => uni.redirectTo({ url: '/pages/workbench/index' }), 800);
+      setTimeout(() => uni.switchTab({ url: '/pages/workbench/index' }), 800);
     } else {
       uni.showToast({ title: '上报失败', icon: 'none' });
     }
@@ -36,10 +45,8 @@ async function submit(): Promise<void> {
   }
 }
 
-onMounted(() => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const opts = (uni as any).getLaunchOptionsSync?.() ?? {};
-  taskId.value = (opts.query?.taskId ?? '') as string;
+onLoad((options) => {
+  taskId.value = (options?.taskId as string) ?? '';
 });
 </script>
 
@@ -52,7 +59,8 @@ onMounted(() => {
       <text :class="{ on: exceptionType === 'COMPLAINT' }" @tap="exceptionType = 'COMPLAINT'">投诉</text>
     </view>
     <textarea v-model="description" placeholder="请描述异常情况(必填)" maxlength="500" />
-    <button type="warn" :loading="submitting" @tap="submit">提交报备</button>
+    <text v-if="locationMsg" class="e__error">{{ locationMsg }}</text>
+    <button class="e__warn" :loading="submitting" @tap="submit">提交报备</button>
   </view>
 </template>
 
@@ -88,5 +96,15 @@ onMounted(() => {
   border-radius: 12rpx;
   height: 200rpx;
   margin-bottom: 24rpx;
+}
+.e__error {
+  display: block;
+  color: #ff4d4f;
+  font-size: 24rpx;
+  margin-bottom: 16rpx;
+}
+.e__warn {
+  background: #ff4d4f;
+  color: #fff;
 }
 </style>

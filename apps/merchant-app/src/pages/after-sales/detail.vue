@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onLoad } from '@dcloudio/uni-app';
 import { onMounted, ref } from 'vue';
 
 import { useAfterSaleStore } from '@/stores/after-sale';
@@ -44,10 +45,11 @@ async function load(): Promise<void> {
   }
 }
 
+onLoad((options) => {
+  afterSaleId.value = (options?.afterSaleId as string) ?? '';
+});
+
 onMounted(() => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const opts = (uni as any).getLaunchOptionsSync?.() ?? {};
-  afterSaleId.value = (opts.query?.afterSaleId ?? '') as string;
   void load();
 });
 </script>

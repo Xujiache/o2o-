@@ -3,7 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ErrorCode } from '@o2o/contracts';
 import { Repository } from 'typeorm';
 
-import { MerchantPromotion, Product, ProductCategory, ProductSku, Store } from '../../database/entities';
+import { FileObject, MerchantPromotion, Product, ProductCategory, ProductSku, Store } from '../../database/entities';
+import { FileService } from '../file/file.service';
 
 import {
   type FoodProductCategoryVo,
@@ -21,6 +22,8 @@ export class ProductQueryService {
     @InjectRepository(ProductSku) private readonly skuRepo: Repository<ProductSku>,
     @InjectRepository(ProductCategory) private readonly categoryRepo: Repository<ProductCategory>,
     @InjectRepository(MerchantPromotion) private readonly promotionRepo: Repository<MerchantPromotion>,
+    @InjectRepository(FileObject) private readonly fileRepo: Repository<FileObject>,
+    private readonly fileService: FileService,
   ) {}
 
   async getProducts(storeId: string): Promise<FoodStoreProductsVo> {
@@ -41,13 +44,20 @@ export class ProductQueryService {
       .sort((a, b) => a.displayOrder - b.displayOrder)
       .map((c) => ({ categoryId: c.categoryId, name: c.name, displayOrder: c.displayOrder }));
 
-    // 3. products(在售)+ skus(批量查)
+    // 3. products(在售)+ skus(批量查) + 封面图 url
     const productRows = await this.productRepo.find({ where: { storeId } });
     const onShelf = productRows.filter((p) => p.saleStatus === 'on_shelf' || p.saleStatus === 'sold_out');
     const productIds = onShelf.map((p) => p.productId);
     const skuRows = productIds.length
       ? await this.skuRepo.createQueryBuilder('s').where('s.product_id IN (:...ids)', { ids: productIds }).getMany()
       : [];
+
+    // 批量反查封面图 url(走 FileService.resolveUrls,自动 lazy 重签过期 presigned URL)
+    const urlMap = await this.fileService.resolveUrls(onShelf.map((p) => p.coverImageFileId));
+    const fileUrlMap = new Map<string, string>();
+    for (const [k, v] of Object.entries(urlMap)) {
+      if (v) fileUrlMap.set(k, v);
+    }
 
     const products: FoodProductVo[] = onShelf.map((p) => {
       const skus: FoodSkuVo[] = skuRows
@@ -69,6 +79,7 @@ export class ProductQueryService {
         name: p.name,
         description: p.description,
         coverImageFileId: p.coverImageFileId,
+        imageUrl: p.coverImageFileId ? (fileUrlMap.get(p.coverImageFileId) ?? null) : null,
         basePrice: p.price,
         originalPrice: p.originalPrice,
         saleStatus,

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onLoad } from '@dcloudio/uni-app';
 import { onMounted, ref } from 'vue';
 
 import { getOrderTrack, type TrackVo } from '@/api/food-track';
@@ -17,10 +18,11 @@ async function load(): Promise<void> {
   }
 }
 
+onLoad((options) => {
+  orderId.value = (options?.orderId as string) ?? '';
+});
+
 onMounted(() => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const opts = (uni as any).getLaunchOptionsSync?.() ?? {};
-  orderId.value = (opts.query?.orderId ?? '') as string;
   void load();
 });
 </script>

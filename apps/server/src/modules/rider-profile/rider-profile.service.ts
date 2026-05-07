@@ -34,6 +34,7 @@ export class RiderProfileService {
           }
         : null,
       creditScore: status?.creditScore ?? 100,
+      onlineStatus: (status?.onlineStatus as 'online' | 'offline' | 'busy' | undefined) ?? 'offline',
     } as RiderProfileVo;
   }
 

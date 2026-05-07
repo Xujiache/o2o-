@@ -51,7 +51,10 @@ function next(): void {
 
 <template>
   <view class="apply">
-    <view class="apply__title">入驻第 1 步:身份资料</view>
+    <view class="apply__hero">
+      <text class="apply__title">骑手入驻</text>
+      <text class="apply__sub">第 1 步：提交身份资料，完成后继续人脸与资质核验</text>
+    </view>
     <view class="apply__field">
       <text class="apply__label">真实姓名</text>
       <input class="apply__input" v-model="realName" placeholder="与身份证一致" maxlength="50" />
@@ -68,14 +71,28 @@ function next(): void {
 
 <style scoped>
 .apply {
-  padding: 32rpx;
+  padding: 28rpx 24rpx 56rpx;
   display: flex;
   flex-direction: column;
   gap: 24rpx;
 }
+.apply__hero {
+  padding: 34rpx;
+  border-radius: 34rpx;
+  color: #fff;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  box-shadow: 0 24rpx 64rpx rgba(20, 184, 166, 0.26);
+}
 .apply__title {
-  font-size: 36rpx;
-  font-weight: 600;
+  display: block;
+  font-size: 42rpx;
+  font-weight: 800;
+}
+.apply__sub {
+  display: block;
+  margin-top: 8rpx;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 24rpx;
 }
 .apply__label {
   font-size: 26rpx;
@@ -88,11 +105,12 @@ function next(): void {
 }
 .apply__btn {
   margin-top: 32rpx;
-  background: #4c84ff;
+  background: linear-gradient(135deg, #14b8a6, #0f766e);
   color: #fff;
-  border-radius: 12rpx;
+  border-radius: 999rpx;
+  font-weight: 700;
 }
 .apply__btn[disabled] {
-  background: #aac4ff;
+  background: #9de3dc;
 }
 </style>

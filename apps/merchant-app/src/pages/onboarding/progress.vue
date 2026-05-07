@@ -25,7 +25,10 @@ function onResubmit(): void {
 
 <template>
   <view class="progress">
-    <view class="progress__title">入驻审核进度</view>
+    <view class="progress__hero">
+      <text class="progress__title">入驻审核进度</text>
+      <text class="progress__sub">资质审核、驳回原因和重新提交入口</text>
+    </view>
 
     <view v-if="loading" class="progress__loading">加载中...</view>
     <view v-else-if="status" class="progress__card">
@@ -51,11 +54,25 @@ function onResubmit(): void {
 
 <style scoped>
 .progress {
-  padding: 32rpx;
+  padding: 28rpx 24rpx 56rpx;
+}
+.progress__hero {
+  padding: 34rpx;
+  border-radius: 34rpx;
+  color: #fff;
+  background: linear-gradient(135deg, #1f2937, #b7791f);
+  box-shadow: 0 24rpx 64rpx rgba(183, 121, 31, 0.24);
 }
 .progress__title {
-  font-size: 36rpx;
-  font-weight: 600;
+  display: block;
+  font-size: 42rpx;
+  font-weight: 800;
+}
+.progress__sub {
+  display: block;
+  margin-top: 8rpx;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 24rpx;
 }
 .progress__loading {
   font-size: 28rpx;
@@ -65,7 +82,7 @@ function onResubmit(): void {
 }
 .progress__card {
   background: #fff;
-  border-radius: 12rpx;
+  border-radius: 28rpx;
   padding: 32rpx;
   margin-top: 24rpx;
   display: flex;
@@ -98,8 +115,9 @@ function onResubmit(): void {
 }
 .progress__btn {
   margin-top: 32rpx;
-  background: #4c84ff;
+  background: linear-gradient(135deg, #ffb400, #b7791f);
   color: #fff;
-  border-radius: 12rpx;
+  border-radius: 999rpx;
+  font-weight: 700;
 }
 </style>

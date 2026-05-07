@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onLoad } from '@dcloudio/uni-app';
 import { computed, onMounted, ref } from 'vue';
 
 import { useSettlementStore } from '@/stores/settlement';
@@ -17,10 +18,11 @@ function fmtDate(ms: number): string {
   return new Date(ms).toLocaleDateString();
 }
 
+onLoad((options) => {
+  settlementId.value = (options?.settlementId as string) ?? '';
+});
+
 onMounted(() => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const opts = (uni as any).getLaunchOptionsSync?.() ?? {};
-  settlementId.value = (opts.query?.settlementId ?? '') as string;
   if (store.settlements.length === 0) void store.refreshSettlements();
 });
 </script>

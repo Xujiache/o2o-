@@ -2,6 +2,7 @@ import { NotFoundException, UnprocessableEntityException } from '@nestjs/common'
 import type { Repository } from 'typeorm';
 
 import type {
+  DispatchTask,
   FoodOrder,
   RiderAccount,
   RiderApplication,
@@ -20,6 +21,7 @@ describe('RiderTaskPoolService', () => {
   let areas: RiderServiceArea[];
   let foodOrders: FoodOrder[];
   let stores: Store[];
+  let dispatchTasks: DispatchTask[];
 
   beforeEach(() => {
     riders = [
@@ -35,6 +37,7 @@ describe('RiderTaskPoolService', () => {
     areas = [{ serviceAreaId: '1', riderId: '1' } as RiderServiceArea];
     foodOrders = [];
     stores = [{ storeId: '20001', name: '北京肯德基' } as unknown as Store];
+    dispatchTasks = [];
 
     const riderRepo = {
       findOne: jest.fn(
@@ -63,69 +66,116 @@ describe('RiderTaskPoolService', () => {
       ),
     } as unknown as jest.Mocked<Repository<RiderServiceArea>>;
 
-    const foodOrderRepo = {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const foodOrderRepo: any = {
       createQueryBuilder: jest.fn(() => ({
         where: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        getMany: jest.fn(async () => foodOrders.filter((o) => o.status === 'READY_FOR_PICKUP')),
+        getMany: jest.fn(async () => foodOrders),
       })),
-    } as unknown as jest.Mocked<Repository<FoodOrder>>;
+    };
 
-    const storeRepo = {
+    const storeRepo: any = {
       createQueryBuilder: jest.fn(() => ({
         where: jest.fn().mockReturnThis(),
         getMany: jest.fn(async () => stores),
       })),
-    } as unknown as jest.Mocked<Repository<Store>>;
+    };
 
-    /* eslint-disable @typescript-eslint/no-explicit-any */
     const errandTaskRepo: any = {
       createQueryBuilder: jest.fn(() => ({
         where: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
         getMany: jest.fn(async () => []),
       })),
     };
+
+    const dispatchRepo: any = {
+      createQueryBuilder: jest.fn(() => ({
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        getMany: jest.fn(async () => dispatchTasks.filter((d) => d.status === 'PENDING')),
+      })),
+    };
+    const sysConfigRepo: any = { findOne: jest.fn(async () => null) };
     /* eslint-enable @typescript-eslint/no-explicit-any */
-    svc = new RiderTaskPoolService(riderRepo, appRepo, statusRepo, areaRepo, foodOrderRepo, storeRepo, errandTaskRepo);
+    svc = new RiderTaskPoolService(
+      riderRepo,
+      appRepo,
+      statusRepo,
+      areaRepo,
+      foodOrderRepo,
+      storeRepo,
+      errandTaskRepo,
+      dispatchRepo,
+      sysConfigRepo,
+    );
   });
 
-  it('approved+online+有 service area → 无 READY_FOR_PICKUP 时返空', async () => {
+  it('approved+online+有 service area → 无 PENDING dispatch task 时返空', async () => {
     const r = await svc.listAvailable('1', {});
     expect(r.items).toEqual([]);
     expect(r.total).toBe(0);
   });
 
-  it('approved+online + 有 READY_FOR_PICKUP 食单 → 返简化任务卡', async () => {
+  it('有 PENDING dispatch task + candidate 含本骑手 → 返回任务卡', async () => {
+    dispatchTasks.push({
+      dispatchTaskId: 'dt1',
+      bizType: 'FOOD',
+      bizOrderId: '700001',
+      bizTaskId: null,
+      candidateRiderIds: ['1', '2'],
+      status: 'PENDING',
+      timeoutAt: String(Date.now() + 60000),
+    } as unknown as DispatchTask);
     foodOrders.push({
       foodOrderId: '700001',
       storeId: '20001',
-      status: 'READY_FOR_PICKUP',
-      paidAt: '1000',
-      createdAt: '500',
       addressSnapshot: { lng: 116.5, lat: 40.0, detail: '收货地址' },
     } as unknown as FoodOrder);
     const r = await svc.listAvailable('1', {});
     expect(r.items).toHaveLength(1);
-    expect(r.items[0]!.taskId).toBe('700001');
+    expect(r.items[0]!.taskId).toBe('dt1');
     expect(r.items[0]!.bizType).toBe('takeaway');
     expect(r.items[0]!.reward).toBe(500);
     expect(r.items[0]!.pickupAddress.text).toBe('北京肯德基');
     expect(r.items[0]!.deliveryAddress.text).toContain('收货');
   });
 
-  it('已 RIDER_ASSIGNED 的食单不返(filter status=READY_FOR_PICKUP)', async () => {
+  it('candidate 列表不含本骑手 → 不返(其他骑手抢的单)', async () => {
+    dispatchTasks.push({
+      dispatchTaskId: 'dt2',
+      bizType: 'FOOD',
+      bizOrderId: '700002',
+      bizTaskId: null,
+      candidateRiderIds: ['9', '10'],
+      status: 'PENDING',
+      timeoutAt: String(Date.now() + 60000),
+    } as unknown as DispatchTask);
     foodOrders.push({
       foodOrderId: '700002',
       storeId: '20001',
-      status: 'RIDER_ASSIGNED',
-      paidAt: '1000',
-      createdAt: '500',
     } as unknown as FoodOrder);
     const r = await svc.listAvailable('1', {});
     expect(r.items).toEqual([]);
+  });
+
+  it('candidate 列表为空数组 → 兼容历史数据,所有骑手都可见', async () => {
+    dispatchTasks.push({
+      dispatchTaskId: 'dt3',
+      bizType: 'FOOD',
+      bizOrderId: '700003',
+      bizTaskId: null,
+      candidateRiderIds: [],
+      status: 'PENDING',
+      timeoutAt: String(Date.now() + 60000),
+    } as unknown as DispatchTask);
+    foodOrders.push({
+      foodOrderId: '700003',
+      storeId: '20001',
+    } as unknown as FoodOrder);
+    const r = await svc.listAvailable('1', {});
+    expect(r.items).toHaveLength(1);
   });
 
   it('未 approved → STATUS_INVALID', async () => {
@@ -153,18 +203,32 @@ describe('RiderTaskPoolService', () => {
     expect(r.total).toBe(0);
   });
 
-  it('query 透传 bizType 不影响骨架行为(本阶段返空)', async () => {
+  it('query 透传 bizType=takeaway → 只返外卖', async () => {
+    dispatchTasks.push({
+      dispatchTaskId: 'dt-food',
+      bizType: 'FOOD',
+      bizOrderId: '800001',
+      candidateRiderIds: ['1'],
+      status: 'PENDING',
+      timeoutAt: String(Date.now() + 60000),
+    } as unknown as DispatchTask);
+    foodOrders.push({ foodOrderId: '800001', storeId: '20001' } as unknown as FoodOrder);
     const r = await svc.listAvailable('1', { bizType: 'takeaway' });
-    expect(r.items).toEqual([]);
+    expect(r.items).toHaveLength(1);
+    expect(r.items[0]!.bizType).toBe('takeaway');
   });
 
-  it('query 透传 radius 不影响骨架行为', async () => {
-    const r = await svc.listAvailable('1', { radius: 5000 });
+  it('query 透传 bizType=errand → 过滤掉外卖', async () => {
+    dispatchTasks.push({
+      dispatchTaskId: 'dt-food',
+      bizType: 'FOOD',
+      bizOrderId: '800001',
+      candidateRiderIds: ['1'],
+      status: 'PENDING',
+      timeoutAt: String(Date.now() + 60000),
+    } as unknown as DispatchTask);
+    foodOrders.push({ foodOrderId: '800001', storeId: '20001' } as unknown as FoodOrder);
+    const r = await svc.listAvailable('1', { bizType: 'errand' });
     expect(r.items).toEqual([]);
-  });
-
-  it('query 分页参数透传不影响骨架行为', async () => {
-    const r = await svc.listAvailable('1', { page: 1, size: 20 });
-    expect(r.total).toBe(0);
   });
 });

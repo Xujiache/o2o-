@@ -2,9 +2,19 @@ import { forwardRef, Global, Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AdminUser, DomainEvent, IntegrationRequestLog, RiderStatus, RiskUserTag } from '../database/entities';
+import {
+  AdminUser,
+  DomainEvent,
+  IntegrationRequestLog,
+  RiderEarning,
+  RiderStatus,
+  RiskUserTag,
+  SysConfig,
+} from '../database/entities';
 import { AuditLogModule } from '../modules/audit-log/audit-log.module';
 import { CustomerAuthModule } from '../modules/customer-auth/customer-auth.module';
+import { DispatchModule } from '../modules/dispatch/dispatch.module';
+import { ErrandDispatchModule } from '../modules/errand-dispatch/errand-dispatch.module';
 import { IntegrationGatewayModule } from '../modules/integration-gateway/integration-gateway.module';
 import { SchedulerModule } from '../scheduler/scheduler.module';
 
@@ -22,6 +32,7 @@ import { CustomerLoggedInSubscriber } from './subscribers/customer-logged-in.sub
 import { CustomerRealnameVerifiedSubscriber } from './subscribers/customer-realname-verified.subscriber';
 import { CustomerRegisteredSubscriber } from './subscribers/customer-registered.subscriber';
 import { DispatchStartedSubscriber } from './subscribers/dispatch-started.subscriber';
+import { ErrandPaidSubscriber } from './subscribers/errand-paid.subscriber';
 import { FileUploadedSubscriber } from './subscribers/file-uploaded.subscriber';
 import { FoodReadyForPickupSubscriber } from './subscribers/food-ready-for-pickup.subscriber';
 import { ManualDispatchCreatedSubscriber } from './subscribers/manual-dispatch-created.subscriber';
@@ -60,10 +71,20 @@ import { ThirdPartyConfigChangedSubscriber } from './subscribers/third-party-con
 @Module({
   imports: [
     EventEmitterModule.forRoot({ wildcard: false, ignoreErrors: false }),
-    TypeOrmModule.forFeature([DomainEvent, RiskUserTag, RiderStatus, IntegrationRequestLog, AdminUser]),
+    TypeOrmModule.forFeature([
+      DomainEvent,
+      RiskUserTag,
+      RiderStatus,
+      IntegrationRequestLog,
+      AdminUser,
+      RiderEarning,
+      SysConfig,
+    ]),
     SchedulerModule,
     IntegrationGatewayModule,
     AuditLogModule,
+    DispatchModule,
+    ErrandDispatchModule,
     forwardRef(() => CustomerAuthModule),
   ],
   providers: [
@@ -96,6 +117,7 @@ import { ThirdPartyConfigChangedSubscriber } from './subscribers/third-party-con
     MerchantOrderAcceptedSubscriber,
     MerchantOrderRejectedSubscriber,
     FoodReadyForPickupSubscriber,
+    ErrandPaidSubscriber,
     AfterSaleAppliedSubscriber,
     AfterSaleReviewedByMerchantSubscriber,
     OrderReviewSubmittedSubscriber,

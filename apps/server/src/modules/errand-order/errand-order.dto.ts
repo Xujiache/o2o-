@@ -191,6 +191,10 @@ export class ErrandOrderDetailVo extends ErrandOrderListItemVo {
   @ApiProperty() @Expose() actions!: string[];
   @ApiProperty() @Expose() rider!: { riderId: string; status: string } | null;
   @ApiProperty() @Expose() paidAt!: number | null;
+  /** 取件码 — 仅 DELIVER 类型有,其他类型为 null */
+  @ApiProperty({ nullable: true }) @Expose() pickupCode!: string | null;
+  /** 收货码 — 全部类型在付款后均有 */
+  @ApiProperty({ nullable: true }) @Expose() deliveryCode!: string | null;
 }
 
 export class ErrandTimelineItemVo {

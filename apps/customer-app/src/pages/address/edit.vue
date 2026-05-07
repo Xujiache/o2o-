@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onShow } from '@dcloudio/uni-app';
 import { computed, onMounted, ref } from 'vue';
 
 import { getAddresses, upsertAddress, type AddressItemVo } from '@/api';
@@ -14,6 +15,10 @@ const lat = ref(0);
 const isDefault = ref(false);
 const submitting = ref(false);
 const errorMsg = ref('');
+
+const PICKED_CITY_KEY = 'o2o:customer:picked-city';
+const PICKED_LOCATION_KEY = 'o2o:customer:picked-location';
+const PICKED_COORDS_KEY = 'o2o:customer:picked-coords';
 
 const canSubmit = computed(
   () =>
@@ -32,6 +37,11 @@ onMounted(() => {
     addressId.value = q.addressId as string;
     void loadAddress(q.addressId as string);
   }
+});
+
+onShow(() => {
+  syncPickedCity();
+  syncPickedLocation();
 });
 
 async function loadAddress(id: string): Promise<void> {
@@ -61,6 +71,52 @@ function pickMap(): void {
   uni.navigateTo({
     url: `/pages/address/map?back=1`,
   });
+}
+
+function syncPickedCity(): void {
+  try {
+    const raw = uni.getStorageSync(PICKED_CITY_KEY) as string;
+    if (!raw) return;
+    const city = JSON.parse(raw) as { cityCode?: string; cityName?: string };
+    if (city.cityCode) cityCode.value = city.cityCode;
+    if (city.cityName) cityName.value = city.cityName;
+    uni.removeStorageSync(PICKED_CITY_KEY);
+  } catch {
+    // ignore invalid legacy storage
+  }
+}
+
+function syncPickedLocation(): void {
+  try {
+    const rawLocation = uni.getStorageSync(PICKED_LOCATION_KEY) as string;
+    if (rawLocation) {
+      const location = JSON.parse(rawLocation) as { lng?: number; lat?: number; address?: string; name?: string };
+      if (typeof location.lng === 'number' && typeof location.lat === 'number') {
+        lng.value = location.lng;
+        lat.value = location.lat;
+      }
+      if (!detail.value && (location.address || location.name)) {
+        detail.value = location.address || location.name || '';
+      }
+      uni.removeStorageSync(PICKED_LOCATION_KEY);
+      uni.removeStorageSync(PICKED_COORDS_KEY);
+      return;
+    }
+    const rawCoords = uni.getStorageSync(PICKED_COORDS_KEY) as string;
+    if (!rawCoords) return;
+    const coords = JSON.parse(rawCoords) as { lng?: number; lat?: number };
+    if (typeof coords.lng === 'number' && typeof coords.lat === 'number') {
+      lng.value = coords.lng;
+      lat.value = coords.lat;
+      uni.removeStorageSync(PICKED_COORDS_KEY);
+    }
+  } catch {
+    // ignore invalid legacy storage
+  }
+}
+
+function onDefaultChange(e: Event): void {
+  isDefault.value = Boolean((e as unknown as { detail?: { value?: boolean } }).detail?.value);
 }
 
 async function onSubmit(): Promise<void> {
@@ -118,10 +174,7 @@ async function onSubmit(): Promise<void> {
 
     <view class="addr-edit__row">
       <text>设为默认地址</text>
-      <switch
-        :checked="isDefault"
-        @change="(e) => (isDefault = (e as unknown as { detail: { value: boolean } }).detail.value)"
-      />
+      <switch :checked="isDefault" @change="onDefaultChange" />
     </view>
 
     <button class="addr-edit__submit" :disabled="!canSubmit" @click="onSubmit">

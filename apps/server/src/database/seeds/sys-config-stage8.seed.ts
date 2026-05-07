@@ -29,6 +29,15 @@ const ROWS: Array<{ key: string; value: string; description: string }> = [
     value: '30',
     description: '派单超时秒数(超时进入重试)',
   },
+  {
+    key: 'dispatch.no-rider.promote.tiers',
+    value: JSON.stringify([
+      { minutes: 5, subsidyCents: 100 },
+      { minutes: 10, subsidyCents: 300 },
+      { minutes: 15, subsidyCents: 500 },
+    ]),
+    description: '骑手大厅加急规则:N 分钟无人接单平台补贴 X 分(含触发后自动置顶);后台可改各档时长/金额',
+  },
 ];
 
 export async function seedStage8SysConfig(ds: DataSource): Promise<number> {
