@@ -31,7 +31,7 @@ export function simulatePayCallback(
   outTradeNo: string,
   paidAmountCents: number,
 ): Promise<void> {
-  const base = (import.meta.env.VITE_API_BASE_URL as string) || 'http://127.0.0.1:3000';
+  const base = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://127.0.0.1:3000';
   return new Promise((resolve, reject) => {
     uni.request({
       url: `${base}/api/v1/callback/payments/${channel}`,

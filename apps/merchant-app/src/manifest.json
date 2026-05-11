@@ -36,7 +36,7 @@
   },
   "h5": {
     "title": "O2O 商家(预览)",
-    "router": { "mode": "hash" }
+    "router": { "mode": "hash", "base": "/merchant/" }
   },
   "vueVersion": "3"
 }

@@ -58,7 +58,7 @@
     "title": "O2O 用户端",
     "router": {
       "mode": "hash",
-      "base": "/"
+      "base": "/customer/"
     },
     "devServer": {
       "port": 8081,

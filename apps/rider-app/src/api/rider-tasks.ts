@@ -62,6 +62,11 @@ export function getMyCurrentTask(): Promise<ApiResponse<RiderTaskDetailVo | null
   return request<RiderTaskDetailVo | null>({ url: '/api/v1/r/tasks/my-current', method: 'GET' });
 }
 
+/** 当前骑手所有进行中的任务列表 */
+export function getMyInProgressTasks(): Promise<ApiResponse<RiderTaskDetailVo[]>> {
+  return request<RiderTaskDetailVo[]>({ url: '/api/v1/r/tasks/my-in-progress', method: 'GET' });
+}
+
 export function acceptTask(taskId: string, body?: { lng?: number; lat?: number }): Promise<ApiResponse<AcceptTaskVo>> {
   return request<AcceptTaskVo>({ url: `/api/v1/r/tasks/${taskId}/accept`, method: 'POST', data: body ?? {} });
 }

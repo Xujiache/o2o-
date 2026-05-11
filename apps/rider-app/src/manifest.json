@@ -54,7 +54,7 @@
     "title": "O2O 骑手端(开发调试)",
     "router": {
       "mode": "hash",
-      "base": "/"
+      "base": "/rider/"
     },
     "devServer": {
       "port": 8082,

@@ -17,9 +17,13 @@ unpackage/
 .env.local
 .env.*.local
 .env.development.local
+.env.production
 .env.production.local
 .env.test.local
 !.env.example
+
+# Preview deployment artifacts (contain real preview secrets — never commit)
+deploy/docker-compose.preview.yml
 
 # Logs
 logs/

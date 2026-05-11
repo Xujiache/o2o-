@@ -8,7 +8,7 @@ import { ErrorCode, Header, type ApiResponse } from '@o2o/contracts';
 import { clearToken, getToken } from './token';
 import { genTraceId } from './trace';
 
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://127.0.0.1:3000';
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://127.0.0.1:3000';
 
 export interface RiderRequestOptions {
   url: string;
@@ -70,7 +70,12 @@ export function request<T = unknown>(options: RiderRequestOptions): Promise<ApiR
           reject(new Error(`bad response: status=${res.statusCode}`));
           return;
         }
-        if (body.code === ErrorCode.UNAUTHORIZED && !options._retried && refreshHandler) {
+        if (
+          body.code === ErrorCode.UNAUTHORIZED &&
+          options.authRequired !== false &&
+          !options._retried &&
+          refreshHandler
+        ) {
           const ok = await refreshHandler();
           if (ok) {
             try {

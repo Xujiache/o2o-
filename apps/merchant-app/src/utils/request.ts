@@ -15,7 +15,7 @@ export function setRefreshHandler(h: RefreshHandler | null): void {
   refreshHandler = h;
 }
 
-const BASE_URL = 'http://127.0.0.1:3000';
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://127.0.0.1:3000';
 
 export interface MerchantRequestOptions {
   url: string;
