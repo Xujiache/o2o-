@@ -2,6 +2,12 @@ import type { ApiResponse } from '@o2o/contracts';
 
 import { request } from '@/utils/request';
 
+export interface RiderTaskLocation {
+  lng: number;
+  lat: number;
+  name: string;
+}
+
 export interface RiderTaskDetailVo {
   taskId: string;
   dispatchTaskId: string;
@@ -14,6 +20,8 @@ export interface RiderTaskDetailVo {
   pickedUpAt: number | null;
   deliveredAt: number | null;
   etaAt: number | null;
+  pickupLocation: RiderTaskLocation | null;
+  deliveryLocation: RiderTaskLocation | null;
   /** 跑腿订单类型;FOOD 任务为 null */
   errandTypeCode: 'BUY' | 'DELIVER' | 'HELP' | 'CUSTOM' | null;
   /** 是否需要骑手核验取件码(仅 ERRAND + DELIVER) */

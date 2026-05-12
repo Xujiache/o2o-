@@ -12,10 +12,12 @@ const store = useTaskStore();
 const refreshing = ref(false);
 
 const STATUS_TIPS: Record<string, string> = {
-  ASSIGNED: '前往取货点',
-  ARRIVED_PICKUP: '到店核对货品',
-  PICKED_UP: '配送到客户',
-  DELIVERED: '已送达',
+  ASSIGNED: '请尽快前往取货点，保持手机定位开启',
+  ARRIVED_PICKUP: '已到达取货点，请核对货品并完成取货',
+  PICKED_UP: '货品已取出，请按时送达收货位置',
+  DELIVERING: '正在配送中，请关注路线和客户备注',
+  DELIVERED: '任务已送达',
+  EXCEPTION: '异常处理中，请等待平台处理',
 };
 
 async function refresh(): Promise<void> {
@@ -46,12 +48,16 @@ function pickupLabel(t: RiderTaskDetailVo): string {
   return t.bizType === 'FOOD' ? '取餐' : '取货';
 }
 
+function routeTargetName(t: RiderTaskDetailVo, phase: 'pickup' | 'delivery'): string {
+  const target = phase === 'pickup' ? t.pickupLocation : t.deliveryLocation;
+  return target?.name || (phase === 'pickup' ? '取货点待同步' : '送达点待同步');
+}
+
 function gotoNavigate(t: RiderTaskDetailVo, phase: 'pickup' | 'delivery'): void {
   uni.navigateTo({ url: `/pages/tasks/navigate?taskId=${t.taskId}&phase=${phase}` });
 }
 
 function gotoPickup(t: RiderTaskDetailVo): void {
-  // 切到对应任务作为 current,让后续页面用 store.current
   store.current = t;
   const url =
     t.bizType === 'FOOD'
@@ -82,68 +88,89 @@ onShow(() => {
 
 <template>
   <view class="cur">
-    <!-- Hero -->
     <view class="cur__hero">
       <view class="cur__head">
         <view class="cur__head-main">
-          <text class="cur__title">我的任务</text>
+          <text class="cur__title">当前任务</text>
           <text class="cur__sub">
-            {{ store.inProgress.length > 0 ? `进行中 ${store.inProgress.length} 单` : '去接单大厅抢一单吧' }}
+            {{ store.inProgress.length > 0 ? `进行中 ${store.inProgress.length} 单` : '暂无配送任务' }}
           </text>
         </view>
-        <text class="cur__refresh" @tap="refresh">{{ refreshing ? '加载中…' : '刷新' }}</text>
+        <text class="cur__refresh" @tap="refresh">{{ refreshing ? '刷新中' : '刷新' }}</text>
       </view>
     </view>
 
-    <!-- 任务列表 -->
     <view v-if="store.inProgress.length > 0" class="cur__list">
-      <view v-for="t in store.inProgress" :key="t.taskId" class="cur__item">
-        <view class="cur__item-head">
-          <view class="cur__badge" :class="`cur__badge--${t.bizType.toLowerCase()}`">
+      <view v-for="t in store.inProgress" :key="t.taskId" class="task-card">
+        <view class="task-card__top">
+          <view class="task-card__badge" :class="`task-card__badge--${t.bizType.toLowerCase()}`">
             {{ bizLabel(t) }}
           </view>
-          <text class="cur__order-no">#{{ t.bizOrderId }}</text>
-          <text class="cur__status">{{ labelRiderTaskStatus(t.status) }}</text>
+          <text class="task-card__order">#{{ t.bizOrderId }}</text>
+          <text class="task-card__status">{{ labelRiderTaskStatus(t.status) }}</text>
         </view>
 
-        <text class="cur__tip">{{ STATUS_TIPS[t.status] ?? '配送中' }}</text>
+        <text class="task-card__tip">{{ STATUS_TIPS[t.status] ?? '任务状态更新中' }}</text>
 
-        <view class="cur__times">
-          <view class="cur__time">
-            <text class="cur__time-label">抢单</text>
-            <text class="cur__time-val">{{ fmtTime(t.acceptedAt) }}</text>
+        <view class="route">
+          <view class="route__item">
+            <view class="route__dot route__dot--pickup" />
+            <text class="route__name">{{ routeTargetName(t, 'pickup') }}</text>
           </view>
-          <view v-if="t.arrivedPickupAt" class="cur__time">
-            <text class="cur__time-label">到店</text>
-            <text class="cur__time-val">{{ fmtTime(t.arrivedPickupAt) }}</text>
-          </view>
-          <view v-if="t.pickedUpAt" class="cur__time">
-            <text class="cur__time-label">{{ pickupLabel(t) }}</text>
-            <text class="cur__time-val">{{ fmtTime(t.pickedUpAt) }}</text>
+          <view class="route__item">
+            <view class="route__dot route__dot--delivery" />
+            <text class="route__name">{{ routeTargetName(t, 'delivery') }}</text>
           </view>
         </view>
 
-        <view class="cur__actions">
-          <view v-if="t.status === 'ASSIGNED'" class="cur__btn cur__btn--primary" @tap="gotoNavigate(t, 'pickup')">
+        <view class="time-row">
+          <view class="time-row__item">
+            <text class="time-row__label">接单</text>
+            <text class="time-row__value">{{ fmtTime(t.acceptedAt) }}</text>
+          </view>
+          <view v-if="t.arrivedPickupAt" class="time-row__item">
+            <text class="time-row__label">到店</text>
+            <text class="time-row__value">{{ fmtTime(t.arrivedPickupAt) }}</text>
+          </view>
+          <view v-if="t.pickedUpAt" class="time-row__item">
+            <text class="time-row__label">{{ pickupLabel(t) }}</text>
+            <text class="time-row__value">{{ fmtTime(t.pickedUpAt) }}</text>
+          </view>
+        </view>
+
+        <view class="actions">
+          <view
+            v-if="t.status === 'ASSIGNED'"
+            class="actions__btn actions__btn--primary"
+            @tap="gotoNavigate(t, 'pickup')"
+          >
             <SvgIcon name="motorcycle" :size="28" color="#fff" />
             <text>前往{{ pickupLabel(t) }}点</text>
           </view>
-          <view v-if="t.status === 'ASSIGNED'" class="cur__btn cur__btn--ghost" @tap="gotoPickup(t)">
-            已到店,直接{{ pickupLabel(t) }}
+          <view v-if="t.status === 'ASSIGNED'" class="actions__btn actions__btn--ghost" @tap="gotoPickup(t)">
+            已到店，直接{{ pickupLabel(t) }}
           </view>
-          <view v-if="t.status === 'ARRIVED_PICKUP'" class="cur__btn cur__btn--primary" @tap="gotoPickup(t)">
+          <view v-if="t.status === 'ARRIVED_PICKUP'" class="actions__btn actions__btn--primary" @tap="gotoPickup(t)">
             <SvgIcon name="package" :size="28" color="#fff" />
             <text>确认{{ pickupLabel(t) }}</text>
           </view>
-          <view v-if="t.status === 'PICKED_UP'" class="cur__btn cur__btn--primary" @tap="gotoNavigate(t, 'delivery')">
+          <view
+            v-if="t.status === 'PICKED_UP' || t.status === 'DELIVERING'"
+            class="actions__btn actions__btn--primary"
+            @tap="gotoNavigate(t, 'delivery')"
+          >
             <SvgIcon name="motorcycle" :size="28" color="#fff" />
-            <text>前往送达</text>
+            <text>前往送达点</text>
           </view>
-          <view v-if="t.status === 'PICKED_UP'" class="cur__btn cur__btn--ghost" @tap="gotoDelivered(t)">
+          <view
+            v-if="t.status === 'PICKED_UP' || t.status === 'DELIVERING'"
+            class="actions__btn actions__btn--ghost"
+            @tap="gotoDelivered(t)"
+          >
             <SvgIcon name="check-circle" :size="28" color="#0f766e" />
             <text>确认送达</text>
           </view>
-          <view class="cur__btn cur__btn--warn" @tap="gotoException(t)">
+          <view class="actions__btn actions__btn--warn" @tap="gotoException(t)">
             <SvgIcon name="alert-triangle" :size="26" color="#d33" />
             <text>异常报备</text>
           </view>
@@ -151,17 +178,14 @@ onShow(() => {
       </view>
     </view>
 
-    <!-- 空状态 -->
-    <view v-else class="cur__empty">
+    <view v-else class="empty">
       <SvgIcon name="utensils" :size="120" color="#c5c9d2" />
-      <text class="cur__empty-text">暂无进行中任务</text>
-      <view class="cur__empty-btn" @tap="gotoHall">去接单大厅</view>
+      <text class="empty__text">暂无进行中的任务</text>
+      <view class="empty__btn" @tap="gotoHall">去接单大厅</view>
     </view>
 
-    <!-- 继续抢单浮条(有任务时也能再去抢) -->
-    <view v-if="store.inProgress.length > 0" class="cur__hall-bar" @tap="gotoHall">
-      <text class="cur__hall-icon">＋</text>
-      <text>继续抢单</text>
+    <view v-if="store.inProgress.length > 0" class="hall-bar" @tap="gotoHall">
+      <text>继续接单</text>
     </view>
     <FloatTabBar active="tasks" />
   </view>
@@ -169,38 +193,44 @@ onShow(() => {
 
 <style scoped>
 .cur {
-  padding: 24rpx 24rpx 240rpx;
   min-height: 100vh;
-  background: #f5f6f8;
+  padding: 24rpx 24rpx 240rpx;
+  background: #fff;
+  box-sizing: border-box;
 }
 
 .cur__hero {
   padding: 32rpx 28rpx;
-  border-radius: 28rpx;
+  border-radius: 26rpx;
   color: #fff;
   background: linear-gradient(135deg, #0f766e, #14b8a6);
   box-shadow: 0 18rpx 40rpx rgba(20, 184, 166, 0.22);
   margin-bottom: 20rpx;
 }
+
 .cur__head {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16rpx;
 }
+
 .cur__head-main {
   display: flex;
   flex-direction: column;
   gap: 6rpx;
 }
+
 .cur__title {
   font-size: 38rpx;
   font-weight: 800;
 }
+
 .cur__sub {
   font-size: 24rpx;
   color: rgba(255, 255, 255, 0.86);
 }
+
 .cur__refresh {
   padding: 8rpx 18rpx;
   border-radius: 999rpx;
@@ -209,25 +239,28 @@ onShow(() => {
   flex-shrink: 0;
 }
 
-/* 列表 */
 .cur__list {
   display: flex;
   flex-direction: column;
   gap: 20rpx;
 }
-.cur__item {
-  background: #fff;
-  border-radius: 24rpx;
+
+.task-card {
   padding: 24rpx;
-  box-shadow: 0 8rpx 24rpx rgba(31, 41, 55, 0.05);
+  border: 1rpx solid #edf0f5;
+  border-radius: 24rpx;
+  background: #fff;
+  box-shadow: 0 8rpx 24rpx rgba(31, 41, 55, 0.04);
 }
-.cur__item-head {
+
+.task-card__top {
   display: flex;
   align-items: center;
   gap: 12rpx;
-  margin-bottom: 12rpx;
+  margin-bottom: 14rpx;
 }
-.cur__badge {
+
+.task-card__badge {
   font-size: 22rpx;
   font-weight: 700;
   padding: 6rpx 16rpx;
@@ -235,107 +268,150 @@ onShow(() => {
   color: #fff;
   flex-shrink: 0;
 }
-.cur__badge--food {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+
+.task-card__badge--food {
+  background: #ff7a45;
 }
-.cur__badge--errand {
-  background: linear-gradient(135deg, #4776e6, #8e54e9);
+
+.task-card__badge--errand {
+  background: #4776e6;
 }
-.cur__order-no {
+
+.task-card__order {
   flex: 1;
-  font-size: 22rpx;
   color: #8a94a6;
+  font-size: 22rpx;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.cur__status {
+
+.task-card__status {
+  color: #0f766e;
   font-size: 24rpx;
   font-weight: 700;
-  color: #14b8a6;
   flex-shrink: 0;
 }
-.cur__tip {
+
+.task-card__tip {
   display: block;
-  font-size: 26rpx;
   color: #172033;
-  margin-bottom: 12rpx;
+  font-size: 27rpx;
+  font-weight: 700;
+  line-height: 1.45;
+  margin-bottom: 18rpx;
 }
-.cur__times {
+
+.route {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding: 18rpx;
+  border-radius: 18rpx;
+  background: #f8fafc;
+}
+
+.route__item {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.route__dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.route__dot--pickup {
+  background: #f97316;
+}
+
+.route__dot--delivery {
+  background: #2563eb;
+}
+
+.route__name {
+  color: #172033;
+  font-size: 24rpx;
+  line-height: 1.35;
+}
+
+.time-row {
   display: flex;
   gap: 12rpx;
-  margin-bottom: 16rpx;
   flex-wrap: wrap;
+  margin: 18rpx 0 8rpx;
 }
-.cur__time {
+
+.time-row__item {
   display: flex;
   align-items: center;
   gap: 6rpx;
-  padding: 6rpx 14rpx;
+  padding: 7rpx 14rpx;
   background: #f5f6f8;
   border-radius: 999rpx;
   font-size: 22rpx;
 }
-.cur__time-label {
+
+.time-row__label {
   color: #8a94a6;
 }
-.cur__time-val {
+
+.time-row__value {
   color: #172033;
   font-weight: 600;
 }
 
-.cur__actions {
+.actions {
   display: flex;
   flex-direction: column;
   gap: 10rpx;
-  padding-top: 4rpx;
-  border-top: 1rpx solid rgba(31, 41, 55, 0.05);
-  margin-top: 8rpx;
-}
-.cur__btn {
-  text-align: center;
-  border-radius: 999rpx;
-  height: 80rpx;
-  line-height: 80rpx;
-  font-size: 28rpx;
-  font-weight: 700;
-  margin-top: 10rpx;
-}
-.cur__btn--primary {
-  background: linear-gradient(135deg, #14b8a6, #0f766e);
-  color: #fff;
-  box-shadow: 0 12rpx 24rpx rgba(20, 184, 166, 0.28);
-}
-.cur__btn--ghost {
-  background: #fff;
-  color: #0f766e;
-  border: 2rpx solid rgba(15, 118, 110, 0.18);
-}
-.cur__btn--warn {
-  background: #fff;
-  color: #d33;
-  border: 2rpx solid rgba(217, 51, 51, 0.18);
+  padding-top: 10rpx;
 }
 
-/* 空态 */
-.cur__empty {
+.actions__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  min-height: 80rpx;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.actions__btn--primary {
+  background: #0f766e;
+  color: #fff;
+}
+
+.actions__btn--ghost {
+  background: #eefcf9;
+  color: #0f766e;
+}
+
+.actions__btn--warn {
+  background: #fff5f5;
+  color: #d33;
+}
+
+.empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 120rpx 0;
 }
-.cur__empty-icon {
-  font-size: 96rpx;
-  opacity: 0.4;
-  margin-bottom: 24rpx;
-}
-.cur__empty-text {
+
+.empty__text {
   font-size: 28rpx;
   color: #8a94a6;
-  margin-bottom: 32rpx;
+  margin: 18rpx 0 32rpx;
 }
-.cur__empty-btn {
-  background: linear-gradient(135deg, #14b8a6, #0f766e);
+
+.empty__btn {
+  background: #0f766e;
   color: #fff;
   padding: 18rpx 48rpx;
   border-radius: 999rpx;
@@ -343,28 +419,21 @@ onShow(() => {
   font-weight: 700;
 }
 
-/* 继续抢单悬浮条 */
-.cur__hall-bar {
+.hall-bar {
   position: fixed;
   left: 24rpx;
   right: 24rpx;
   bottom: calc(env(safe-area-inset-bottom, 0rpx) + 160rpx);
-  background: linear-gradient(135deg, #14b8a6, #0f766e);
+  background: #0f766e;
   color: #fff;
   border-radius: 999rpx;
   padding: 22rpx 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8rpx;
   font-size: 28rpx;
   font-weight: 700;
-  box-shadow: 0 16rpx 40rpx rgba(20, 184, 166, 0.36);
+  box-shadow: 0 16rpx 40rpx rgba(20, 184, 166, 0.28);
   z-index: 50;
-}
-.cur__hall-icon {
-  font-size: 36rpx;
-  font-weight: 300;
-  line-height: 1;
 }
 </style>

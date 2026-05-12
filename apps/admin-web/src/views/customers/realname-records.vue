@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { listRealnameRecords, type RealnameRecordItemVo } from '@/api/admin-customers';
+import { formatDateTime } from '@/utils/format';
 
 const route = useRoute();
 const router = useRouter();
@@ -13,6 +14,7 @@ const total = ref(0);
 const pageNo = ref(1);
 const pageSize = ref(20);
 const loading = ref(false);
+const fmtDateTime = formatDateTime;
 
 async function fetchList(): Promise<void> {
   loading.value = true;
@@ -46,8 +48,12 @@ onMounted(fetchList);
           </template>
         </el-table-column>
         <el-table-column label="失败原因" prop="failedReason" />
-        <el-table-column label="认证时间" prop="verifiedAt" width="180" />
-        <el-table-column label="创建时间" prop="createdAt" width="180" />
+        <el-table-column label="认证时间" width="180">
+          <template #default="{ row }">{{ fmtDateTime(row.verifiedAt) }}</template>
+        </el-table-column>
+        <el-table-column label="创建时间" width="180">
+          <template #default="{ row }">{{ fmtDateTime(row.createdAt) }}</template>
+        </el-table-column>
       </el-table>
 
       <div class="rn-records__pagination">

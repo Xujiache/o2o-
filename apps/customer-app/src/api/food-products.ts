@@ -7,6 +7,8 @@ export interface FoodSku {
   specValue: string;
   price: string;
   availableStock: number;
+  /** 规格重量(克),null = 不按重量销售 */
+  weightGrams?: number | null;
 }
 export interface FoodProduct {
   productId: string;

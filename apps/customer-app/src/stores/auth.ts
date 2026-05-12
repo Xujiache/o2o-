@@ -1,21 +1,17 @@
-/**
- * Customer 端认证状态(Pinia + uni storage 持久化)
- *
- * 关注点:
- *   - access/refresh token + isNewUser/profileCompleted
- *   - 登录后跳转、登出清空、refresh 轮换
- *   - 60s 验证码倒计时(刷新页保留)
- *
- * 401 自动 refresh:在 utils/request.ts 中通过 store.refreshIfPossible 调用。
- */
 import { defineStore } from 'pinia';
 
 import {
+  changeCustomerMobile as apiChangeMobile,
+  getCustomerProfile as apiGetProfile,
   login as apiLogin,
   logout as apiLogout,
   refreshToken as apiRefresh,
   sendSmsCode as apiSendSms,
+  updateCustomerProfile as apiUpdateProfile,
   wechatLogin as apiWechatLogin,
+  type CustomerGender,
+  type CustomerProfileVo,
+  type CustomerRealnameStatus,
   type LoginReq,
   type Platform,
   type SmsScene,
@@ -23,15 +19,28 @@ import {
 } from '@/api';
 import { clearToken, setPrincipal, setToken } from '@/utils/token';
 
+export type { CustomerGender, CustomerRealnameStatus } from '@/api';
+
 const NS = 'o2o:customer';
 const KEY_REFRESH = `${NS}:refresh`;
 const KEY_DEVICE = `${NS}:device-id`;
 const KEY_AUTH_META = `${NS}:auth-meta`;
 const KEY_SMS_COUNTDOWN = `${NS}:sms-countdown`;
+const KEY_PROFILE = `${NS}:profile`;
+const KEY_LAST_MOBILE = `${NS}:last-mobile`;
+
+export interface CustomerLocalProfile {
+  nickname: string;
+  avatarUrl: string;
+  gender: CustomerGender;
+  birthday: string;
+  bio: string;
+}
 
 interface AuthMeta {
   isNewUser: boolean;
   profileCompleted: boolean;
+  realnameStatus: CustomerRealnameStatus;
 }
 
 interface SmsCountdownState {
@@ -47,7 +56,32 @@ interface State {
   deviceId: string;
   isNewUser: boolean;
   profileCompleted: boolean;
+  realnameStatus: CustomerRealnameStatus;
+  mobile: string;
+  profile: CustomerLocalProfile;
   smsCountdown: SmsCountdownState | null;
+}
+
+const DEFAULT_PROFILE: CustomerLocalProfile = {
+  nickname: '用户',
+  avatarUrl: '',
+  gender: 'unknown',
+  birthday: '',
+  bio: '',
+};
+
+function normalizeRealnameStatus(status: unknown): CustomerRealnameStatus {
+  return status === 'pending' || status === 'verified' || status === 'failed' ? status : 'unverified';
+}
+
+function normalizeProfile(input: Partial<CustomerLocalProfile> | null | undefined): CustomerLocalProfile {
+  return {
+    nickname: String(input?.nickname || DEFAULT_PROFILE.nickname).slice(0, 64),
+    avatarUrl: String(input?.avatarUrl || ''),
+    gender: input?.gender === 'male' || input?.gender === 'female' ? input.gender : 'unknown',
+    birthday: String(input?.birthday || ''),
+    bio: String(input?.bio || '').slice(0, 120),
+  };
 }
 
 function ensureDeviceId(): string {
@@ -62,20 +96,45 @@ function ensureDeviceId(): string {
   }
 }
 
-function readPersisted(): Pick<State, 'refreshToken' | 'isNewUser' | 'profileCompleted' | 'smsCountdown'> {
+function readPersisted(): Pick<
+  State,
+  'refreshToken' | 'isNewUser' | 'profileCompleted' | 'realnameStatus' | 'mobile' | 'profile' | 'smsCountdown'
+> {
   let refreshToken = '';
-  let meta: AuthMeta = { isNewUser: false, profileCompleted: false };
+  let meta: AuthMeta = { isNewUser: false, profileCompleted: false, realnameStatus: 'unverified' };
+  let mobile = '';
+  let profile = { ...DEFAULT_PROFILE };
   let countdown: SmsCountdownState | null = null;
+
   try {
     refreshToken = (uni.getStorageSync(KEY_REFRESH) as string) || '';
+    mobile = (uni.getStorageSync(KEY_LAST_MOBILE) as string) || '';
     const m = uni.getStorageSync(KEY_AUTH_META);
-    if (m) meta = JSON.parse(m) as AuthMeta;
+    if (m) {
+      const parsed = JSON.parse(m) as Partial<AuthMeta>;
+      meta = {
+        isNewUser: Boolean(parsed.isNewUser),
+        profileCompleted: Boolean(parsed.profileCompleted),
+        realnameStatus: normalizeRealnameStatus(parsed.realnameStatus),
+      };
+    }
+    const p = uni.getStorageSync(KEY_PROFILE);
+    if (p) profile = normalizeProfile(JSON.parse(p) as Partial<CustomerLocalProfile>);
     const c = uni.getStorageSync(KEY_SMS_COUNTDOWN);
     if (c) countdown = JSON.parse(c) as SmsCountdownState;
   } catch {
     // ignore
   }
-  return { refreshToken, isNewUser: meta.isNewUser, profileCompleted: meta.profileCompleted, smsCountdown: countdown };
+
+  return {
+    refreshToken,
+    isNewUser: meta.isNewUser,
+    profileCompleted: meta.profileCompleted,
+    realnameStatus: meta.realnameStatus,
+    mobile,
+    profile,
+    smsCountdown: countdown,
+  };
 }
 
 export const useAuthStore = defineStore('auth', {
@@ -87,6 +146,9 @@ export const useAuthStore = defineStore('auth', {
       deviceId: ensureDeviceId(),
       isNewUser: persisted.isNewUser,
       profileCompleted: persisted.profileCompleted,
+      realnameStatus: persisted.realnameStatus,
+      mobile: persisted.mobile,
+      profile: persisted.profile,
       smsCountdown: persisted.smsCountdown,
     };
   },
@@ -106,6 +168,7 @@ export const useAuthStore = defineStore('auth', {
         throw new Error(r.message || '验证码发送失败');
       }
       this.smsCountdown = { startedAt: Date.now(), totalSeconds: 60, scene, mobile };
+      if (scene === 'login' || scene === 'realname') this.setMobile(mobile);
       uni.setStorageSync(KEY_SMS_COUNTDOWN, JSON.stringify(this.smsCountdown));
     },
 
@@ -118,7 +181,10 @@ export const useAuthStore = defineStore('auth', {
       this.applyTokens(r.data.customerToken, r.data.refreshToken, {
         isNewUser: r.data.isNewUser,
         profileCompleted: r.data.profileCompleted,
+        realnameStatus: this.realnameStatus,
       });
+      this.setMobile(mobile);
+      await this.syncProfile().catch(() => undefined);
     },
 
     async loginByWechat(jsCode: string, platform: Platform = 'mp-weixin'): Promise<{ bindMobileRequired: boolean }> {
@@ -130,7 +196,9 @@ export const useAuthStore = defineStore('auth', {
       this.applyTokens(r.data.customerToken, r.data.refreshToken, {
         isNewUser: r.data.isNewUser,
         profileCompleted: false,
+        realnameStatus: this.realnameStatus,
       });
+      await this.syncProfile().catch(() => undefined);
       return { bindMobileRequired: r.data.bindMobileRequired };
     },
 
@@ -142,7 +210,9 @@ export const useAuthStore = defineStore('auth', {
         this.applyTokens(r.data.customerToken, r.data.refreshToken, {
           isNewUser: this.isNewUser,
           profileCompleted: this.profileCompleted,
+          realnameStatus: this.realnameStatus,
         });
+        await this.syncProfile().catch(() => undefined);
         return true;
       } catch {
         return false;
@@ -153,7 +223,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         await apiLogout();
       } catch {
-        // ignore — 即使后端失败也要清掉本地态
+        // ignore
       }
       this.clearAll();
     },
@@ -163,11 +233,16 @@ export const useAuthStore = defineStore('auth', {
       this.refreshToken = '';
       this.isNewUser = false;
       this.profileCompleted = false;
+      this.realnameStatus = 'unverified';
+      this.mobile = '';
+      this.profile = { ...DEFAULT_PROFILE };
       this.smsCountdown = null;
       try {
         clearToken();
         uni.removeStorageSync(KEY_REFRESH);
         uni.removeStorageSync(KEY_AUTH_META);
+        uni.removeStorageSync(KEY_PROFILE);
+        uni.removeStorageSync(KEY_LAST_MOBILE);
         uni.removeStorageSync(KEY_SMS_COUNTDOWN);
       } catch {
         // ignore
@@ -179,6 +254,7 @@ export const useAuthStore = defineStore('auth', {
       this.refreshToken = refreshToken;
       this.isNewUser = meta.isNewUser;
       this.profileCompleted = meta.profileCompleted;
+      this.realnameStatus = meta.realnameStatus;
       try {
         setToken(accessToken);
         uni.setStorageSync(KEY_REFRESH, refreshToken);
@@ -193,6 +269,105 @@ export const useAuthStore = defineStore('auth', {
       this.smsCountdown = null;
       try {
         uni.removeStorageSync(KEY_SMS_COUNTDOWN);
+      } catch {
+        // ignore
+      }
+    },
+
+    setMobile(mobile: string): void {
+      this.mobile = mobile;
+      try {
+        if (mobile) uni.setStorageSync(KEY_LAST_MOBILE, mobile);
+        else uni.removeStorageSync(KEY_LAST_MOBILE);
+      } catch {
+        // ignore
+      }
+    },
+
+    updateProfile(patch: Partial<CustomerLocalProfile>): void {
+      this.applyLocalProfile({ ...this.profile, ...patch });
+    },
+
+    async syncProfile(): Promise<void> {
+      if (!this.isLoggedIn) return;
+      const r = await apiGetProfile();
+      if (r.code !== '0' || !r.data) {
+        throw new Error(r.message || '资料同步失败');
+      }
+      this.applyServerProfile(r.data);
+    },
+
+    async saveProfile(patch: CustomerLocalProfile): Promise<void> {
+      const next = normalizeProfile(patch);
+      const r = await apiUpdateProfile({
+        nickname: next.nickname,
+        avatarUrl: next.avatarUrl,
+        gender: next.gender,
+        birthday: next.birthday || undefined,
+        bio: next.bio,
+      });
+      if (r.code !== '0' || !r.data) {
+        throw new Error(r.message || '资料保存失败');
+      }
+      this.applyServerProfile(r.data);
+    },
+
+    async changeMobile(mobile: string, code: string): Promise<void> {
+      const r = await apiChangeMobile({ mobile, code });
+      if (r.code !== '0' || !r.data) {
+        throw new Error(r.message || '手机号修改失败');
+      }
+      this.applyServerProfile(r.data);
+    },
+
+    setRealnameStatus(status: CustomerRealnameStatus): void {
+      this.realnameStatus = status;
+      if (status === 'verified') this.profileCompleted = true;
+      this.persistAuthMeta();
+    },
+
+    applyLocalProfile(profile: Partial<CustomerLocalProfile>): void {
+      this.profile = normalizeProfile(profile);
+      this.profileCompleted = Boolean(this.profile.nickname.trim());
+      try {
+        uni.setStorageSync(KEY_PROFILE, JSON.stringify(this.profile));
+      } catch {
+        // ignore
+      }
+      this.persistAuthMeta();
+    },
+
+    applyServerProfile(data: CustomerProfileVo): void {
+      this.profile = normalizeProfile({
+        nickname: data.nickname,
+        avatarUrl: data.avatarUrl,
+        gender: data.gender,
+        birthday: data.birthday,
+        bio: data.bio,
+      });
+      this.mobile = data.mobile;
+      this.realnameStatus = normalizeRealnameStatus(data.realnameStatus);
+      this.profileCompleted = data.profileCompleted;
+      try {
+        uni.setStorageSync(KEY_PROFILE, JSON.stringify(this.profile));
+        if (this.mobile) uni.setStorageSync(KEY_LAST_MOBILE, this.mobile);
+        else uni.removeStorageSync(KEY_LAST_MOBILE);
+      } catch {
+        // ignore
+      }
+      this.persistAuthMeta();
+    },
+
+    persistAuthMeta(): void {
+      try {
+        uni.setStorageSync(
+          KEY_AUTH_META,
+          JSON.stringify({
+            isNewUser: this.isNewUser,
+            profileCompleted: this.profileCompleted,
+            realnameStatus: this.realnameStatus,
+          }),
+        );
       } catch {
         // ignore
       }

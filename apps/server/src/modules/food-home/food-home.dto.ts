@@ -43,6 +43,7 @@ export class FoodHomeRecommendedStoreVo {
   @ApiProperty({ description: '配送费(分)' }) @Expose() deliveryFee!: string;
   @ApiProperty({ description: '起送金额(分)' }) @Expose() minOrderAmount!: string;
   @ApiProperty({ description: '营业状态 online/offline/paused' }) @Expose() businessStatus!: string;
+  @ApiProperty() @Expose() statusUpdatedAt!: number;
 }
 
 export class FoodHomeVo {

@@ -23,6 +23,7 @@ const preview = ref<PreviewVo | null>(null);
 const previewError = ref('');
 const loading = ref(false);
 const submitting = ref(false);
+const selectedCouponId = ref<string>('');
 
 const items = computed(() => cart.cart?.items ?? []);
 const hasAddress = computed(() => !!address.value);
@@ -65,6 +66,7 @@ async function loadPreview(): Promise<void> {
       addressId: address.value.addressId,
       deliveryType: deliveryType.value,
       reservedTime: reservedTime.value,
+      couponId: selectedCouponId.value || undefined,
     });
     if (r.code === '0' && r.data) {
       preview.value = r.data;
@@ -72,6 +74,8 @@ async function loadPreview(): Promise<void> {
     } else {
       previewError.value = r.message ?? '试算失败';
       preview.value = null;
+      // 券引起的错误 → 清掉选择,让用户能继续无券下单
+      if (selectedCouponId.value) selectedCouponId.value = '';
     }
   } finally {
     loading.value = false;
@@ -108,6 +112,12 @@ function gotoNewAddress(): void {
   uni.navigateTo({ url: '/pages/address/edit' });
 }
 
+function pickCoupon(): void {
+  const goods = preview.value?.goodsAmount ?? '0';
+  const qs = `goodsAmount=${encodeURIComponent(goods)}&couponId=${encodeURIComponent(selectedCouponId.value)}`;
+  uni.navigateTo({ url: `/pages/food/order/coupon-pick?${qs}` });
+}
+
 onLoad((options) => {
   storeId.value = ((options?.storeId as string) ?? cart.currentStoreId ?? '') as string;
 });
@@ -122,6 +132,12 @@ onShow(async () => {
   const picked = orderStore.consumePickedAddress();
   if (picked) {
     await loadAddressById(picked);
+    void loadPreview();
+  }
+  // 从 coupon-pick 选券回传:'' = 主动不使用;具体 id = 选了;null = 未变化
+  const pickedCoupon = orderStore.consumePickedCoupon();
+  if (pickedCoupon !== null) {
+    selectedCouponId.value = pickedCoupon;
     void loadPreview();
   }
 });
@@ -173,9 +189,15 @@ onShow(async () => {
           <text class="confirm__row-value">{{ deliveryType === 'instant' ? '即时配送' : '预约配送' }} ›</text>
         </picker>
       </view>
-      <view class="confirm__row confirm__row--mute">
+      <view class="confirm__row" @tap="pickCoupon">
         <text class="confirm__row-label">优惠券</text>
-        <text class="confirm__row-value">暂无可用</text>
+        <text
+          v-if="selectedCouponId && preview && Number(preview.discountAmount) > 0"
+          class="confirm__row-value confirm__row-value--accent"
+        >
+          已抵扣 ¥{{ formatYuan(preview.discountAmount) }} ›
+        </text>
+        <text v-else class="confirm__row-value">点击选择 ›</text>
       </view>
       <view class="confirm__row confirm__row--mute">
         <text class="confirm__row-label">积分抵扣</text>
@@ -246,7 +268,7 @@ onShow(async () => {
 .confirm {
   min-height: 100vh;
   padding: 24rpx 24rpx 200rpx;
-  background: #f5f6f8;
+  background: #fff;
 }
 
 .confirm__addr {
@@ -363,6 +385,15 @@ onShow(async () => {
 .confirm__row--mute .confirm__row-value {
   color: #c5c9d2;
 }
+.confirm__row-value--accent {
+  color: #ff7a45;
+  font-weight: 600;
+  max-width: 60%;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .confirm__amt {
   display: flex;
@@ -406,7 +437,7 @@ onShow(async () => {
   gap: 12rpx;
   padding: 24rpx;
   border-radius: 16rpx;
-  background: #f5f6f8;
+  background: #fff;
   font-size: 26rpx;
   color: #5a6275;
   border: 2rpx solid transparent;

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { onShow } from '@dcloudio/uni-app';
 import { computed, onMounted, ref } from 'vue';
 
 import FloatTabBar from '@/components/common/FloatTabBar.vue';
@@ -37,13 +36,12 @@ onMounted(async () => {
   }
 });
 
-onShow(() => uni.hideTabBar({ animation: false }));
-
 function goToForm(typeCode: string): void {
   uni.navigateTo({ url: FORM_PATH[typeCode] ?? '/pages/errand/form/custom' });
 }
 function goToOrders(): void {
-  uni.navigateTo({ url: '/pages/errand/order/list' });
+  uni.setStorageSync('order-list-default-mode', 'errand');
+  uni.switchTab({ url: '/pages/food/order/list' });
 }
 </script>
 
@@ -78,14 +76,14 @@ function goToOrders(): void {
         <text class="home__entry-arrow">›</text>
       </view>
     </view>
-    <FloatTabBar active="errand" />
+    <FloatTabBar active="home" />
   </view>
 </template>
 
 <style scoped>
 .home {
   min-height: 100vh;
-  background: #f5f6f8;
+  background: #fff;
   padding-bottom: 200rpx;
 }
 
@@ -140,7 +138,7 @@ function goToOrders(): void {
 }
 .home__card {
   padding: 28rpx 24rpx;
-  background: #f7f8fa;
+  background: #fff;
   border-radius: 24rpx;
   display: flex;
   flex-direction: column;

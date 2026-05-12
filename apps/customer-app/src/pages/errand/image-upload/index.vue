@@ -69,7 +69,7 @@ function done(): void {
 .upload {
   min-height: 100vh;
   padding: 0 0 200rpx;
-  background: #f5f6f8;
+  background: #fff;
 }
 .upload__hero {
   padding: 40rpx 32rpx 56rpx;
@@ -137,7 +137,7 @@ function done(): void {
   width: 100%;
   aspect-ratio: 1;
   border-radius: 16rpx;
-  background: #f7f8fa;
+  background: #fff;
   border: 2rpx dashed rgba(31, 41, 55, 0.16);
   display: flex;
   flex-direction: column;
@@ -188,7 +188,7 @@ function done(): void {
   right: 0;
   bottom: 0;
   padding: 20rpx 24rpx calc(env(safe-area-inset-bottom, 0rpx) + 24rpx);
-  background: rgba(245, 246, 248, 0.96);
+  background: #fff;
   backdrop-filter: blur(12rpx);
   z-index: 50;
 }

@@ -17,9 +17,9 @@ const name = ref('');
 const intro = ref('');
 const notice = ref('');
 
-// 营业参数
-const minOrderAmount = ref(0);
-const deliveryFee = ref(0);
+// 营业参数 — 商家填写元,提交时 ×100 转分(后端用分)
+const minOrderYuan = ref(0);
+const deliveryFeeYuan = ref(0);
 
 // 封面
 const avatarFileId = ref<string | null>(null);
@@ -36,12 +36,11 @@ async function load(): Promise<void> {
       store.value = r.data;
       name.value = r.data.name;
       intro.value = r.data.intro ?? '';
-      minOrderAmount.value = Number(r.data.minOrderAmount);
-      deliveryFee.value = Number(r.data.deliveryFee);
+      minOrderYuan.value = Number(r.data.minOrderAmount) / 100;
+      deliveryFeeYuan.value = Number(r.data.deliveryFee) / 100;
       notice.value = r.data.notice ?? '';
       avatarFileId.value = r.data.avatarFileId ?? null;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      avatarPreviewUrl.value = ((r.data as any).avatarUrl as string | undefined) ?? null;
+      avatarPreviewUrl.value = r.data.avatarUrl ?? null;
     }
   } finally {
     loading.value = false;
@@ -121,8 +120,8 @@ async function onSubmit(): Promise<void> {
     const r = await updateStoreSettings({
       name: name.value,
       intro: intro.value,
-      minOrderAmount: minOrderAmount.value,
-      deliveryFee: deliveryFee.value,
+      minOrderAmount: Math.round(minOrderYuan.value * 100),
+      deliveryFee: Math.round(deliveryFeeYuan.value * 100),
       notice: notice.value,
       avatarFileId: avatarFileId.value ?? undefined,
     });
@@ -203,12 +202,12 @@ function gotoDelivery(): void {
         <text class="settings__section-title">营业参数</text>
         <view class="settings__group">
           <view class="settings__field">
-            <text class="settings__label">起送价 <text class="settings__hint">(分,如 2000 = 20 元)</text></text>
-            <input v-model.number="minOrderAmount" type="number" class="settings__input" />
+            <text class="settings__label">起送价 <text class="settings__hint">(元,如 20.00)</text></text>
+            <input v-model.number="minOrderYuan" type="digit" class="settings__input" placeholder="如:20" />
           </view>
           <view class="settings__field settings__field--last">
-            <text class="settings__label">配送费 <text class="settings__hint">(分,如 300 = 3 元)</text></text>
-            <input v-model.number="deliveryFee" type="number" class="settings__input" />
+            <text class="settings__label">配送费 <text class="settings__hint">(元,如 3.00)</text></text>
+            <input v-model.number="deliveryFeeYuan" type="digit" class="settings__input" placeholder="如:3" />
           </view>
         </view>
         <view class="settings__row" @tap="gotoDelivery">

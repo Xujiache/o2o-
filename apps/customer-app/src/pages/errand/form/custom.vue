@@ -5,12 +5,12 @@ import { useErrandFormStore } from '@/stores/errand-form';
 
 const store = useErrandFormStore();
 const taskDesc = ref('');
-const budget = ref(0);
+const budgetYuan = ref(0); // 用户输入元;后端用分
 const delivery = ref('');
 const submitting = ref(false);
 
 function submit(): void {
-  if (!taskDesc.value.trim() || budget.value <= 0) {
+  if (!taskDesc.value.trim() || budgetYuan.value <= 0) {
     uni.showToast({ title: '请填写所有必填项', icon: 'none' });
     return;
   }
@@ -20,7 +20,7 @@ function submit(): void {
     deliveryAddress: { address: delivery.value || '由骑手与用户沟通' },
     urgentLevel: 'standard',
     taskDesc: taskDesc.value,
-    budget: budget.value,
+    budget: Math.round(budgetYuan.value * 100),
   });
   uni.navigateTo({ url: '/pages/errand/quote/index' });
   submitting.value = false;
@@ -41,8 +41,8 @@ function submit(): void {
         <textarea v-model="taskDesc" placeholder="详细描述你的需求,越具体骑手越能精准报价..." class="form__textarea" />
       </view>
       <view class="form__field">
-        <view class="form__label"><text>预算(分)</text><text class="form__required">*</text></view>
-        <input v-model.number="budget" type="number" placeholder="如:5000(=50 元)" class="form__input" />
+        <view class="form__label"><text>预算(元)</text><text class="form__required">*</text></view>
+        <input v-model.number="budgetYuan" type="digit" placeholder="如:50" class="form__input" />
       </view>
       <view class="form__field form__field--last">
         <view class="form__label"><text>送达 / 办事地址(可选)</text></view>
@@ -60,7 +60,7 @@ function submit(): void {
 .form {
   min-height: 100vh;
   padding: 0 0 200rpx;
-  background: #f5f6f8;
+  background: #fff;
 }
 .form__hero {
   position: relative;
@@ -122,7 +122,7 @@ function submit(): void {
   width: 100%;
   min-height: 80rpx;
   padding: 20rpx 24rpx;
-  background: #f7f8fa;
+  background: #fff;
   border-radius: 16rpx;
   font-size: 28rpx;
   color: #172033;
@@ -137,7 +137,7 @@ function submit(): void {
   right: 0;
   bottom: 0;
   padding: 20rpx 24rpx calc(env(safe-area-inset-bottom, 0rpx) + 24rpx);
-  background: #f5f6f8;
+  background: #fff;
   border-top: 1rpx solid rgba(31, 41, 55, 0.06);
   z-index: 50;
 }

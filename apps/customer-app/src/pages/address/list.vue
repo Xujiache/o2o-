@@ -62,7 +62,7 @@ function onAdd(): void {
 .address-list {
   padding: 24rpx;
   min-height: 100vh;
-  background: #f5f5f5;
+  background: #fff;
 }
 .address-list__hint {
   background: rgba(255, 122, 69, 0.1);

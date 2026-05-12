@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { onMounted, reactive, ref } from 'vue';
 
 import { type BusinessStatus, listStores, setStoreBusinessStatus, type StoreItemVo } from '@/api/admin-merchants';
+
+import DataTable from '@/components/DataTable.vue';
+import FilterBar from '@/components/FilterBar.vue';
+import PageContainer from '@/components/PageContainer.vue';
+import StatusTag from '@/components/StatusTag.vue';
 import { useUserStore } from '@/stores/user';
 
 const userStore = useUserStore();
@@ -19,6 +24,12 @@ const query = reactive<{
   pageNo: 1,
   pageSize: 20,
 });
+
+const STATUS_LABEL: Record<BusinessStatus, string> = {
+  online: '营业中',
+  offline: '休业',
+  paused: '平台暂停',
+};
 
 async function fetchList(): Promise<void> {
   loading.value = true;
@@ -37,15 +48,27 @@ async function fetchList(): Promise<void> {
   }
 }
 
-onMounted(fetchList);
+function onSearch(): void {
+  query.pageNo = 1;
+  void fetchList();
+}
+function onReset(): void {
+  query.businessStatus = '';
+  query.pageNo = 1;
+  void fetchList();
+}
 
 async function onForceStatus(row: StoreItemVo, target: BusinessStatus): Promise<void> {
   try {
-    const reasonRes = await ElMessageBox.prompt(`确认强制将店铺 ${row.name} 状态改为 ${target}?`, '强制管控', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      inputPlaceholder: '操作原因(必填)',
-    });
+    const reasonRes = await ElMessageBox.prompt(
+      `确认强制将店铺 ${row.name} 状态改为 ${STATUS_LABEL[target]}?`,
+      '强制管控',
+      {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        inputPlaceholder: '操作原因(必填)',
+      },
+    );
     if (!reasonRes.value?.trim()) {
       ElMessage.warning('请填写原因');
       return;
@@ -61,92 +84,96 @@ async function onForceStatus(row: StoreItemVo, target: BusinessStatus): Promise<
     /* 用户取消 */
   }
 }
+
+const tone = (s: BusinessStatus): 'success' | 'neutral' | 'danger' =>
+  s === 'online' ? 'success' : s === 'paused' ? 'danger' : 'neutral';
+
+onMounted(fetchList);
 </script>
 
 <template>
-  <div class="stores">
-    <el-card>
-      <el-form :model="query" :inline="true">
-        <el-form-item label="状态">
-          <el-select
-            v-model="query.businessStatus"
-            placeholder="全部"
-            clearable
-            style="width: 140px"
-            @change="
-              () => {
-                query.pageNo = 1;
-                void fetchList();
-              }
-            "
-          >
-            <el-option label="营业中" value="online" />
-            <el-option label="休业" value="offline" />
-            <el-option label="平台暂停" value="paused" />
-          </el-select>
-        </el-form-item>
-      </el-form>
+  <PageContainer title="店铺管控" subtitle="审核通过商家的运营状态管理">
+    <template #extra>
+      <el-button @click="fetchList">
+        <el-icon><Refresh /></el-icon>
+        <span style="margin-left: 6px">刷新</span>
+      </el-button>
+    </template>
 
-      <el-table :data="list" v-loading="loading" stripe>
-        <el-table-column label="店铺 ID" prop="storeId" width="120" />
-        <el-table-column label="商家 ID" prop="merchantId" width="100" />
-        <el-table-column label="店铺名" prop="name" />
-        <el-table-column label="状态" prop="businessStatus" width="120">
-          <template #default="{ row }">
-            <el-tag
-              :type="row.businessStatus === 'online' ? 'success' : row.businessStatus === 'paused' ? 'danger' : 'info'"
-            >
-              {{ row.businessStatus }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="佣金率" prop="commissionRate" width="120" />
-        <el-table-column label="操作" width="200" fixed="right">
-          <template #default="{ row }">
-            <el-button
-              v-if="userStore.has('admin:merchants:manage') && row.businessStatus !== 'paused'"
-              link
-              type="danger"
-              @click="onForceStatus(row, 'paused')"
-              >强制暂停</el-button
-            >
-            <el-button
-              v-if="userStore.has('admin:merchants:manage') && row.businessStatus === 'paused'"
-              link
-              type="success"
-              @click="onForceStatus(row, 'offline')"
-              >解除暂停</el-button
-            >
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="stores__pagination">
-        <el-pagination
-          background
-          layout="total, prev, pager, next"
-          :total="total"
-          :current-page="query.pageNo"
-          :page-size="query.pageSize"
-          @current-change="
-            (p: number) => {
-              query.pageNo = p;
-              void fetchList();
-            }
-          "
-        />
+    <FilterBar @search="onSearch" @reset="onReset">
+      <div class="filter-field">
+        <label>营业状态</label>
+        <el-select v-model="query.businessStatus" placeholder="全部" clearable style="width: 160px">
+          <el-option label="营业中" value="online" />
+          <el-option label="休业" value="offline" />
+          <el-option label="平台暂停" value="paused" />
+        </el-select>
       </div>
-    </el-card>
-  </div>
+    </FilterBar>
+
+    <DataTable
+      :data="list"
+      :loading="loading"
+      :total="total"
+      v-model:pageNo="query.pageNo"
+      v-model:pageSize="query.pageSize"
+      @page-change="fetchList"
+    >
+      <el-table-column label="店铺 ID" prop="storeId" width="140">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.storeId }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="商家 ID" prop="merchantId" width="120">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.merchantId }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="店铺名" prop="name" min-width="180" show-overflow-tooltip />
+      <el-table-column label="状态" width="130">
+        <template #default="{ row }">
+          <StatusTag
+            :status="row.businessStatus"
+            :label="STATUS_LABEL[row.businessStatus as BusinessStatus] || row.businessStatus"
+            :tone="tone(row.businessStatus)"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column label="佣金率" prop="commissionRate" width="100" align="right">
+        <template #default="{ row }">
+          <span v-if="row.commissionRate" class="mono">{{ row.commissionRate }}</span>
+          <span v-else class="muted">—</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="180" fixed="right">
+        <template #default="{ row }">
+          <el-button
+            v-if="userStore.has('admin:merchants:manage') && row.businessStatus !== 'paused'"
+            link
+            type="danger"
+            @click="onForceStatus(row, 'paused')"
+            >强制暂停</el-button
+          >
+          <el-button
+            v-if="userStore.has('admin:merchants:manage') && row.businessStatus === 'paused'"
+            link
+            type="success"
+            @click="onForceStatus(row, 'offline')"
+            >解除暂停</el-button
+          >
+        </template>
+      </el-table-column>
+    </DataTable>
+  </PageContainer>
 </template>
 
 <style scoped>
-.stores {
-  padding: 16px;
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
-.stores__pagination {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
+.muted {
+  color: var(--fg-muted);
+  font-size: 12px;
 }
 </style>

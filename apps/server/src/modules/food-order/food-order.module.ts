@@ -15,6 +15,7 @@ import {
   Store,
 } from '../../database/entities';
 import { EventsModule } from '../../events/events.module';
+import { CouponModule } from '../coupon/coupon.module';
 
 import { FoodOrderController } from './food-order.controller';
 import { FoodOrderService } from './food-order.service';
@@ -35,6 +36,7 @@ import { FoodOrderService } from './food-order.service';
       PaymentOrder,
     ]),
     EventsModule,
+    CouponModule,
   ],
   controllers: [FoodOrderController],
   providers: [FoodOrderService],

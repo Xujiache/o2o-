@@ -42,7 +42,7 @@ function getSwitchValue(e: Event): boolean {
 <template>
   <view class="notification">
     <view class="notification__title">消息设置</view>
-    <text class="notification__hint">本地开关,接口在 stage 1+ 启用</text>
+    <text class="notification__hint">可按需开启或关闭常用提醒</text>
 
     <view class="notification__row">
       <text>订单状态推送</text>
@@ -62,7 +62,7 @@ function getSwitchValue(e: Event): boolean {
 <style scoped>
 .notification {
   padding: 32rpx;
-  background: #f5f5f5;
+  background: #fff;
   min-height: 100vh;
 }
 .notification__title {

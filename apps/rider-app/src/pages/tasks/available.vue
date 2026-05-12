@@ -45,7 +45,7 @@ function formatMin(ms: number): string {
     <view v-else-if="errorMsg" class="tasks__error">{{ errorMsg }}</view>
     <view v-else-if="items.length === 0" class="tasks__empty">
       <text>暂无可接订单</text>
-      <text class="tasks__empty-sub">本阶段订单系统未上线,正常等待 stage 5/6 出真订单</text>
+      <text class="tasks__empty-sub">暂无可接订单，请稍后刷新</text>
       <button class="tasks__refresh" @click="load">刷新</button>
     </view>
     <view v-else class="tasks__list">

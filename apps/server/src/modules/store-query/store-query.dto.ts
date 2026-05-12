@@ -64,6 +64,7 @@ export class FoodStoreItemVo {
   @ApiProperty() @Expose() deliveryFee!: string;
   @ApiProperty() @Expose() minOrderAmount!: string;
   @ApiProperty() @Expose() businessStatus!: string;
+  @ApiProperty() @Expose() statusUpdatedAt!: number;
 }
 
 export class FoodStoreListPageVo {

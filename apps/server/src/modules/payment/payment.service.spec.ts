@@ -170,6 +170,12 @@ function buildService(w: World): PaymentService {
     findOne: jest.fn(async () => null),
   } as unknown as Repository<import('../../database/entities').ErrandOrder>;
 
+  const couponService = {
+    lockCoupons: jest.fn(async () => undefined),
+    releaseCoupons: jest.fn(async () => 0),
+    consumeCoupons: jest.fn(async () => 0),
+  } as unknown as never;
+
   return new PaymentService(
     orderRepo,
     payRepo,
@@ -178,6 +184,7 @@ function buildService(w: World): PaymentService {
     dataSource,
     eventBus,
     w.redis as unknown as never,
+    couponService,
   );
 }
 

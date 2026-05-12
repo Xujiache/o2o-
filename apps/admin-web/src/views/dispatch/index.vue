@@ -3,6 +3,12 @@ import { onMounted, reactive, ref } from 'vue';
 
 import { type AdminDispatchItemVo, listDispatchTasks } from '@/api/admin-dispatch';
 
+import DataTable from '@/components/DataTable.vue';
+import FilterBar from '@/components/FilterBar.vue';
+import PageContainer from '@/components/PageContainer.vue';
+import StatusTag from '@/components/StatusTag.vue';
+import { formatDateTime } from '@/utils/format';
+
 import DispatchTaskDrawer from './components/DispatchTaskDrawer.vue';
 
 const loading = ref(false);
@@ -26,6 +32,7 @@ const BIZ_OPTIONS = [
 ];
 
 const STATUS_LABEL: Record<string, string> = Object.fromEntries(STATUS_OPTIONS.map((o) => [o.value, o.label]));
+const BIZ_LABEL: Record<string, string> = Object.fromEntries(BIZ_OPTIONS.map((o) => [o.value, o.label]));
 
 const query = reactive({ status: '', bizType: '', pageNo: 1, pageSize: 20 });
 
@@ -52,8 +59,11 @@ function onSearch(): void {
   void load();
 }
 
-function fmtTime(ms: number | null): string {
-  return ms ? new Date(ms).toLocaleString() : '-';
+function onReset(): void {
+  query.status = '';
+  query.bizType = '';
+  query.pageNo = 1;
+  void load();
 }
 
 function viewDetail(id: string): void {
@@ -65,73 +75,101 @@ onMounted(load);
 </script>
 
 <template>
-  <el-card>
-    <template #header>
-      <div class="header">
-        <span>调度监控</span>
-        <el-form :model="query" :inline="true" size="small">
-          <el-form-item label="状态">
-            <el-select v-model="query.status" style="width: 140px">
-              <el-option v-for="o in STATUS_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="业务">
-            <el-select v-model="query.bizType" style="width: 120px">
-              <el-option v-for="o in BIZ_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
-            </el-select>
-          </el-form-item>
-          <el-button type="primary" @click="onSearch">查询</el-button>
-        </el-form>
-      </div>
+  <PageContainer title="调度监控" subtitle="智能派单、人工改派与超时重试">
+    <template #extra>
+      <el-button @click="load">
+        <el-icon><Refresh /></el-icon>
+        <span style="margin-left: 6px">刷新</span>
+      </el-button>
     </template>
 
-    <el-table v-loading="loading" :data="list" stripe>
-      <el-table-column prop="dispatchTaskId" label="ID" width="100" />
-      <el-table-column prop="bizType" label="业务" width="80" />
-      <el-table-column prop="bizOrderId" label="订单 ID" width="140" />
-      <el-table-column prop="acceptedRiderId" label="接单骑手" width="120" />
-      <el-table-column label="状态" width="100">
-        <template #default="{ row }">{{ STATUS_LABEL[row.status] || row.status }}</template>
+    <FilterBar @search="onSearch" @reset="onReset">
+      <div class="filter-field">
+        <label>状态</label>
+        <el-select v-model="query.status" style="width: 160px">
+          <el-option v-for="o in STATUS_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
+        </el-select>
+      </div>
+      <div class="filter-field">
+        <label>业务</label>
+        <el-select v-model="query.bizType" style="width: 140px">
+          <el-option v-for="o in BIZ_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
+        </el-select>
+      </div>
+    </FilterBar>
+
+    <DataTable
+      v-model:pageNo="query.pageNo"
+      v-model:pageSize="query.pageSize"
+      :data="list"
+      :loading="loading"
+      :total="total"
+      @page-change="load"
+    >
+      <el-table-column label="任务 ID" prop="dispatchTaskId" width="120">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.dispatchTaskId }}</span></template
+        >
       </el-table-column>
-      <el-table-column prop="retryCount" label="重试次数" width="100" />
+      <el-table-column label="业务" width="90">
+        <template #default="{ row }">
+          <StatusTag
+            :status="row.bizType"
+            :label="BIZ_LABEL[row.bizType] ?? row.bizType"
+            :tone="row.bizType === 'FOOD' ? 'brand' : 'info'"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column label="订单 ID" prop="bizOrderId" width="160">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.bizOrderId }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="接单骑手" prop="acceptedRiderId" width="140">
+        <template #default="{ row }">
+          <span v-if="row.acceptedRiderId" class="mono">{{ row.acceptedRiderId }}</span>
+          <span v-else class="muted">--</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="状态" width="110">
+        <template #default="{ row }">
+          <StatusTag :status="row.status" :label="STATUS_LABEL[row.status] || row.status" />
+        </template>
+      </el-table-column>
+      <el-table-column label="重试次数" prop="retryCount" align="center" width="100">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.retryCount }}</span></template
+        >
+      </el-table-column>
       <el-table-column label="派单时间" width="180">
-        <template #default="{ row }">{{ fmtTime(row.dispatchedAt) }}</template>
+        <template #default="{ row }"
+          ><span class="muted">{{ formatDateTime(row.dispatchedAt) }}</span></template
+        >
       </el-table-column>
       <el-table-column label="超时时间" width="180">
-        <template #default="{ row }">{{ fmtTime(row.timeoutAt) }}</template>
+        <template #default="{ row }"
+          ><span class="muted">{{ formatDateTime(row.timeoutAt) }}</span></template
+        >
       </el-table-column>
       <el-table-column label="操作" width="80" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="viewDetail(row.dispatchTaskId)">详情</el-button>
         </template>
       </el-table-column>
-    </el-table>
-
-    <div class="pager">
-      <el-pagination
-        v-model:current-page="query.pageNo"
-        v-model:page-size="query.pageSize"
-        :total="total"
-        :page-sizes="[10, 20, 50]"
-        layout="total, sizes, prev, pager, next, jumper"
-        @current-change="load"
-        @size-change="load"
-      />
-    </div>
+    </DataTable>
 
     <DispatchTaskDrawer v-model:visible="drawerVisible" :dispatch-task-id="drawerId" />
-  </el-card>
+  </PageContainer>
 </template>
 
 <style scoped>
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
-.pager {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
+
+.muted {
+  color: var(--fg-muted);
+  font-size: 12px;
 }
 </style>

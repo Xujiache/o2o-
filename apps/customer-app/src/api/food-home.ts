@@ -22,6 +22,7 @@ export interface FoodHomeRecommendedStore {
   deliveryFee: string;
   minOrderAmount: string;
   businessStatus: string;
+  statusUpdatedAt?: number;
 }
 export interface FoodHomeVo {
   cityCode: string;

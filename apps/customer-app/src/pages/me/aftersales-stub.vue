@@ -12,7 +12,7 @@ function back(): void {
       <SvgIcon name="life-buoy" :size="120" color="#0f766e" />
     </view>
     <view class="stub__title">售后申请</view>
-    <view class="stub__msg">售后系统将在 stage 7 上线,届时可在此发起退款 / 退货 / 投诉。</view>
+    <view class="stub__msg">当前订单如需售后,请联系商家或平台客服处理。</view>
     <button @tap="back">返回</button>
   </view>
 </template>

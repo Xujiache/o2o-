@@ -19,9 +19,7 @@ uni-tabbar,
 
 page {
   min-height: 100%;
-  background:
-    radial-gradient(circle at 18% 0%, rgba(255, 107, 53, 0.18), transparent 34%),
-    linear-gradient(180deg, #fff7ed 0%, #f6f8fb 36%, #eef2f7 100%);
+  background: #fff;
   color: #172033;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }

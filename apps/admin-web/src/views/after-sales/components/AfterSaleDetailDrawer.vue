@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue';
 
 import { type AdminAfterSaleDetailVo, getAfterSaleDetail } from '@/api/admin-after-sales';
+import { formatDateTime, formatYuan } from '@/utils/format';
 
 const props = defineProps<{ visible: boolean; afterSaleId: string | null }>();
 const emit = defineEmits<{ 'update:visible': [boolean] }>();
@@ -22,18 +23,10 @@ async function load(): Promise<void> {
 
 watch(
   () => [props.visible, props.afterSaleId],
-  ([v, id]) => {
-    if (v && id) void load();
+  ([visible, id]) => {
+    if (visible && id) void load();
   },
 );
-
-function fmt(cents: string): string {
-  return (Number(cents) / 100).toFixed(2);
-}
-
-function fmtTime(ms: number | null): string {
-  return ms ? new Date(ms).toLocaleString() : '-';
-}
 
 function close(): void {
   emit('update:visible', false);
@@ -50,15 +43,15 @@ function close(): void {
       <el-descriptions-item label="商家">{{ detail.merchantId }}</el-descriptions-item>
       <el-descriptions-item label="用户">{{ detail.customerId }}</el-descriptions-item>
       <el-descriptions-item label="类型">{{ detail.type }}</el-descriptions-item>
-      <el-descriptions-item label="金额">¥{{ fmt(detail.amountCents) }}</el-descriptions-item>
+      <el-descriptions-item label="金额（元）">{{ formatYuan(detail.amountCents) }}</el-descriptions-item>
       <el-descriptions-item label="状态">{{ detail.status }}</el-descriptions-item>
       <el-descriptions-item label="原因" :span="2">{{ detail.reason }}</el-descriptions-item>
       <el-descriptions-item v-if="detail.merchantRejectReason" label="驳回原因" :span="2">
         {{ detail.merchantRejectReason }}
       </el-descriptions-item>
-      <el-descriptions-item label="申请时间">{{ fmtTime(detail.appliedAt) }}</el-descriptions-item>
-      <el-descriptions-item label="商家审核时间">{{ fmtTime(detail.merchantReviewAt) }}</el-descriptions-item>
-      <el-descriptions-item label="完成时间">{{ fmtTime(detail.completedAt) }}</el-descriptions-item>
+      <el-descriptions-item label="申请时间">{{ formatDateTime(detail.appliedAt) }}</el-descriptions-item>
+      <el-descriptions-item label="商家审核时间">{{ formatDateTime(detail.merchantReviewAt) }}</el-descriptions-item>
+      <el-descriptions-item label="完成时间">{{ formatDateTime(detail.completedAt) }}</el-descriptions-item>
       <el-descriptions-item label="凭证文件" :span="2">
         <span v-if="!detail.evidenceFileIds.length">无</span>
         <span v-for="f in detail.evidenceFileIds" :key="f" class="file-tag">{{ f }}</span>

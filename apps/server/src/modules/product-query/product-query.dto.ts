@@ -9,6 +9,10 @@ export class FoodSkuVo {
   @ApiProperty() @Expose() specValue!: string;
   @ApiProperty({ description: '价格(分)' }) @Expose() price!: string;
   @ApiProperty({ description: '可售库存 = stock - stock_locked' }) @Expose() availableStock!: number;
+  /** 规格重量(克),null = 不按重量销售 */
+  @ApiProperty({ required: false, nullable: true, description: '规格重量(克),null=不按重量销售' })
+  @Expose()
+  weightGrams?: number | null;
 }
 
 export class FoodProductVo {

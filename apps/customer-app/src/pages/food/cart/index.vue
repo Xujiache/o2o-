@@ -93,7 +93,7 @@ onLoad((options) => {
 .cart {
   min-height: 100vh;
   padding: 24rpx 24rpx 200rpx;
-  background: #f5f6f8;
+  background: #fff;
 }
 .cart__header {
   display: flex;
@@ -190,7 +190,7 @@ onLoad((options) => {
   color: #fff;
 }
 .cart__qty-btn--minus {
-  background: #f5f6f8;
+  background: #fff;
   color: #5a6275;
   border: 1rpx solid rgba(31, 41, 55, 0.08);
 }

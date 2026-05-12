@@ -27,9 +27,10 @@ export class PublicStoreReadonlyService {
     const qb = this.storeRepo
       .createQueryBuilder('s')
       .innerJoin(MerchantAccount, 'm', 'm.merchant_id = s.merchant_id AND m.account_status = :as', { as: 'active' })
-      .where('s.business_status = :st', { st: 'online' });
+      .where('1 = 1');
     if (query.cityCode) qb.andWhere('s.city_code = :cc', { cc: query.cityCode });
-    qb.orderBy('s.updated_at', 'DESC')
+    qb.orderBy("CASE WHEN s.business_status = 'online' THEN 0 ELSE 1 END", 'ASC')
+      .addOrderBy('s.updated_at', 'DESC')
       .skip((pageNo - 1) * pageSize)
       .take(pageSize);
     const [rows, total] = await qb.getManyAndCount();
@@ -44,13 +45,15 @@ export class PublicStoreReadonlyService {
         businessScope: s.businessScope,
         minOrderAmount: s.minOrderAmount,
         deliveryFee: s.deliveryFee,
+        businessStatus: s.businessStatus,
+        statusUpdatedAt: Number(s.updatedAt),
       })),
     };
   }
 
   async getStoreDetail(storeId: string): Promise<PublicStoreDetailVo> {
     const store = await this.storeRepo.findOne({ where: { storeId } });
-    if (!store || store.businessStatus !== 'online') {
+    if (!store) {
       throw new NotFoundException('store not available');
     }
     const merchant = await this.merchantRepo.findOne({ where: { merchantId: store.merchantId } });
@@ -65,6 +68,8 @@ export class PublicStoreReadonlyService {
       businessScope: store.businessScope,
       minOrderAmount: store.minOrderAmount,
       deliveryFee: store.deliveryFee,
+      businessStatus: store.businessStatus,
+      statusUpdatedAt: Number(store.updatedAt),
       intro: store.intro,
       notice: store.notice,
       businessHours: hours.map((h) => ({
@@ -76,9 +81,8 @@ export class PublicStoreReadonlyService {
   }
 
   async listProducts(storeId: string, query: ListPublicProductsQueryDto): Promise<PublicProductPageVo> {
-    // 校验 store 营业中
     const store = await this.storeRepo.findOne({ where: { storeId } });
-    if (!store || store.businessStatus !== 'online') {
+    if (!store) {
       throw new NotFoundException('store not available');
     }
     const pageNo = query.pageNo ?? 1;

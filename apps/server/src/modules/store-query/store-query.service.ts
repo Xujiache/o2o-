@@ -20,17 +20,16 @@ export class StoreQueryService {
     const pageSize = query.pageSize ?? 20;
     const sort: FoodStoreSort = query.sort ?? 'recent';
 
-    let qb = this.storeRepo
-      .createQueryBuilder('s')
-      .where('s.city_code = :cc', { cc: query.cityCode })
-      .andWhere("s.business_status = 'online'");
+    let qb = this.storeRepo.createQueryBuilder('s').where('s.city_code = :cc', { cc: query.cityCode });
 
     if (query.keyword) {
       qb = qb.andWhere('(s.name LIKE :kw OR s.intro LIKE :kw)', { kw: `%${query.keyword}%` });
     }
     // categoryId 本阶段忽略(stage 5 platform_category 与 store 间无映射表;DESIGN 标注 stage 6/9 接)
     // sort: distance/sales/rating 本阶段无真实数据,统一退化为 updated_at DESC(mock)
-    qb = qb.orderBy('s.updated_at', 'DESC');
+    qb = qb
+      .orderBy("CASE WHEN s.business_status = 'online' THEN 0 ELSE 1 END", 'ASC')
+      .addOrderBy('s.updated_at', 'DESC');
     void sort;
 
     const total = await qb.getCount();
@@ -50,6 +49,7 @@ export class StoreQueryService {
       deliveryFee: s.deliveryFee,
       minOrderAmount: s.minOrderAmount,
       businessStatus: s.businessStatus,
+      statusUpdatedAt: Number(s.updatedAt),
     }));
 
     return { pageNo, pageSize, total, list };

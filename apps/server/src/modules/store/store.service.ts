@@ -12,6 +12,7 @@ import {
 } from '../../database/entities';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
+import { FileService } from '../file/file.service';
 
 import {
   SetBusinessStatusDto,
@@ -30,6 +31,7 @@ export class StoreService {
     @InjectRepository(MerchantAccount) private readonly merchantRepo: Repository<MerchantAccount>,
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly eventBus: DomainEventBus,
+    private readonly fileService: FileService,
   ) {}
 
   async getOwnStore(merchantId: string): Promise<StoreVo> {
@@ -39,11 +41,13 @@ export class StoreService {
     }
     const hours = await this.hourRepo.find({ where: { storeId: store.storeId } });
     const areas = await this.areaRepo.find({ where: { storeId: store.storeId } });
+    const avatarUrl = await this.fileService.resolveUrl(store.avatarFileId);
     return {
       storeId: store.storeId,
       merchantId: store.merchantId,
       name: store.name,
       avatarFileId: store.avatarFileId,
+      avatarUrl,
       intro: store.intro,
       businessScope: store.businessScope,
       businessStatus: store.businessStatus,

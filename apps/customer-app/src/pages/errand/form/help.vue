@@ -6,11 +6,11 @@ import { useErrandFormStore } from '@/stores/errand-form';
 const store = useErrandFormStore();
 const delivery = ref('');
 const taskDesc = ref('');
-const budget = ref(0);
+const budgetYuan = ref(0); // 用户输入元;后端用分
 const submitting = ref(false);
 
 function submit(): void {
-  if (!delivery.value.trim() || !taskDesc.value.trim() || budget.value <= 0) {
+  if (!delivery.value.trim() || !taskDesc.value.trim() || budgetYuan.value <= 0) {
     uni.showToast({ title: '请填写所有必填项', icon: 'none' });
     return;
   }
@@ -20,7 +20,7 @@ function submit(): void {
     deliveryAddress: { address: delivery.value },
     urgentLevel: 'standard',
     taskDesc: taskDesc.value,
-    budget: budget.value,
+    budget: Math.round(budgetYuan.value * 100),
   });
   uni.navigateTo({ url: '/pages/errand/quote/index' });
   submitting.value = false;
@@ -45,8 +45,8 @@ function submit(): void {
         <textarea v-model="taskDesc" placeholder="如:帮忙取快递、排队挂号..." class="form__textarea" />
       </view>
       <view class="form__field form__field--last">
-        <view class="form__label"><text>预算(分)</text><text class="form__required">*</text></view>
-        <input v-model.number="budget" type="number" placeholder="如:3000(=30 元)" class="form__input" />
+        <view class="form__label"><text>预算(元)</text><text class="form__required">*</text></view>
+        <input v-model.number="budgetYuan" type="digit" placeholder="如:30" class="form__input" />
       </view>
     </view>
 
@@ -60,7 +60,7 @@ function submit(): void {
 .form {
   min-height: 100vh;
   padding: 0 0 200rpx;
-  background: #f5f6f8;
+  background: #fff;
 }
 .form__hero {
   position: relative;
@@ -122,7 +122,7 @@ function submit(): void {
   width: 100%;
   min-height: 80rpx;
   padding: 20rpx 24rpx;
-  background: #f7f8fa;
+  background: #fff;
   border-radius: 16rpx;
   font-size: 28rpx;
   color: #172033;
@@ -137,7 +137,7 @@ function submit(): void {
   right: 0;
   bottom: 0;
   padding: 20rpx 24rpx calc(env(safe-area-inset-bottom, 0rpx) + 24rpx);
-  background: #f5f6f8;
+  background: #fff;
   border-top: 1rpx solid rgba(31, 41, 55, 0.06);
   z-index: 50;
 }

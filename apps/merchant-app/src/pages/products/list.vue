@@ -4,12 +4,22 @@ import { computed, ref } from 'vue';
 
 import { batchSetSaleStatus, listProducts, type ProductItemVo, setSaleStatus } from '@/api';
 import FloatTabBar from '@/components/common/FloatTabBar.vue';
+import SvgIcon from '@/components/common/SvgIcon.vue';
 
 const list = ref<ProductItemVo[]>([]);
 const total = ref(0);
 const loading = ref(false);
 const checked = ref<string[]>([]);
 const selectMode = ref(false);
+
+type Filter = 'all' | 'on_shelf' | 'off_shelf';
+const filter = ref<Filter>('all');
+
+const FILTERS: Array<{ key: Filter; label: string }> = [
+  { key: 'all', label: '全部' },
+  { key: 'on_shelf', label: '在售中' },
+  { key: 'off_shelf', label: '未上架 / 售罄' },
+];
 
 async function load(): Promise<void> {
   loading.value = true;
@@ -32,7 +42,6 @@ onShow(() => {
 function enterSelectMode(): void {
   selectMode.value = true;
 }
-
 function exitSelectMode(): void {
   selectMode.value = false;
   checked.value = [];
@@ -84,77 +93,85 @@ function fmtYuan(cents: string): string {
 }
 
 function statusLabel(s: string): string {
-  return (
-    {
-      on_shelf: '在售',
-      off_shelf: '已下架',
-      sold_out: '售罄',
-      draft: '草稿',
-    }[s] ?? s
-  );
+  return ({ on_shelf: '在售', off_shelf: '已下架', sold_out: '售罄', draft: '草稿' } as Record<string, string>)[s] ?? s;
 }
 
 function firstChar(name: string): string {
   return name ? name.slice(0, 1) : '品';
 }
 
-function coverStyle(productId: string): string {
-  const palette: Array<[string, string]> = [
-    ['#FFB75E', '#ED8F03'],
-    ['#FF6B6B', '#EE0979'],
-    ['#11998E', '#38EF7D'],
-    ['#4776E6', '#8E54E9'],
-    ['#F7971E', '#FFD200'],
-  ];
-  let h = 0;
-  for (let i = 0; i < productId.length; i++) h = (h * 31 + productId.charCodeAt(i)) >>> 0;
-  const [a, b] = palette[h % palette.length] ?? palette[0]!;
-  return `background: linear-gradient(135deg, ${a}, ${b});`;
-}
-
 const onShelfCount = computed<number>(() => list.value.filter((p) => p.saleStatus === 'on_shelf').length);
 const offShelfCount = computed<number>(() => list.value.filter((p) => p.saleStatus !== 'on_shelf').length);
+
+const filteredList = computed<ProductItemVo[]>(() => {
+  if (filter.value === 'all') return list.value;
+  if (filter.value === 'on_shelf') return list.value.filter((p) => p.saleStatus === 'on_shelf');
+  return list.value.filter((p) => p.saleStatus !== 'on_shelf');
+});
 </script>
 
 <template>
   <view class="plist">
-    <!-- Hero -->
-    <view class="plist__hero">
-      <view class="plist__hero-row">
-        <view class="plist__hero-main">
-          <text class="plist__hero-eyebrow">商品管理</text>
-          <text class="plist__hero-num">{{ total }} <text class="plist__hero-num-unit">个商品</text></text>
-        </view>
-        <view class="plist__hero-actions">
-          <view v-if="!selectMode" class="plist__hero-btn" @tap="enterSelectMode">批量管理</view>
-          <view v-else class="plist__hero-btn" @tap="exitSelectMode">完成</view>
-          <view class="plist__hero-btn plist__hero-btn--primary" @tap="onAdd">＋ 新增</view>
+    <!-- 顶部:简洁 header,无渐变 -->
+    <view class="plist__header">
+      <view class="plist__header-l">
+        <text class="plist__title">商品管理</text>
+        <text class="plist__subtitle">共 {{ total }} 个商品</text>
+      </view>
+      <view class="plist__header-r">
+        <view v-if="!selectMode" class="plist__btn plist__btn--ghost" @tap="enterSelectMode">批量管理</view>
+        <view v-else class="plist__btn plist__btn--ghost" @tap="exitSelectMode">取消</view>
+        <view class="plist__btn plist__btn--primary" @tap="onAdd">
+          <SvgIcon name="plus" :size="22" color="#fff" />
+          <text>新增商品</text>
         </view>
       </view>
-      <view class="plist__hero-stats">
-        <view class="plist__hero-stat">
-          <text class="plist__hero-stat-val">{{ onShelfCount }}</text>
-          <text class="plist__hero-stat-label">在售中</text>
-        </view>
-        <view class="plist__hero-stat-divider" />
-        <view class="plist__hero-stat">
-          <text class="plist__hero-stat-val">{{ offShelfCount }}</text>
-          <text class="plist__hero-stat-label">未上架 / 售罄</text>
-        </view>
+    </view>
+
+    <!-- 状态汇总条 -->
+    <view class="plist__summary">
+      <view class="plist__summary-item">
+        <text class="plist__summary-val">{{ onShelfCount }}</text>
+        <text class="plist__summary-label">在售中</text>
       </view>
+      <view class="plist__summary-divider" />
+      <view class="plist__summary-item">
+        <text class="plist__summary-val">{{ offShelfCount }}</text>
+        <text class="plist__summary-label">未上架 / 售罄</text>
+      </view>
+      <view class="plist__summary-divider" />
+      <view class="plist__summary-item">
+        <text class="plist__summary-val">{{ total }}</text>
+        <text class="plist__summary-label">总数</text>
+      </view>
+    </view>
+
+    <!-- 上架 tab -->
+    <view class="plist__tabs">
+      <view
+        v-for="t in FILTERS"
+        :key="t.key"
+        class="plist__tab"
+        :class="{ 'plist__tab--active': filter === t.key }"
+        @tap="filter = t.key"
+        >{{ t.label }}</view
+      >
     </view>
 
     <view v-if="loading && list.length === 0" class="plist__msg">加载中…</view>
-    <view v-else-if="list.length === 0" class="plist__empty">
-      <text class="plist__empty-icon">📦</text>
-      <text class="plist__empty-text">还没有商品</text>
-      <view class="plist__empty-btn" @tap="onAdd">＋ 新增第一个商品</view>
+    <view v-else-if="filteredList.length === 0" class="plist__empty">
+      <SvgIcon name="package" :size="120" color="#dde2ea" />
+      <text class="plist__empty-text">{{ filter === 'all' ? '还没有商品' : '当前筛选下暂无商品' }}</text>
+      <view v-if="filter === 'all'" class="plist__btn plist__btn--primary" @tap="onAdd">
+        <SvgIcon name="plus" :size="22" color="#fff" />
+        <text>新增第一个商品</text>
+      </view>
     </view>
 
-    <!-- 两列瀑布流 grid -->
+    <!-- 两列 grid -->
     <view v-else class="plist__grid">
       <view
-        v-for="p in list"
+        v-for="p in filteredList"
         :key="p.productId"
         class="plist__card"
         :class="{
@@ -164,13 +181,15 @@ const offShelfCount = computed<number>(() => list.value.filter((p) => p.saleStat
         @tap="onCardTap(p)"
       >
         <!-- 封面 -->
-        <view class="plist__cover" :style="!p.imageUrl ? coverStyle(p.productId) : ''">
+        <view class="plist__cover">
           <image v-if="p.imageUrl" :src="p.imageUrl" class="plist__cover-img" mode="aspectFill" />
-          <text v-else class="plist__cover-letter">{{ firstChar(p.name) }}</text>
+          <view v-else class="plist__cover-fallback">
+            <text class="plist__cover-letter">{{ firstChar(p.name) }}</text>
+          </view>
 
           <view v-if="selectMode" class="plist__check">
             <view class="plist__check-box" :class="{ 'plist__check-box--on': checked.includes(p.productId) }">
-              <text v-if="checked.includes(p.productId)" class="plist__check-mark">✓</text>
+              <SvgIcon v-if="checked.includes(p.productId)" name="check" :size="22" color="#fff" />
             </view>
           </view>
 
@@ -186,7 +205,7 @@ const offShelfCount = computed<number>(() => list.value.filter((p) => p.saleStat
         <view class="plist__info">
           <text class="plist__name">{{ p.name }}</text>
           <view class="plist__price-row">
-            <text class="plist__price">¥{{ fmtYuan(p.price) }}</text>
+            <text class="plist__price"><text class="plist__price-symbol">¥</text>{{ fmtYuan(p.price) }}</text>
             <text v-if="p.hasSku === 1" class="plist__sku-tag">多规格</text>
           </view>
           <view class="plist__meta">
@@ -194,14 +213,13 @@ const offShelfCount = computed<number>(() => list.value.filter((p) => p.saleStat
           </view>
 
           <view v-if="!selectMode" class="plist__actions">
+            <view class="plist__act plist__act--ghost" @tap.stop="onEdit(p.productId)">编辑</view>
             <view
               class="plist__act"
               :class="p.saleStatus === 'on_shelf' ? 'plist__act--off' : 'plist__act--on'"
               @tap.stop="onSingleToggle(p)"
+              >{{ p.saleStatus === 'on_shelf' ? '下架' : '上架' }}</view
             >
-              {{ p.saleStatus === 'on_shelf' ? '下架' : '上架' }}
-            </view>
-            <view class="plist__act plist__act--ghost" @tap.stop="onEdit(p.productId)">编辑</view>
           </view>
         </view>
       </view>
@@ -223,88 +241,114 @@ const offShelfCount = computed<number>(() => list.value.filter((p) => p.saleStat
 <style scoped>
 .plist {
   min-height: 100vh;
-  padding: 0 0 200rpx;
+  padding: 24rpx 24rpx 200rpx;
   background: #f5f6f8;
 }
 
-/* Hero */
-.plist__hero {
-  padding: 36rpx 28rpx 56rpx;
-  background: linear-gradient(135deg, #1f2937 0%, #b7791f 100%);
-  color: #fff;
-}
-.plist__hero-row {
+/* 顶部 header */
+.plist__header {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  justify-content: space-between;
+  padding: 8rpx 4rpx 18rpx;
 }
-.plist__hero-main {
-  flex: 1;
+.plist__header-l {
   display: flex;
   flex-direction: column;
   gap: 4rpx;
-  min-width: 0;
 }
-.plist__hero-eyebrow {
-  font-size: 22rpx;
-  letter-spacing: 1rpx;
-  color: rgba(255, 255, 255, 0.78);
-}
-.plist__hero-num {
-  font-size: 56rpx;
+.plist__title {
+  font-size: 36rpx;
   font-weight: 800;
-  line-height: 1;
-  letter-spacing: -1rpx;
+  color: #172033;
+  letter-spacing: 0.5rpx;
 }
-.plist__hero-num-unit {
-  font-size: 24rpx;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.86);
-  margin-left: 6rpx;
-}
-.plist__hero-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10rpx;
-  flex-shrink: 0;
-}
-.plist__hero-btn {
-  padding: 12rpx 22rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
+.plist__subtitle {
   font-size: 22rpx;
-  font-weight: 600;
-  text-align: center;
+  color: #8a94a6;
 }
-.plist__hero-btn--primary {
-  background: #fff;
-  color: #b7791f;
-  font-weight: 700;
-}
-.plist__hero-stats {
-  margin-top: 24rpx;
+.plist__header-r {
   display: flex;
   align-items: center;
-  gap: 24rpx;
+  gap: 10rpx;
 }
-.plist__hero-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2rpx;
-}
-.plist__hero-stat-val {
-  font-size: 28rpx;
+
+/* btn */
+.plist__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  padding: 14rpx 22rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
   font-weight: 700;
 }
-.plist__hero-stat-label {
-  font-size: 20rpx;
-  color: rgba(255, 255, 255, 0.7);
+.plist__btn--ghost {
+  background: #fff;
+  color: #5a6275;
+  border: 1rpx solid #d8dde4;
 }
-.plist__hero-stat-divider {
-  width: 2rpx;
-  height: 36rpx;
-  background: rgba(255, 255, 255, 0.24);
+.plist__btn--primary {
+  background: #b7791f;
+  color: #fff;
+}
+
+/* 状态汇总 */
+.plist__summary {
+  display: flex;
+  align-items: stretch;
+  background: #fff;
+  border: 1rpx solid #e6e9ee;
+  border-radius: 14rpx;
+  padding: 22rpx 16rpx;
+}
+.plist__summary-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+}
+.plist__summary-val {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #172033;
+  line-height: 1;
+  font-feature-settings: 'tnum';
+}
+.plist__summary-label {
+  font-size: 22rpx;
+  color: #8a94a6;
+}
+.plist__summary-divider {
+  width: 1rpx;
+  background: #e6e9ee;
+  margin: 8rpx 0;
+}
+
+/* tab */
+.plist__tabs {
+  display: flex;
+  gap: 0;
+  margin-top: 16rpx;
+  background: #fff;
+  border: 1rpx solid #e6e9ee;
+  border-radius: 10rpx;
+  padding: 4rpx;
+}
+.plist__tab {
+  flex: 1;
+  text-align: center;
+  padding: 14rpx 0;
+  font-size: 24rpx;
+  color: #5a6275;
+  border-radius: 8rpx;
+}
+.plist__tab--active {
+  background: #172033;
+  color: #fff;
+  font-weight: 700;
 }
 
 /* Empty / loading */
@@ -312,58 +356,42 @@ const offShelfCount = computed<number>(() => list.value.filter((p) => p.saleStat
   text-align: center;
   padding: 100rpx 0;
   color: #8a94a6;
-  font-size: 26rpx;
+  font-size: 24rpx;
 }
 .plist__empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18rpx;
-  padding: 120rpx 0;
-}
-.plist__empty-icon {
-  font-size: 96rpx;
-  opacity: 0.5;
+  gap: 22rpx;
+  padding: 120rpx 0 60rpx;
 }
 .plist__empty-text {
   font-size: 26rpx;
   color: #8a94a6;
 }
-.plist__empty-btn {
-  margin-top: 12rpx;
-  padding: 18rpx 44rpx;
-  border-radius: 999rpx;
-  background: linear-gradient(135deg, #1f2937, #b7791f);
-  color: #fff;
-  font-size: 26rpx;
-  font-weight: 700;
-  box-shadow: 0 14rpx 36rpx rgba(183, 121, 31, 0.32);
-}
 
 /* 两列 grid */
 .plist__grid {
-  margin: -28rpx 16rpx 0;
+  margin-top: 16rpx;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16rpx;
-  position: relative;
-  z-index: 2;
+  gap: 14rpx;
 }
 .plist__card {
   background: #fff;
-  border-radius: 22rpx;
+  border: 1rpx solid #e6e9ee;
+  border-radius: 12rpx;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8rpx 24rpx rgba(31, 41, 55, 0.06);
-  border: 2rpx solid transparent;
   transition: border-color 0.15s;
 }
 .plist__card--checked {
   border-color: #b7791f;
+  border-width: 2rpx;
 }
 .plist__card--off {
-  opacity: 0.78;
+  opacity: 0.85;
 }
 
 /* 封面 */
@@ -372,24 +400,30 @@ const offShelfCount = computed<number>(() => list.value.filter((p) => p.saleStat
   width: 100%;
   aspect-ratio: 1;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: #f5f6f8;
 }
 .plist__cover-img {
   width: 100%;
   height: 100%;
 }
+.plist__cover-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f1f3;
+}
 .plist__cover-letter {
-  font-size: 88rpx;
+  font-size: 84rpx;
   font-weight: 800;
-  color: rgba(255, 255, 255, 0.95);
+  color: #c5c9d2;
 }
 .plist__cover-mask {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.42);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.72);
+  color: #5a6275;
   font-size: 26rpx;
   font-weight: 700;
   display: flex;
@@ -399,64 +433,65 @@ const offShelfCount = computed<number>(() => list.value.filter((p) => p.saleStat
 
 .plist__check {
   position: absolute;
-  top: 12rpx;
-  left: 12rpx;
+  top: 10rpx;
+  left: 10rpx;
   z-index: 2;
 }
 .plist__check-box {
   width: 40rpx;
   height: 40rpx;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.94);
-  border: 2rpx solid rgba(0, 0, 0, 0.12);
+  border-radius: 6rpx;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2rpx solid #d8dde4;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .plist__check-box--on {
-  background: linear-gradient(135deg, #1f2937, #b7791f);
-  border-color: transparent;
-}
-.plist__check-mark {
-  color: #fff;
-  font-size: 26rpx;
-  font-weight: 800;
-  line-height: 1;
+  background: #b7791f;
+  border-color: #b7791f;
 }
 
 .plist__status {
   position: absolute;
-  top: 12rpx;
-  right: 12rpx;
-  padding: 4rpx 14rpx;
-  border-radius: 999rpx;
+  top: 10rpx;
+  right: 10rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
   font-size: 18rpx;
   font-weight: 700;
   z-index: 2;
+  background: rgba(255, 255, 255, 0.96);
+  color: #5a6275;
+  border: 1rpx solid rgba(0, 0, 0, 0.06);
 }
 .plist__status--on_shelf {
-  background: rgba(56, 239, 125, 0.95);
-  color: #064f30;
+  background: #e9f7ef;
+  color: #11865c;
+  border-color: rgba(17, 134, 92, 0.2);
 }
 .plist__status--off_shelf {
-  background: rgba(0, 0, 0, 0.65);
-  color: #fff;
+  background: #f0f1f3;
+  color: #5a6275;
 }
 .plist__status--sold_out {
-  background: rgba(255, 77, 79, 0.95);
-  color: #fff;
+  background: #fdecea;
+  color: #c0392b;
+  border-color: rgba(192, 57, 43, 0.2);
 }
 .plist__status--draft {
-  background: rgba(255, 255, 255, 0.92);
-  color: #5a6275;
+  background: #fff7e0;
+  color: #b7791f;
+  border-color: rgba(183, 121, 31, 0.2);
 }
 
 .plist__info {
-  padding: 16rpx 18rpx 18rpx;
+  padding: 16rpx 16rpx 16rpx;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 6rpx;
   min-width: 0;
+  border-top: 1rpx solid #f0f1f3;
 }
 .plist__name {
   font-size: 26rpx;
@@ -473,50 +508,56 @@ const offShelfCount = computed<number>(() => list.value.filter((p) => p.saleStat
   gap: 10rpx;
 }
 .plist__price {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 800;
-  color: #d33;
+  color: #c0392b;
   line-height: 1;
+  font-feature-settings: 'tnum';
+}
+.plist__price-symbol {
+  font-size: 22rpx;
+  font-weight: 700;
+  margin-right: 2rpx;
 }
 .plist__sku-tag {
-  background: rgba(183, 121, 31, 0.12);
+  background: #fff7e0;
   color: #b7791f;
   font-size: 18rpx;
-  padding: 2rpx 10rpx;
-  border-radius: 6rpx;
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
   font-weight: 700;
+  border: 1rpx solid rgba(183, 121, 31, 0.2);
 }
 .plist__meta {
-  display: flex;
-  align-items: center;
-  gap: 6rpx;
   font-size: 20rpx;
   color: #8a94a6;
 }
 .plist__actions {
-  margin-top: 6rpx;
+  margin-top: 8rpx;
   display: flex;
-  gap: 8rpx;
+  gap: 6rpx;
 }
 .plist__act {
   flex: 1;
   text-align: center;
   font-size: 22rpx;
   padding: 10rpx 0;
-  border-radius: 12rpx;
+  border-radius: 6rpx;
   font-weight: 600;
 }
 .plist__act--ghost {
   background: #f5f6f8;
   color: #5a6275;
+  border: 1rpx solid #e6e9ee;
 }
 .plist__act--on {
-  background: linear-gradient(135deg, #1f2937, #b7791f);
+  background: #b7791f;
   color: #fff;
 }
 .plist__act--off {
-  background: rgba(217, 51, 51, 0.1);
-  color: #d33;
+  background: #fff;
+  color: #c0392b;
+  border: 1rpx solid rgba(192, 57, 43, 0.3);
 }
 
 /* 批量底部 fixed bar */
@@ -527,11 +568,10 @@ const offShelfCount = computed<number>(() => list.value.filter((p) => p.saleStat
   bottom: 0;
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  padding: 16rpx 24rpx calc(env(safe-area-inset-bottom, 0rpx) + 16rpx);
+  gap: 10rpx;
+  padding: 14rpx 24rpx calc(env(safe-area-inset-bottom, 0rpx) + 14rpx);
   background: #fff;
-  border-top: 1rpx solid rgba(31, 41, 55, 0.06);
-  box-shadow: 0 -8rpx 24rpx rgba(31, 41, 55, 0.04);
+  border-top: 1rpx solid #e6e9ee;
   z-index: 50;
 }
 .plist__bar-info {
@@ -541,7 +581,7 @@ const offShelfCount = computed<number>(() => list.value.filter((p) => p.saleStat
   gap: 4rpx;
 }
 .plist__bar-checked {
-  font-size: 32rpx;
+  font-size: 28rpx;
   font-weight: 800;
   color: #172033;
 }
@@ -550,18 +590,18 @@ const offShelfCount = computed<number>(() => list.value.filter((p) => p.saleStat
   color: #8a94a6;
 }
 .plist__bar-btn {
-  padding: 18rpx 28rpx;
-  border-radius: 999rpx;
-  font-size: 26rpx;
+  padding: 16rpx 26rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
   font-weight: 700;
 }
 .plist__bar-btn--ghost {
-  background: rgba(217, 51, 51, 0.08);
-  color: #d33;
+  background: #fff;
+  color: #c0392b;
+  border: 1rpx solid rgba(192, 57, 43, 0.3);
 }
 .plist__bar-btn--primary {
-  background: linear-gradient(135deg, #1f2937, #b7791f);
+  background: #b7791f;
   color: #fff;
-  box-shadow: 0 12rpx 28rpx rgba(183, 121, 31, 0.32);
 }
 </style>

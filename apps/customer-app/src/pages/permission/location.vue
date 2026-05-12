@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/** 定位授权页:阶段 0 占位,实际授权流程在阶段 1 实现 */
 import { ref } from 'vue';
 
 import SvgIcon from '@/components/common/SvgIcon.vue';

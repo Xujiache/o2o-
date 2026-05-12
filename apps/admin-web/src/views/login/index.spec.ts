@@ -1,4 +1,4 @@
-/** 登录页(stage 4):captcha 加载 + login 表单 + 错误处理 + lastLoginAt 透传 */
+/** 登录页:captcha 加载 + login 表单 + 错误处理 + lastLoginAt 透传 */
 import { mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

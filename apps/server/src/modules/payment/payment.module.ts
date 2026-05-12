@@ -11,6 +11,7 @@ import {
   StockLock,
   StockRecord,
 } from '../../database/entities';
+import { CouponModule } from '../coupon/coupon.module';
 
 import { PaymentCallbackController } from './payment-callback.controller';
 import { PaymentController } from './payment.controller';
@@ -28,6 +29,7 @@ import { PaymentService } from './payment.service';
       ErrandOrder,
       ErrandTimeline,
     ]),
+    CouponModule,
   ],
   controllers: [PaymentController, PaymentCallbackController],
   providers: [PaymentService],

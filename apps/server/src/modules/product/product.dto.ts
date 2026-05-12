@@ -70,6 +70,13 @@ export class SkuDto {
   @IsInt()
   @Min(0)
   stock!: number;
+
+  /** 规格重量(克),可选 — 不传 / null 表示不按重量销售 */
+  @ApiProperty({ required: false, nullable: true, example: 500, description: '规格重量(克),不填则不按重量销售' })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  weightGrams?: number | null;
 }
 
 export class ListProductsQueryDto {

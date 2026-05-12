@@ -11,6 +11,12 @@ import {
   type TimelineStatsVo,
 } from '@/api/admin-food-orders';
 
+import DataTable from '@/components/DataTable.vue';
+import FilterBar from '@/components/FilterBar.vue';
+import PageContainer from '@/components/PageContainer.vue';
+import StatCard from '@/components/StatCard.vue';
+import StatusTag from '@/components/StatusTag.vue';
+
 import FoodOrderDetailDrawer from './components/FoodOrderDetailDrawer.vue';
 
 const loading = ref(false);
@@ -68,8 +74,21 @@ function viewDetail(row: AdminFoodOrderListItem): void {
   drawerVisible.value = true;
 }
 
+function onSearch(): void {
+  query.pageNo = 1;
+  void fetchList();
+}
+function onReset(): void {
+  query.status = '';
+  query.cityCode = '';
+  query.customerId = '';
+  query.storeId = '';
+  query.pageNo = 1;
+  void fetchList();
+}
+
 const fmtDate = (ts: number): string => new Date(ts).toLocaleString();
-const fmtYuan = (cents: string): string => (Number(cents) / 100).toFixed(2);
+const fmtYuan = (cents: string): string => `${(Number(cents || 0) / 100).toFixed(2)} 元`;
 const statusLabel = (status: FoodOrderStatus): string => FOOD_ORDER_STATUS_LABEL[status] ?? status;
 
 onMounted(() => {
@@ -79,136 +98,148 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="food-orders">
-    <el-row :gutter="16" class="food-orders__stats">
-      <el-col :span="4"
-        ><el-card
-          ><div class="stat-num">{{ stats?.waitPayOverdueCount ?? '-' }}</div>
-          <div class="stat-lbl">待支付超时</div></el-card
-        ></el-col
+  <PageContainer title="外卖订单" subtitle="全量订单流水 · 含 timeline 超时统计">
+    <template #extra>
+      <el-button
+        @click="
+          fetchStats();
+          fetchList();
+        "
       >
-      <el-col :span="4"
-        ><el-card
-          ><div class="stat-num">{{ stats?.merchantAcceptOverdueCount ?? '-' }}</div>
-          <div class="stat-lbl">商家未接 10min+</div></el-card
-        ></el-col
-      >
-      <el-col :span="4"
-        ><el-card
-          ><div class="stat-num">{{ stats?.deliveringCount ?? '-' }}</div>
-          <div class="stat-lbl">配送中</div></el-card
-        ></el-col
-      >
-      <el-col :span="4"
-        ><el-card
-          ><div class="stat-num">{{ stats?.completedTodayCount ?? '-' }}</div>
-          <div class="stat-lbl">今日完成</div></el-card
-        ></el-col
-      >
-      <el-col :span="4"
-        ><el-card
-          ><div class="stat-num">{{ stats?.cancelledTodayCount ?? '-' }}</div>
-          <div class="stat-lbl">今日取消</div></el-card
-        ></el-col
-      >
-    </el-row>
+        <el-icon><Refresh /></el-icon>
+        <span style="margin-left: 6px">刷新</span>
+      </el-button>
+    </template>
 
-    <el-card>
-      <template #header>外卖订单</template>
-      <el-form :model="query" :inline="true">
-        <el-form-item label="状态">
-          <el-select v-model="query.status" placeholder="全部" clearable style="width: 160px">
-            <el-option v-for="o in STATUS_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="城市">
-          <el-input v-model="query.cityCode" placeholder="cityCode" clearable style="width: 120px" />
-        </el-form-item>
-        <el-form-item label="用户 id">
-          <el-input v-model="query.customerId" placeholder="customerId" clearable style="width: 140px" />
-        </el-form-item>
-        <el-form-item label="店铺 id">
-          <el-input v-model="query.storeId" placeholder="storeId" clearable style="width: 140px" />
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            @click="
-              query.pageNo = 1;
-              void fetchList();
-            "
-            >查询</el-button
-          >
-        </el-form-item>
-      </el-form>
+    <!-- KPI -->
+    <section class="kpi-row">
+      <StatCard
+        label="待支付超时"
+        :value="stats?.waitPayOverdueCount ?? '—'"
+        tone="warning"
+        :loading="!stats"
+        hint="expireAt < now"
+      />
+      <StatCard
+        label="商家 10min 未接"
+        :value="stats?.merchantAcceptOverdueCount ?? '—'"
+        tone="danger"
+        :loading="!stats"
+        hint="自动取消触发线"
+      />
+      <StatCard label="配送中" :value="stats?.deliveringCount ?? '—'" tone="info" :loading="!stats" />
+      <StatCard label="今日完成" :value="stats?.completedTodayCount ?? '—'" tone="success" :loading="!stats" />
+      <StatCard label="今日取消" :value="stats?.cancelledTodayCount ?? '—'" tone="neutral" :loading="!stats" />
+    </section>
 
-      <el-table :data="list" v-loading="loading" stripe>
-        <el-table-column label="订单号" prop="orderNo" width="180" />
-        <el-table-column label="状态" prop="status" width="140">
-          <template #default="{ row }">
-            <el-tag size="small">{{ statusLabel(row.status) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="支付" prop="payStatus" width="100" />
-        <el-table-column label="用户" prop="customerId" width="120" />
-        <el-table-column label="店铺" prop="storeId" width="100" />
-        <el-table-column label="城市" prop="cityCode" width="80" />
-        <el-table-column label="应付">
-          <template #default="{ row }">¥ {{ fmtYuan(row.payableAmount) }}</template>
-        </el-table-column>
-        <el-table-column label="创建时间" width="180">
-          <template #default="{ row }">{{ fmtDate(row.createdAt) }}</template>
-        </el-table-column>
-        <el-table-column label="操作" width="100" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="primary" @click="viewDetail(row)">详情</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="food-orders__pagination">
-        <el-pagination
-          background
-          layout="total, prev, pager, next"
-          :total="total"
-          :current-page="query.pageNo"
-          :page-size="query.pageSize"
-          @current-change="
-            (p: number) => {
-              query.pageNo = p;
-              void fetchList();
-            }
-          "
+    <!-- Filter -->
+    <FilterBar @search="onSearch" @reset="onReset">
+      <div class="filter-field">
+        <label>状态</label>
+        <el-select v-model="query.status" placeholder="全部" clearable style="width: 160px">
+          <el-option v-for="o in STATUS_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
+        </el-select>
+      </div>
+      <div class="filter-field">
+        <label>城市</label>
+        <el-input
+          v-model="query.cityCode"
+          placeholder="cityCode"
+          clearable
+          style="width: 120px"
+          @keyup.enter="onSearch"
         />
       </div>
-    </el-card>
+      <div class="filter-field">
+        <label>用户</label>
+        <el-input
+          v-model="query.customerId"
+          placeholder="customerId"
+          clearable
+          style="width: 140px"
+          @keyup.enter="onSearch"
+        />
+      </div>
+      <div class="filter-field">
+        <label>店铺</label>
+        <el-input
+          v-model="query.storeId"
+          placeholder="storeId"
+          clearable
+          style="width: 140px"
+          @keyup.enter="onSearch"
+        />
+      </div>
+    </FilterBar>
+
+    <!-- Table -->
+    <DataTable
+      :data="list"
+      :loading="loading"
+      :total="total"
+      v-model:pageNo="query.pageNo"
+      v-model:pageSize="query.pageSize"
+      @page-change="fetchList"
+    >
+      <el-table-column label="订单号" prop="orderNo" width="200">
+        <template #default="{ row }">
+          <span class="mono">{{ row.orderNo }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="状态" width="140">
+        <template #default="{ row }">
+          <StatusTag :status="row.status" :label="statusLabel(row.status)" />
+        </template>
+      </el-table-column>
+      <el-table-column label="支付" prop="payStatus" width="100">
+        <template #default="{ row }">
+          <span class="muted">{{ row.payStatus }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="用户" prop="customerId" width="140">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.customerId }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="店铺" prop="storeId" width="120">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.storeId }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="城市" prop="cityCode" width="80" />
+      <el-table-column label="应付" align="right" width="120">
+        <template #default="{ row }">
+          <span class="mono">{{ fmtYuan(row.payableAmount) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="创建时间" width="180">
+        <template #default="{ row }">
+          <span class="muted">{{ fmtDate(row.createdAt) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="80" fixed="right">
+        <template #default="{ row }">
+          <el-button link type="primary" @click="viewDetail(row)">详情</el-button>
+        </template>
+      </el-table-column>
+    </DataTable>
 
     <FoodOrderDetailDrawer v-model:visible="drawerVisible" :order-id="drawerOrderId" />
-  </div>
+  </PageContainer>
 </template>
 
 <style scoped>
-.food-orders {
-  padding: 16px;
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--gap-3);
 }
-.food-orders__stats {
-  margin-bottom: 16px;
-}
-.stat-num {
-  font-size: 24px;
-  font-weight: 600;
-  color: #ff6633;
-  text-align: center;
-}
-.stat-lbl {
-  text-align: center;
-  color: #888;
+.mono {
+  font-family: var(--font-mono);
   font-size: 12px;
-  margin-top: 4px;
 }
-.food-orders__pagination {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
+.muted {
+  color: var(--fg-muted);
+  font-size: 12px;
 }
 </style>

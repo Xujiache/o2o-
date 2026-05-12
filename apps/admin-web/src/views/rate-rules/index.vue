@@ -64,7 +64,7 @@ onMounted(load);
       <el-table-column prop="cityCode" label="城市" width="100" />
       <el-table-column prop="categoryId" label="类目" width="100" />
       <el-table-column prop="merchantCommissionRate" label="商家佣金(万分)" width="140" />
-      <el-table-column prop="riderServiceFee" label="骑手服务费(分)" width="140" />
+      <el-table-column prop="riderServiceFee" label="骑手服务费（元）" width="140" />
       <el-table-column prop="withdrawFeeRate" label="提现手续费(万分)" width="160" />
       <el-table-column prop="settlementCycle" label="结算周期" width="120" />
       <el-table-column prop="status" label="状态" width="100" />
@@ -84,7 +84,7 @@ onMounted(load);
         <el-form-item label="商家佣金(万分)">
           <el-input-number v-model="form.merchantCommissionRate" :min="0" />
         </el-form-item>
-        <el-form-item label="骑手服务费(分)"><el-input v-model="form.riderServiceFee" /></el-form-item>
+        <el-form-item label="骑手服务费（元）"><el-input v-model="form.riderServiceFee" /></el-form-item>
         <el-form-item label="提现手续费(万分)">
           <el-input-number v-model="form.withdrawFeeRate" :min="0" />
         </el-form-item>
@@ -95,7 +95,7 @@ onMounted(load);
             <el-option label="月结" value="MONTHLY" />
           </el-select>
         </el-form-item>
-        <el-form-item label="生效时间(ms)"><el-input-number v-model="form.effectiveAt" /></el-form-item>
+        <el-form-item label="生效时间"><el-input-number v-model="form.effectiveAt" /></el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>

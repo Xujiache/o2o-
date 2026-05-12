@@ -1,5 +1,5 @@
 /**
- * 平台 Web - 骑手管理接口(stage 3)。
+ * 平台 Web - 骑手管理接口。
  */
 import type { ApiResponse } from '@o2o/contracts';
 

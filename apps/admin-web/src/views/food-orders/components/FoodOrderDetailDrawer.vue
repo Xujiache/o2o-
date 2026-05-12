@@ -71,7 +71,7 @@ watch(
 );
 
 const fmtDate = (ts: number | null | undefined): string => (ts ? new Date(ts).toLocaleString() : '-');
-const fmtYuan = (cents: string): string => (Number(cents) / 100).toFixed(2);
+const fmtYuan = (cents: string): string => `${(Number(cents) / 100).toFixed(2)} 元`;
 const statusLabel = (status: string | null | undefined): string =>
   status ? (FOOD_ORDER_STATUS_LABEL[status as FoodOrderStatus] ?? status) : '-';
 
@@ -107,9 +107,9 @@ const displayTimeline = computed<AdminTimelineItemVo[]>(() => {
           <el-descriptions-item label="店铺 id">{{ detail.storeId }}</el-descriptions-item>
           <el-descriptions-item label="城市">{{ detail.cityCode }}</el-descriptions-item>
           <el-descriptions-item label="支付状态">{{ detail.payStatus }}</el-descriptions-item>
-          <el-descriptions-item label="商品金额">¥ {{ fmtYuan(detail.goodsAmount) }}</el-descriptions-item>
-          <el-descriptions-item label="配送费">¥ {{ fmtYuan(detail.deliveryFee) }}</el-descriptions-item>
-          <el-descriptions-item label="应付">¥ {{ fmtYuan(detail.payableAmount) }}</el-descriptions-item>
+          <el-descriptions-item label="商品金额">{{ fmtYuan(detail.goodsAmount) }}</el-descriptions-item>
+          <el-descriptions-item label="配送费">{{ fmtYuan(detail.deliveryFee) }}</el-descriptions-item>
+          <el-descriptions-item label="应付">{{ fmtYuan(detail.payableAmount) }}</el-descriptions-item>
           <el-descriptions-item label="创建时间">{{ fmtDate(detail.createdAt) }}</el-descriptions-item>
           <el-descriptions-item label="支付时间">{{ fmtDate(detail.paidAt) }}</el-descriptions-item>
           <el-descriptions-item label="取消时间">{{ fmtDate(detail.cancelledAt) }}</el-descriptions-item>
@@ -144,7 +144,7 @@ const displayTimeline = computed<AdminTimelineItemVo[]>(() => {
         <el-descriptions v-if="paymentDetail" v-loading="paymentLoading" :column="1" border class="mt-12">
           <el-descriptions-item label="支付单详情 ID">{{ paymentDetail.payOrderId }}</el-descriptions-item>
           <el-descriptions-item label="支付状态">{{ paymentDetail.payStatus }}</el-descriptions-item>
-          <el-descriptions-item label="支付金额">¥ {{ fmtYuan(paymentDetail.amountFen) }}</el-descriptions-item>
+          <el-descriptions-item label="支付金额">{{ fmtYuan(paymentDetail.amountFen) }}</el-descriptions-item>
           <el-descriptions-item label="渠道">{{ paymentDetail.channel }}</el-descriptions-item>
           <el-descriptions-item label="三方流水">{{ paymentDetail.thirdPartyTradeNo ?? '-' }}</el-descriptions-item>
           <el-descriptions-item label="支付时间">{{ fmtDate(paymentDetail.paidAt) }}</el-descriptions-item>
@@ -204,7 +204,7 @@ const displayTimeline = computed<AdminTimelineItemVo[]>(() => {
               <el-table-column prop="channel" label="渠道" width="100" />
               <el-table-column prop="status" label="状态" width="100" />
               <el-table-column label="实付" width="100">
-                <template #default="{ row }">{{ row.paidAmount ? `¥ ${fmtYuan(row.paidAmount)}` : '-' }}</template>
+                <template #default="{ row }">{{ row.paidAmount ? fmtYuan(row.paidAmount) : '-' }}</template>
               </el-table-column>
               <el-table-column label="支付时间" width="170">
                 <template #default="{ row }">{{ fmtDate(row.paidAt) }}</template>

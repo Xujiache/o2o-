@@ -141,9 +141,30 @@ export class RiderTaskService {
 
   private async toDetailVo(task: RiderTask): Promise<RiderTaskDetailVo> {
     let errandTypeCode: 'BUY' | 'DELIVER' | 'HELP' | 'CUSTOM' | null = null;
+    let pickupLocation: { lng: number; lat: number; name: string } | null = null;
+    let deliveryLocation: { lng: number; lat: number; name: string } | null = null;
     if (task.bizType === 'ERRAND') {
       const order = await this.errandOrderRepo.findOne({ where: { errandOrderId: task.bizOrderId } });
       errandTypeCode = order?.typeCode ?? null;
+      const errandTask = task.bizTaskId
+        ? await this.errandTaskRepo.findOne({ where: { errandTaskId: task.bizTaskId } })
+        : null;
+      const pickup = errandTask?.pickupAddress;
+      const delivery = errandTask?.deliveryAddress;
+      pickupLocation =
+        pickup?.lng != null && pickup?.lat != null ? { lng: pickup.lng, lat: pickup.lat, name: pickup.address } : null;
+      deliveryLocation =
+        delivery?.lng != null && delivery?.lat != null
+          ? { lng: delivery.lng, lat: delivery.lat, name: delivery.address }
+          : null;
+    } else {
+      const order = await this.foodOrderRepo.findOne({ where: { foodOrderId: task.bizOrderId } });
+      const address = order?.addressSnapshot;
+      pickupLocation = { lng: 116.4, lat: 39.9, name: '商家位置' };
+      deliveryLocation =
+        address?.lng != null && address?.lat != null
+          ? { lng: Number(address.lng), lat: Number(address.lat), name: address.detail }
+          : null;
     }
     const requirePickupCode = task.bizType === 'ERRAND' && errandTypeCode === 'DELIVER';
     const requireDeliveryCode = task.bizType === 'ERRAND' && errandTypeCode !== null;
@@ -162,6 +183,8 @@ export class RiderTaskService {
       errandTypeCode,
       requirePickupCode,
       requireDeliveryCode,
+      pickupLocation,
+      deliveryLocation,
     };
   }
 

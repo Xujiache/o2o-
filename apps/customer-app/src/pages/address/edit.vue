@@ -45,13 +45,12 @@ onShow(() => {
 });
 
 async function loadAddress(id: string): Promise<void> {
-  // 简化:从列表里查(stage 1 没单条 GET 接口)
   const r = await getAddresses(1, 100);
   if (r.code === '0' && r.data) {
     const found = r.data.list.find((a: AddressItemVo) => a.addressId === id);
     if (found) {
       receiverName.value = found.receiverName;
-      // mobileMasked → 不能直接用作 mobile,要求用户重新填
+      // mobileMasked 不能直接用作 mobile,要求用户重新填
       cityCode.value = found.cityCode;
       detail.value = found.detail;
       lng.value = Number(found.lng);

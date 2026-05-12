@@ -11,7 +11,8 @@ function confirm(): void {
     return;
   }
   /* eslint-disable @typescript-eslint/no-explicit-any */
-  const eventChannel = (getCurrentPages?.() ?? []).slice(-1)[0]?.getOpenerEventChannel?.() as any;
+  const page = (getCurrentPages?.() ?? []).slice(-1)[0] as { getOpenerEventChannel?: () => unknown } | undefined;
+  const eventChannel = page?.getOpenerEventChannel?.() as any;
   /* eslint-enable @typescript-eslint/no-explicit-any */
   if (eventChannel?.emit) {
     eventChannel.emit('address:selected', { address: address.value });
@@ -36,7 +37,7 @@ function confirm(): void {
 
     <view class="picker__hint">
       <SvgIcon name="lightbulb" :size="24" color="#ffb400" />
-      <text class="picker__hint-text">当前为简化版,真实定位 / 地图选点将在后续版本接入高德 SDK</text>
+      <text class="picker__hint-text">请填写可准确找到的位置,方便骑手取送。</text>
     </view>
 
     <view class="picker__bar">
@@ -49,7 +50,7 @@ function confirm(): void {
 .picker {
   min-height: 100vh;
   padding: 0 0 200rpx;
-  background: #f5f6f8;
+  background: #fff;
 }
 .picker__hero {
   position: relative;
@@ -102,7 +103,7 @@ function confirm(): void {
   width: 100%;
   min-height: 80rpx;
   padding: 20rpx 24rpx;
-  background: #f7f8fa;
+  background: #fff;
   border-radius: 16rpx;
   font-size: 28rpx;
   color: #172033;
@@ -134,7 +135,7 @@ function confirm(): void {
   right: 0;
   bottom: 0;
   padding: 20rpx 24rpx calc(env(safe-area-inset-bottom, 0rpx) + 24rpx);
-  background: #f5f6f8;
+  background: #fff;
   border-top: 1rpx solid rgba(31, 41, 55, 0.06);
   z-index: 50;
 }

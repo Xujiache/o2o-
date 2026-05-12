@@ -68,3 +68,8 @@ tmp/
 temp/
 *.tmp
 *.bak
+
+# Local API response dumps (debug only — never commit)
+/p.json
+/products.json
+/stores.json

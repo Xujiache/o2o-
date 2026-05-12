@@ -2,12 +2,12 @@
 import SvgIcon from '@/components/common/SvgIcon.vue';
 
 interface Props {
-  active: 'home' | 'errand' | 'orders' | 'me';
+  active: 'home' | 'orders' | 'me';
 }
 defineProps<Props>();
 
 interface Tab {
-  key: 'home' | 'errand' | 'orders' | 'me';
+  key: 'home' | 'orders' | 'me';
   icon: string;
   label: string;
   path: string;
@@ -15,7 +15,6 @@ interface Tab {
 
 const TABS: Tab[] = [
   { key: 'home', icon: 'home', label: '首页', path: '/pages/food/home/index' },
-  { key: 'errand', icon: 'motorcycle', label: '跑腿', path: '/pages/errand/home/index' },
   { key: 'orders', icon: 'clipboard', label: '订单', path: '/pages/food/order/list' },
   { key: 'me', icon: 'user', label: '我的', path: '/pages/me/index' },
 ];

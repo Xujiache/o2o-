@@ -24,6 +24,10 @@ export interface OrderPriceSnapshotPayload {
   deliveryType: FoodOrderDeliveryType;
   reservedTime?: string | null;
   addressSnapshot: FoodOrderAddressSnapshot;
+  /** 选用的 user_coupon_id;无券为 null。submit 时事务里锁定该券 */
+  userCouponId?: string | null;
+  /** 券名,纯展示用 */
+  couponName?: string | null;
 }
 
 @Entity('order_price_snapshot')

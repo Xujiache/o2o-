@@ -76,7 +76,7 @@ onMounted(async () => {
 .track {
   min-height: 100vh;
   padding: 0 0 60rpx;
-  background: #f5f6f8;
+  background: #fff;
 }
 .track__empty {
   padding: 160rpx 0;

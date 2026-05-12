@@ -24,6 +24,7 @@ import {
 import type { PaymentOrderBizType, PaymentOrderChannel } from '../../database/entities/payment-order.entity';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
+import { CouponService } from '../coupon/coupon.service';
 import { IntegrationGatewayService } from '../integration-gateway/integration-gateway.service';
 
 import { type CustomerPaymentVo, type PrepayDto, type PrepayVo } from './payment.dto';
@@ -46,6 +47,7 @@ export class PaymentService {
     private readonly dataSource: DataSource,
     private readonly eventBus: DomainEventBus,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
+    private readonly couponService: CouponService,
   ) {}
 
   async getForCustomer(customerId: string, payOrderId: string): Promise<CustomerPaymentVo> {
@@ -249,6 +251,16 @@ export class PaymentService {
       });
     }
 
+    // 金额一致性校验:通道实际收款必须 === 应付金额。
+    // 缺失这一步即等于"任何金额都算支付成功",资金对账会失败。
+    if (BigInt(parsed.paidAmountCents) !== BigInt(payment.payableAmount)) {
+      throw new UnprocessableEntityException({
+        code: ErrorCode.STATUS_INVALID,
+        detail: 'PAID_AMOUNT_MISMATCH',
+        message: `支付金额异常 expected=${payment.payableAmount} actual=${parsed.paidAmountCents}`,
+      });
+    }
+
     // 4. 事务
     const now = parsed.paidAt;
     await this.dataSource.transaction(async (em: EntityManager) => {
@@ -372,6 +384,9 @@ export class PaymentService {
         createdAt: String(now),
       });
     }
+    // 优惠券 active → consumed(若该订单有锁则核销;无锁返 0,幂等)
+    await this.couponService.consumeCoupons(em, payment.bizId);
+
     await em.getRepository(OrderTimeline).insert({
       orderId: payment.bizId,
       bizType: 'FOOD',

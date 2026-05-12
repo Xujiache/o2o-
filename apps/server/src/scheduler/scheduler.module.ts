@@ -47,6 +47,7 @@ import {
   RiskExceptionLog,
 } from '../database/entities';
 import { AuthEntitiesModule } from '../modules/auth/auth-entities.module';
+import { CouponModule } from '../modules/coupon/coupon.module';
 import { ErrandDispatchModule } from '../modules/errand-dispatch/errand-dispatch.module';
 import { IntegrationGatewayModule } from '../modules/integration-gateway/integration-gateway.module';
 
@@ -154,6 +155,7 @@ import { SchedulerController } from './scheduler.controller';
     ]),
     IntegrationGatewayModule,
     ErrandDispatchModule,
+    CouponModule,
   ],
   controllers: [SchedulerController],
   providers: [

@@ -18,14 +18,6 @@ export function prepay(body: PrepayReq): Promise<ApiResponse<PrepayVo>> {
   return request<PrepayVo>({ url: '/api/v1/c/payments/prepay', method: 'POST', data: body });
 }
 
-/**
- * [DEMO ONLY] 模拟支付平台异步回调,触发 server 把 payment 标 success
- * 并把订单推到 PAID_WAIT_MERCHANT。stage 11 真接 wxpay/alipay 后删除。
- *
- * @param channel - 'wxpay' | 'alipay'
- * @param outTradeNo - 来自 prepay 返回的 payOrderNo
- * @param paidAmountCents - 支付金额(分)
- */
 export function simulatePayCallback(
   channel: 'wxpay' | 'alipay',
   outTradeNo: string,
@@ -41,9 +33,9 @@ export function simulatePayCallback(
       success: (res) => {
         const data = res.data as { ok?: boolean } | undefined;
         if (res.statusCode === 200 && data?.ok) resolve();
-        else reject(new Error(`mock callback failed: HTTP ${res.statusCode}`));
+        else reject(new Error(`支付回调失败: HTTP ${res.statusCode}`));
       },
-      fail: (err) => reject(new Error(err.errMsg || 'mock callback request failed')),
+      fail: (err) => reject(new Error(err.errMsg || '支付回调请求失败')),
     });
   });
 }

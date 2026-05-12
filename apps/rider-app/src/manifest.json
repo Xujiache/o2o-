@@ -1,7 +1,7 @@
 {
   "name": "O2O 骑手端",
   "appid": "__UNI__O2ORIDR",
-  "description": "O2O 骑手端(Android APP / iOS APP;H5 仅用于开发调试)",
+  "description": "O2O 骑手端(Android APP / iOS APP / H5)",
   "versionName": "0.0.1",
   "versionCode": "1",
   "transformPx": false,
@@ -51,7 +51,7 @@
     }
   },
   "h5": {
-    "title": "O2O 骑手端(开发调试)",
+    "title": "O2O 骑手端",
     "router": {
       "mode": "hash",
       "base": "/rider/"

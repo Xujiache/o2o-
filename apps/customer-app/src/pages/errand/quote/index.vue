@@ -90,7 +90,7 @@ function goConfirm(): void {
 .quote {
   min-height: 100vh;
   padding: 0 0 200rpx;
-  background: #f5f6f8;
+  background: #fff;
 }
 .quote__loading,
 .quote__error {
@@ -245,7 +245,7 @@ function goConfirm(): void {
   right: 0;
   bottom: 0;
   padding: 20rpx 24rpx calc(env(safe-area-inset-bottom, 0rpx) + 24rpx);
-  background: rgba(245, 246, 248, 0.96);
+  background: #fff;
   backdrop-filter: blur(12rpx);
   z-index: 50;
 }

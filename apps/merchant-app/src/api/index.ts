@@ -135,6 +135,7 @@ export interface StoreVo {
   merchantId: string;
   name: string;
   avatarFileId?: string | null;
+  avatarUrl?: string | null;
   intro?: string | null;
   businessScope: string;
   businessStatus: 'online' | 'offline' | 'paused';
@@ -170,6 +171,8 @@ export interface SkuReq {
   specValue: string;
   price: number;
   stock: number;
+  /** 规格重量(克),null/不传 = 不按重量销售 */
+  weightGrams?: number | null;
 }
 export interface CreateProductReq {
   categoryId: string;
@@ -204,6 +207,8 @@ export interface ProductSkuVo {
   price: string;
   stock: number;
   stockLocked: number;
+  /** 规格重量(克),null = 不按重量销售 */
+  weightGrams?: number | null;
 }
 
 export interface MerchantProductDetailVo {

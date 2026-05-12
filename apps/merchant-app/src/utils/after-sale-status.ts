@@ -1,5 +1,5 @@
 /**
- * Stage 7 — 售后单状态字典。
+ * 售后单状态字典。
  */
 
 export const STATUS_LABEL_AFTER_SALE: Record<string, string> = {

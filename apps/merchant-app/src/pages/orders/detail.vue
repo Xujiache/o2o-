@@ -4,7 +4,7 @@ import { computed, onMounted, ref } from 'vue';
 
 import { getMerchantOrderDetail, type MerchantOrderDetailVo } from '@/api/merchant-orders';
 import { useOrderStore } from '@/stores/order';
-import { labelOrderStatus } from '@/utils/food-order-status';
+import { labelOrderActor, labelOrderStatus } from '@/utils/food-order-status';
 
 const orderStore = useOrderStore();
 const orderId = ref('');
@@ -21,13 +21,70 @@ const canAccept = computed(() => allowedActions.value.includes('ACCEPT'));
 const canReject = computed(() => allowedActions.value.includes('REJECT'));
 const canReady = computed(() => allowedActions.value.includes('READY'));
 
-function fmt(cents: string | number): string {
-  return (Number(cents) / 100).toFixed(2);
+const mapCenter = computed(() => {
+  const map = detail.value?.map;
+  return map?.riderLocation ?? map?.delivery ?? map?.store ?? { lng: 116.4, lat: 39.9 };
+});
+
+const mapMarkers = computed(() => {
+  const map = detail.value?.map;
+  if (!map) return [];
+  const markers = [
+    {
+      id: 1,
+      latitude: map.store.lat,
+      longitude: map.store.lng,
+      title: '商家位置',
+      callout: { content: '商家', display: 'ALWAYS', color: '#172033', fontSize: 12 },
+    },
+  ];
+  if (map.delivery) {
+    markers.push({
+      id: 2,
+      latitude: map.delivery.lat,
+      longitude: map.delivery.lng,
+      title: '收货位置',
+      callout: { content: '收货', display: 'ALWAYS', color: '#172033', fontSize: 12 },
+    });
+  }
+  if (map.riderLocation) {
+    markers.push({
+      id: 3,
+      latitude: map.riderLocation.lat,
+      longitude: map.riderLocation.lng,
+      title: '骑手实时位置',
+      callout: { content: '骑手', display: 'ALWAYS', color: '#172033', fontSize: 12 },
+    });
+  }
+  return markers;
+});
+
+const mapPolyline = computed(() => {
+  const map = detail.value?.map;
+  if (!map?.delivery) return [];
+  return [
+    {
+      points: [
+        { latitude: map.store.lat, longitude: map.store.lng },
+        { latitude: map.delivery.lat, longitude: map.delivery.lng },
+      ],
+      color: '#ff7a45',
+      width: 4,
+      dottedLine: true,
+    },
+  ];
+});
+
+function fmtYuan(cents: string | number): string {
+  return `${(Number(cents || 0) / 100).toFixed(2)} 元`;
 }
 
-function fmtTime(ms: number): string {
+function fmtTime(ms: number | null | undefined): string {
+  if (!ms) return '--';
   const d = new Date(ms);
-  return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(
+    d.getHours(),
+  ).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
 async function load(): Promise<void> {
@@ -49,12 +106,8 @@ async function accept(): Promise<void> {
   submitting.value = true;
   try {
     const ok = await orderStore.accept(orderId.value);
-    if (ok) {
-      uni.showToast({ title: '已接单', icon: 'success' });
-      await load();
-    } else {
-      uni.showToast({ title: '操作失败', icon: 'none' });
-    }
+    uni.showToast({ title: ok ? '已接单' : '操作失败', icon: ok ? 'success' : 'none' });
+    if (ok) await load();
   } finally {
     submitting.value = false;
   }
@@ -69,9 +122,9 @@ async function reject(): Promise<void> {
   try {
     const ok = await orderStore.reject(orderId.value, rejectReason.value.trim());
     if (ok) {
-      uni.showToast({ title: '已拒单', icon: 'success' });
       showReject.value = false;
       rejectReason.value = '';
+      uni.showToast({ title: '已拒单', icon: 'success' });
       await load();
     }
   } finally {
@@ -84,9 +137,9 @@ async function markReady(): Promise<void> {
   try {
     const ok = await orderStore.markReady(orderId.value, readyRemark.value || undefined);
     if (ok) {
-      uni.showToast({ title: '已出餐,等骑手取餐', icon: 'success' });
       showReady.value = false;
       readyRemark.value = '';
+      uni.showToast({ title: '已出餐', icon: 'success' });
       await load();
     }
   } finally {
@@ -102,394 +155,385 @@ onMounted(load);
 </script>
 
 <template>
-  <view class="md">
-    <view v-if="loading && !detail" class="md__loading">加载中…</view>
+  <view class="order">
+    <view v-if="loading && !detail" class="order__loading">加载中...</view>
 
     <template v-else-if="detail">
-      <!-- 状态卡 -->
-      <view class="md__status-card">
-        <view class="md__status-text">{{ labelOrderStatus(detail.status) }}</view>
-        <view class="md__order-no">订单号 {{ detail.orderNo }}</view>
-        <view class="md__order-time">下单时间 {{ fmtTime(detail.createdAt) }}</view>
-      </view>
-
-      <!-- 收件信息 -->
-      <view v-if="detail.address" class="md__card">
-        <view class="md__card-h">收件地址</view>
-        <view class="md__addr-row">
-          <text class="md__addr-name">{{ detail.address.consignee }}</text>
-          <text class="md__addr-mobile">{{ detail.address.mobileMasked }}</text>
+      <view class="hero">
+        <view>
+          <text class="hero__status">{{ labelOrderStatus(detail.status) }}</text>
+          <text class="hero__sub">订单号 {{ detail.orderNo }}</text>
         </view>
-        <text class="md__addr-detail">{{ detail.address.detail }}</text>
+        <view class="hero__amount">{{ fmtYuan(detail.payableAmountCents) }}</view>
       </view>
 
-      <!-- 客户备注 -->
-      <view v-if="detail.userRemark" class="md__card">
-        <view class="md__card-h">客户备注</view>
-        <text class="md__remark">{{ detail.userRemark }}</text>
-      </view>
-
-      <!-- 商品明细 -->
-      <view class="md__card">
-        <view class="md__card-h">商品明细 ({{ detail.items.length }} 项)</view>
-        <view v-for="(it, idx) in detail.items" :key="it.skuId + idx" class="md__line">
-          <text class="md__line-name">
-            {{ it.name }}<text v-if="it.spec && it.spec !== '默认'" class="md__line-spec">{{ it.spec }}</text>
-          </text>
-          <text class="md__line-qty">× {{ it.quantity }}</text>
-          <text class="md__line-sub">¥{{ fmt(it.subTotalCents) }}</text>
+      <view class="map-card">
+        <view class="card-title">配送地图</view>
+        <map
+          class="map"
+          :latitude="mapCenter.lat"
+          :longitude="mapCenter.lng"
+          :markers="mapMarkers"
+          :polyline="mapPolyline"
+          :scale="14"
+        />
+        <view class="map-card__legend">
+          <text>商家位置</text>
+          <text>收货位置</text>
+          <text>{{ detail.map.riderLocation ? '骑手实时位置' : '暂无骑手位置' }}</text>
         </view>
       </view>
 
-      <!-- 金额明细 -->
-      <view class="md__card">
-        <view class="md__amt"
-          ><text>商品金额</text><text>¥{{ fmt(detail.goodsAmountCents) }}</text></view
+      <view v-if="detail.address" class="card">
+        <view class="card-title">收货信息</view>
+        <view class="address-row">
+          <text class="address-row__name">{{ detail.address.consignee }}</text>
+          <text class="address-row__mobile">{{ detail.address.mobileMasked }}</text>
+        </view>
+        <text class="address-detail">{{ detail.address.detail }}</text>
+      </view>
+
+      <view v-if="detail.userRemark" class="card card--note">
+        <view class="card-title">客户备注</view>
+        <text class="note">{{ detail.userRemark }}</text>
+      </view>
+
+      <view class="card">
+        <view class="card-title">商品明细</view>
+        <view v-for="(item, index) in detail.items" :key="item.skuId + index" class="line">
+          <view class="line__main">
+            <text class="line__name">{{ item.name }}</text>
+            <text v-if="item.spec && item.spec !== '默认'" class="line__spec">{{ item.spec }}</text>
+          </view>
+          <text class="line__qty">x{{ item.quantity }}</text>
+          <text class="line__price">{{ fmtYuan(item.subTotalCents) }}</text>
+        </view>
+      </view>
+
+      <view class="card">
+        <view class="amount-row"
+          ><text>商品金额</text><text>{{ fmtYuan(detail.goodsAmountCents) }}</text></view
         >
-        <view class="md__amt"
-          ><text>配送费</text><text>¥{{ fmt(detail.deliveryFeeCents) }}</text></view
+        <view class="amount-row"
+          ><text>配送费</text><text>{{ fmtYuan(detail.deliveryFeeCents) }}</text></view
         >
-        <view v-if="Number(detail.discountAmountCents) > 0" class="md__amt">
-          <text>优惠</text><text>-¥{{ fmt(detail.discountAmountCents) }}</text>
+        <view v-if="Number(detail.discountAmountCents) > 0" class="amount-row">
+          <text>优惠</text><text>-{{ fmtYuan(detail.discountAmountCents) }}</text>
         </view>
-        <view class="md__amt md__amt--total">
-          <text>实收</text><text class="md__amt-pay">¥{{ fmt(detail.payableAmountCents) }}</text>
-        </view>
+        <view class="amount-row amount-row--total"
+          ><text>实收</text><text>{{ fmtYuan(detail.payableAmountCents) }}</text></view
+        >
       </view>
 
-      <!-- 时间线 -->
-      <view v-if="detail.timeline.length > 0" class="md__card">
-        <view class="md__card-h">订单进度</view>
-        <view v-for="(t, i) in detail.timeline" :key="i" class="md__t-row">
-          <view class="md__t-dot" :class="{ 'md__t-dot--last': i === detail.timeline.length - 1 }" />
-          <view class="md__t-main">
-            <text class="md__t-name">{{ labelOrderStatus(t.toStatus) }}</text>
-            <text class="md__t-time">{{ fmtTime(t.at) }} · {{ t.actor }}</text>
-            <text v-if="t.reason" class="md__t-reason">原因: {{ t.reason }}</text>
+      <view v-if="detail.timeline.length" class="card">
+        <view class="card-title">订单进度</view>
+        <view v-for="(item, index) in detail.timeline" :key="index" class="timeline">
+          <view class="timeline__dot" :class="{ 'timeline__dot--active': index === detail.timeline.length - 1 }" />
+          <view class="timeline__main">
+            <text class="timeline__title">{{ labelOrderStatus(item.toStatus) }}</text>
+            <text class="timeline__time">{{ fmtTime(item.at) }} · {{ labelOrderActor(item.actor) }}</text>
+            <text v-if="item.reason" class="timeline__reason">{{ item.reason }}</text>
           </view>
         </view>
       </view>
 
-      <!-- 操作栏 -->
-      <view v-if="canAccept || canReject || canReady" class="md__actions">
-        <view v-if="canReject" class="md__btn md__btn--ghost" @tap="showReject = true">拒单</view>
-        <view v-if="canAccept" class="md__btn md__btn--primary" @tap="accept">接单</view>
-        <view v-if="canReady" class="md__btn md__btn--primary" @tap="showReady = true">出餐</view>
-      </view>
-      <view v-else class="md__actions-none">当前状态无可执行操作</view>
-
-      <!-- 拒单对话框 -->
-      <view v-if="showReject" class="md__dialog">
-        <view class="md__mask" @tap="showReject = false" />
-        <view class="md__modal">
-          <view class="md__modal-h">拒单原因</view>
-          <textarea
-            class="md__modal-textarea"
-            v-model="rejectReason"
-            placeholder="请填写拒单原因(将退款给客户)"
-            maxlength="255"
-          />
-          <view class="md__modal-btns">
-            <view class="md__btn md__btn--ghost" @tap="showReject = false">取消</view>
-            <view class="md__btn md__btn--danger" :class="{ 'md__btn--loading': submitting }" @tap="reject">
-              {{ submitting ? '提交中…' : '确认拒单' }}
-            </view>
-          </view>
-        </view>
-      </view>
-
-      <!-- 出餐对话框 -->
-      <view v-if="showReady" class="md__dialog">
-        <view class="md__mask" @tap="showReady = false" />
-        <view class="md__modal">
-          <view class="md__modal-h">出餐确认</view>
-          <textarea
-            class="md__modal-textarea"
-            v-model="readyRemark"
-            placeholder="可选备注(如:等骑手 5 分钟内来取)"
-            maxlength="255"
-          />
-          <view class="md__modal-btns">
-            <view class="md__btn md__btn--ghost" @tap="showReady = false">取消</view>
-            <view class="md__btn md__btn--primary" :class="{ 'md__btn--loading': submitting }" @tap="markReady">
-              {{ submitting ? '提交中…' : '确认出餐' }}
-            </view>
-          </view>
-        </view>
+      <view v-if="canAccept || canReject || canReady" class="actions">
+        <button v-if="canReject" class="actions__btn actions__btn--ghost" @tap="showReject = true">拒单</button>
+        <button v-if="canAccept" class="actions__btn actions__btn--primary" :loading="submitting" @tap="accept">
+          接单
+        </button>
+        <button v-if="canReady" class="actions__btn actions__btn--primary" @tap="showReady = true">出餐</button>
       </view>
     </template>
+
+    <view v-if="showReject" class="dialog">
+      <view class="dialog__mask" @tap="showReject = false" />
+      <view class="dialog__panel">
+        <view class="dialog__title">拒单原因</view>
+        <textarea
+          v-model="rejectReason"
+          class="dialog__textarea"
+          placeholder="请填写原因，将同步给客户"
+          maxlength="255"
+        />
+        <view class="dialog__actions">
+          <button class="actions__btn actions__btn--ghost" @tap="showReject = false">取消</button>
+          <button class="actions__btn actions__btn--danger" :loading="submitting" @tap="reject">确认拒单</button>
+        </view>
+      </view>
+    </view>
+
+    <view v-if="showReady" class="dialog">
+      <view class="dialog__mask" @tap="showReady = false" />
+      <view class="dialog__panel">
+        <view class="dialog__title">出餐确认</view>
+        <textarea v-model="readyRemark" class="dialog__textarea" placeholder="可填写给骑手的取餐提示" maxlength="255" />
+        <view class="dialog__actions">
+          <button class="actions__btn actions__btn--ghost" @tap="showReady = false">取消</button>
+          <button class="actions__btn actions__btn--primary" :loading="submitting" @tap="markReady">确认出餐</button>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
 <style scoped>
-.md {
+.order {
   min-height: 100vh;
-  padding: 24rpx 24rpx 200rpx;
-  background: #f5f6f8;
-}
-.md__loading {
-  text-align: center;
-  padding: 120rpx 0;
-  color: #8a94a6;
-  font-size: 26rpx;
-}
-
-/* 状态卡 */
-.md__status-card {
-  background: linear-gradient(135deg, #1f2937, #b7791f);
-  color: #fff;
-  border-radius: 24rpx;
-  padding: 36rpx 32rpx 28rpx;
-  margin-bottom: 16rpx;
-  box-shadow: 0 18rpx 40rpx rgba(31, 41, 55, 0.24);
-}
-.md__status-text {
-  font-size: 40rpx;
-  font-weight: 700;
-}
-.md__order-no {
-  margin-top: 12rpx;
-  font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.78);
-}
-.md__order-time {
-  margin-top: 4rpx;
-  font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.66);
-}
-
-/* 卡片 */
-.md__card {
+  padding: 24rpx 24rpx 180rpx;
   background: #fff;
+  box-sizing: border-box;
+}
+.order__loading {
+  padding: 160rpx 0;
+  text-align: center;
+  color: #8a94a6;
+}
+.hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 24rpx;
+  padding: 34rpx 30rpx;
   border-radius: 24rpx;
+  background: #172033;
+  color: #fff;
+  box-shadow: 0 18rpx 42rpx rgba(23, 32, 51, 0.18);
+}
+.hero__status,
+.hero__amount {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 800;
+}
+.hero__sub {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.72);
+}
+.hero__amount {
+  align-self: flex-start;
+  white-space: nowrap;
+}
+.card,
+.map-card {
+  margin-top: 18rpx;
   padding: 24rpx;
-  margin-bottom: 16rpx;
-  box-shadow: 0 8rpx 24rpx rgba(31, 41, 55, 0.04);
+  border-radius: 20rpx;
+  background: #fff;
+  box-shadow: 0 8rpx 28rpx rgba(31, 41, 55, 0.07);
 }
-.md__card-h {
-  font-size: 28rpx;
-  font-weight: 700;
+.card-title {
+  margin-bottom: 16rpx;
   color: #172033;
-  margin-bottom: 16rpx;
+  font-size: 28rpx;
+  font-weight: 800;
 }
-
-/* 地址 */
-.md__addr-row {
+.map {
+  width: 100%;
+  height: 360rpx;
+  border-radius: 18rpx;
+  overflow: hidden;
+}
+.map-card__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 14rpx;
+}
+.map-card__legend text {
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  background: #f5f6f8;
+  color: #5a6275;
+  font-size: 22rpx;
+}
+.address-row {
   display: flex;
   gap: 16rpx;
   align-items: baseline;
 }
-.md__addr-name {
-  font-size: 30rpx;
-  font-weight: 600;
+.address-row__name {
   color: #172033;
+  font-size: 30rpx;
+  font-weight: 700;
 }
-.md__addr-mobile {
-  font-size: 26rpx;
+.address-row__mobile,
+.address-detail,
+.note {
   color: #5a6275;
+  font-size: 26rpx;
+  line-height: 1.5;
 }
-.md__addr-detail {
+.address-detail {
   display: block;
   margin-top: 8rpx;
-  font-size: 26rpx;
-  color: #5a6275;
 }
-.md__remark {
-  font-size: 26rpx;
-  color: #5a6275;
+.card--note {
+  border: 2rpx solid rgba(255, 122, 69, 0.18);
 }
-
-/* 商品行 */
-.md__line {
+.line {
   display: flex;
   align-items: baseline;
-  gap: 16rpx;
-  padding: 12rpx 0;
-  border-bottom: 1rpx solid rgba(31, 41, 55, 0.05);
-  font-size: 26rpx;
+  gap: 14rpx;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid rgba(31, 41, 55, 0.06);
 }
-.md__line:last-child {
+.line:last-child {
   border-bottom: 0;
 }
-.md__line-name {
+.line__main {
   flex: 1;
-  color: #172033;
+  min-width: 0;
 }
-.md__line-spec {
+.line__name {
+  color: #172033;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+.line__spec {
+  margin-left: 8rpx;
   color: #8a94a6;
   font-size: 22rpx;
-  margin-left: 8rpx;
 }
-.md__line-qty {
+.line__qty {
   color: #8a94a6;
   font-size: 24rpx;
 }
-.md__line-sub {
-  color: #b7791f;
+.line__price {
+  color: #d33;
   font-size: 26rpx;
-  font-weight: 600;
+  font-weight: 800;
 }
-
-/* 金额 */
-.md__amt {
+.amount-row {
   display: flex;
   justify-content: space-between;
-  font-size: 26rpx;
+  padding: 10rpx 0;
   color: #5a6275;
-  padding: 8rpx 0;
+  font-size: 26rpx;
 }
-.md__amt--total {
-  margin-top: 12rpx;
-  padding-top: 16rpx;
-  border-top: 1rpx solid rgba(31, 41, 55, 0.06);
-  font-size: 30rpx;
-  font-weight: 700;
+.amount-row--total {
+  margin-top: 10rpx;
+  padding-top: 18rpx;
+  border-top: 1rpx solid rgba(31, 41, 55, 0.08);
   color: #172033;
+  font-size: 32rpx;
+  font-weight: 800;
 }
-.md__amt-pay {
-  color: #d33;
-  font-size: 36rpx;
-}
-
-/* 时间线 */
-.md__t-row {
+.timeline {
+  position: relative;
   display: flex;
-  align-items: flex-start;
   gap: 16rpx;
   padding: 12rpx 0;
-  position: relative;
 }
-.md__t-row::before {
+.timeline::before {
   content: '';
   position: absolute;
   left: 11rpx;
-  top: 24rpx;
+  top: 34rpx;
   bottom: -12rpx;
   width: 2rpx;
-  background: rgba(183, 121, 31, 0.18);
+  background: rgba(255, 122, 69, 0.18);
 }
-.md__t-row:last-child::before {
+.timeline:last-child::before {
   display: none;
 }
-.md__t-dot {
-  width: 24rpx;
-  height: 24rpx;
-  border-radius: 50%;
-  background: rgba(183, 121, 31, 0.2);
-  border: 4rpx solid #fff;
-  box-shadow: 0 0 0 1rpx rgba(183, 121, 31, 0.4);
+.timeline__dot {
+  width: 22rpx;
+  height: 22rpx;
   margin-top: 8rpx;
+  border-radius: 50%;
+  background: #c5c9d2;
   flex-shrink: 0;
 }
-.md__t-dot--last {
-  background: linear-gradient(135deg, #b7791f, #ffb020);
-  box-shadow:
-    0 0 0 1rpx #b7791f,
-    0 0 12rpx rgba(183, 121, 31, 0.4);
+.timeline__dot--active {
+  background: #ff7a45;
+  box-shadow: 0 0 0 8rpx rgba(255, 122, 69, 0.14);
 }
-.md__t-main {
-  flex: 1;
+.timeline__main {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 4rpx;
 }
-.md__t-name {
-  font-size: 26rpx;
+.timeline__title {
   color: #172033;
-  font-weight: 600;
+  font-size: 26rpx;
+  font-weight: 700;
 }
-.md__t-time {
-  font-size: 22rpx;
+.timeline__time,
+.timeline__reason {
   color: #8a94a6;
-}
-.md__t-reason {
   font-size: 22rpx;
-  color: #d33;
 }
-
-/* 操作 */
-.md__actions {
+.actions {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   display: flex;
-  gap: 12rpx;
-  padding: 16rpx 24rpx 32rpx;
+  gap: 14rpx;
+  padding: 18rpx 24rpx calc(env(safe-area-inset-bottom, 0rpx) + 18rpx);
   background: #fff;
   box-shadow: 0 -8rpx 24rpx rgba(31, 41, 55, 0.08);
 }
-.md__actions-none {
-  text-align: center;
-  font-size: 24rpx;
-  color: #8a94a6;
-  padding: 32rpx 0;
-}
-.md__btn {
+.actions__btn {
   flex: 1;
-  text-align: center;
+  height: 82rpx;
   border-radius: 999rpx;
-  height: 80rpx;
-  line-height: 80rpx;
   font-size: 28rpx;
-  font-weight: 700;
+  font-weight: 800;
 }
-.md__btn--ghost {
+.actions__btn--ghost {
   background: #f5f6f8;
   color: #5a6275;
 }
-.md__btn--primary {
-  background: linear-gradient(135deg, #ffb400, #b7791f);
+.actions__btn--primary {
+  background: #ff7a45;
   color: #fff;
 }
-.md__btn--danger {
+.actions__btn--danger {
   background: #d33;
   color: #fff;
 }
-.md__btn--loading {
-  opacity: 0.7;
-}
-
-/* 对话框 */
-.md__dialog {
+.dialog {
   position: fixed;
   inset: 0;
   z-index: 99;
 }
-.md__mask {
+.dialog__mask {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.5);
 }
-.md__modal {
+.dialog__panel {
   position: absolute;
+  left: 32rpx;
+  right: 32rpx;
   top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #fff;
+  transform: translateY(-50%);
+  padding: 30rpx;
   border-radius: 24rpx;
-  padding: 32rpx;
-  width: 84%;
-  box-shadow: 0 24rpx 64rpx rgba(0, 0, 0, 0.24);
+  background: #fff;
 }
-.md__modal-h {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #172033;
+.dialog__title {
   margin-bottom: 16rpx;
+  color: #172033;
+  font-size: 32rpx;
+  font-weight: 800;
 }
-.md__modal-textarea {
+.dialog__textarea {
   width: 100%;
-  min-height: 160rpx;
-  background: #f5f6f8;
-  border-radius: 12rpx;
+  min-height: 170rpx;
   padding: 18rpx;
-  font-size: 26rpx;
+  border-radius: 16rpx;
+  background: #f5f6f8;
   box-sizing: border-box;
+  font-size: 26rpx;
 }
-.md__modal-btns {
+.dialog__actions {
   display: flex;
   gap: 12rpx;
-  margin-top: 20rpx;
+  margin-top: 18rpx;
 }
 </style>

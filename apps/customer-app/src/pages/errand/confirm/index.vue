@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import SvgIcon from '@/components/common/SvgIcon.vue';
 import { submitErrand } from '@/api/errand-orders';
@@ -15,6 +15,7 @@ const submitting = ref(false);
 const payRange = ['微信支付', '支付宝'];
 const payChannels = ['wxpay', 'alipay'] as const;
 const payIndex = ref(0);
+const selectedPayChannel = computed(() => payChannels[payIndex.value] ?? 'wxpay');
 function onPayChange(e: { detail: { value: number } }): void {
   payIndex.value = e.detail.value;
 }
@@ -27,10 +28,9 @@ async function submit(): Promise<void> {
   }
   submitting.value = true;
   try {
-    // 1. 提交订单(创建跑腿单 WAIT_PAY)
     const r = await submitErrand({
       quoteId: quote.value.quoteId,
-      payChannel: payChannels[payIndex.value],
+      payChannel: selectedPayChannel.value,
       remark: remark.value || undefined,
     });
     if (r.code !== '0' || !r.data) {
@@ -39,24 +39,21 @@ async function submit(): Promise<void> {
     }
     const orderId = r.data.orderId;
 
-    // 2. 立刻调 prepay(bizType=ERRAND,后端会复用同 channel 未过期 pending 支付单)
     uni.showToast({ title: '提交成功,支付中…', icon: 'loading' });
     const p = await prepay({
       bizType: 'ERRAND',
       orderId,
-      payChannel: payChannels[payIndex.value],
+      payChannel: selectedPayChannel.value,
     });
     if (p.code !== '0' || !p.data) {
-      // 已建单但 prepay 失败 — 引导到订单详情重新支付
       uni.showToast({ title: '请到订单详情完成支付', icon: 'none' });
       setTimeout(() => uni.redirectTo({ url: `/pages/errand/order/detail?orderId=${orderId}` }), 1000);
       return;
     }
 
-    // 3. mock 支付平台异步回调(stage 11 真接 wxpay 后此分支删除)
     const payable = Number(quote.value.payableAmount);
     try {
-      await simulatePayCallback(payChannels[payIndex.value], p.data.payOrderNo, payable);
+      await simulatePayCallback(selectedPayChannel.value, p.data.payOrderNo, payable);
       uni.showToast({ title: '支付成功', icon: 'success' });
     } catch (err) {
       uni.showToast({
@@ -65,7 +62,6 @@ async function submit(): Promise<void> {
       });
     }
 
-    // 4. 跳跑腿订单详情(无论 mock callback 成功失败,都跳详情让用户看状态)
     setTimeout(() => uni.redirectTo({ url: `/pages/errand/order/detail?orderId=${orderId}` }), 800);
   } finally {
     submitting.value = false;
@@ -128,7 +124,7 @@ async function submit(): Promise<void> {
 .confirm {
   min-height: 100vh;
   padding: 0 0 200rpx;
-  background: #f5f6f8;
+  background: #fff;
 }
 .confirm__error {
   text-align: center;
@@ -200,7 +196,7 @@ async function submit(): Promise<void> {
 .confirm__textarea {
   width: 100%;
   padding: 20rpx 24rpx;
-  background: #f7f8fa;
+  background: #fff;
   border-radius: 16rpx;
   font-size: 28rpx;
   color: #172033;
@@ -213,7 +209,7 @@ async function submit(): Promise<void> {
   justify-content: space-between;
   min-height: 80rpx;
   padding: 20rpx 24rpx;
-  background: #f7f8fa;
+  background: #fff;
   border-radius: 16rpx;
   font-size: 28rpx;
   color: #172033;
@@ -251,7 +247,7 @@ async function submit(): Promise<void> {
   align-items: center;
   gap: 16rpx;
   padding: 16rpx 24rpx calc(env(safe-area-inset-bottom, 0rpx) + 16rpx);
-  background: #f5f6f8;
+  background: #fff;
   border-top: 1rpx solid rgba(31, 41, 55, 0.06);
   z-index: 50;
 }

@@ -1,19 +1,23 @@
 <script setup lang="ts">
-import { onLoad, onShow } from '@dcloudio/uni-app';
-import { ref } from 'vue';
+import { onHide, onLoad, onShow, onUnload } from '@dcloudio/uni-app';
+import { computed, ref } from 'vue';
 
-import { type FoodStoreItem, listFoodStores } from '@/api/food-stores';
 import { readStoredFoodCity, resolveFoodCityName } from '@/utils/food-city';
+
+const HOT_KEYWORDS = ['炸鸡', '奶茶', '盖饭', '米粉', '咖啡', '汉堡', '烧烤', '轻食', '面条', '水果'];
+const HISTORY_KEY = 'food:search-history';
 
 const storedCity = readStoredFoodCity();
 const cityCode = ref(storedCity.code);
 const cityName = ref(storedCity.name);
 const routeCityCode = ref('');
 const keyword = ref('');
-const sort = ref<'distance' | 'sales' | 'rating' | 'recent'>('recent');
-const list = ref<FoodStoreItem[]>([]);
-const total = ref(0);
-const loading = ref(false);
+const history = ref<string[]>([]);
+const hotIndex = ref(0);
+let hotTimer: ReturnType<typeof setInterval> | null = null;
+
+const activeHot = computed(() => HOT_KEYWORDS[hotIndex.value % HOT_KEYWORDS.length] ?? HOT_KEYWORDS[0]!);
+const searchPlaceholder = computed(() => (keyword.value.trim() ? '搜索店铺/菜品' : `大家都在搜：${activeHot.value}`));
 
 function syncCity(): void {
   if (routeCityCode.value) {
@@ -26,118 +30,294 @@ function syncCity(): void {
   cityName.value = city.name;
 }
 
-async function search(): Promise<void> {
-  loading.value = true;
-  try {
-    const r = await listFoodStores({
-      cityCode: cityCode.value,
-      keyword: keyword.value || undefined,
-      sort: sort.value,
-      pageNo: 1,
-      pageSize: 20,
-    });
-    if (r.code === '0' && r.data) {
-      list.value = r.data.list;
-      total.value = r.data.total;
-    }
-  } finally {
-    loading.value = false;
-  }
+function readHistory(): void {
+  const stored = uni.getStorageSync(HISTORY_KEY);
+  history.value = Array.isArray(stored) ? stored.filter((item): item is string => typeof item === 'string') : [];
 }
 
-function gotoStore(storeId: string): void {
-  uni.navigateTo({ url: `/pages/food/store/detail?storeId=${storeId}` });
+function saveHistory(value: string): void {
+  const next = [value, ...history.value.filter((item) => item !== value)].slice(0, 10);
+  history.value = next;
+  uni.setStorageSync(HISTORY_KEY, next);
+}
+
+function clearHistory(): void {
+  history.value = [];
+  uni.removeStorageSync(HISTORY_KEY);
+}
+
+function submitSearch(value?: string): void {
+  const nextKeyword = (value ?? keyword.value).trim() || activeHot.value;
+  keyword.value = nextKeyword;
+  saveHistory(nextKeyword);
+  uni.navigateTo({
+    url: `/pages/food/search/result?cityCode=${cityCode.value}&keyword=${encodeURIComponent(nextKeyword)}`,
+  });
+}
+
+function startHotTimer(): void {
+  stopHotTimer();
+  hotTimer = setInterval(() => {
+    if (!keyword.value.trim()) hotIndex.value = (hotIndex.value + 1) % HOT_KEYWORDS.length;
+  }, 5000);
+}
+
+function stopHotTimer(): void {
+  if (hotTimer) {
+    clearInterval(hotTimer);
+    hotTimer = null;
+  }
 }
 
 onLoad((options) => {
   routeCityCode.value = (options?.cityCode as string | undefined) ?? '';
   const kw = (options?.keyword as string | undefined) ?? '';
-  if (kw) keyword.value = decodeURIComponent(kw);
   syncCity();
-  // 带关键词进入时自动搜索一次
-  if (keyword.value) void search();
+  readHistory();
+  if (kw) {
+    submitSearch(decodeURIComponent(kw));
+  }
 });
 
-onShow(syncCity);
+onShow(() => {
+  syncCity();
+  readHistory();
+  startHotTimer();
+});
+
+onHide(stopHotTimer);
+onUnload(stopHotTimer);
 </script>
 
 <template>
-  <view class="search">
-    <view class="search__bar">
-      <input v-model="keyword" placeholder="搜索店铺/菜品" class="search__input" @confirm="search" />
-      <button size="mini" @tap="search">搜索</button>
-    </view>
-    <view class="search__city">当前城市: {{ cityName }}({{ cityCode }})</view>
-    <view class="search__sort">
-      <text
-        v-for="s in ['recent', 'distance', 'sales', 'rating']"
-        :key="s"
-        :class="{ active: sort === s }"
-        @tap="
-          sort = s as typeof sort;
-          search();
-        "
-      >
-        {{ { recent: '默认', distance: '距离', sales: '销量', rating: '评分' }[s] }}
-      </text>
-    </view>
-    <view v-if="loading" class="search__loading">加载中…</view>
-    <view v-else-if="list.length === 0" class="search__empty">暂无结果(共 {{ total }} 个)</view>
-    <view v-else>
-      <view v-for="s in list" :key="s.storeId" class="search__store" @tap="gotoStore(s.storeId)">
-        <view class="search__name">{{ s.name }}</view>
-        <view class="search__meta">评分 {{ s.rating }} · 销量 {{ s.sales }}</view>
+  <view class="search-page">
+    <view class="search-bar">
+      <view class="search-bar__box">
+        <text class="search-bar__icon">⌕</text>
+        <input
+          v-model="keyword"
+          class="search-bar__input"
+          :placeholder="searchPlaceholder"
+          confirm-type="search"
+          @confirm="submitSearch()"
+        />
       </view>
+      <button class="search-bar__btn" @tap="submitSearch()">搜索</button>
+    </view>
+
+    <view class="city-row">
+      <text class="city-row__name">{{ cityName }}</text>
+      <text class="city-row__code">{{ cityCode }}</text>
+    </view>
+
+    <view class="hot-ticker" @tap="submitSearch(activeHot)">
+      <text class="hot-ticker__label">实时热点</text>
+      <text class="hot-ticker__word">{{ activeHot }}</text>
+    </view>
+
+    <view class="section">
+      <view class="section__head">
+        <text class="section__title">搜索热点</text>
+      </view>
+      <view class="chip-grid">
+        <view v-for="(item, index) in HOT_KEYWORDS" :key="item" class="hot-chip" @tap="submitSearch(item)">
+          <text class="hot-chip__rank">{{ index + 1 }}</text>
+          <text class="hot-chip__text">{{ item }}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section__head">
+        <text class="section__title">历史搜索</text>
+        <text v-if="history.length" class="section__action" @tap="clearHistory">清空</text>
+      </view>
+      <view v-if="history.length" class="history-list">
+        <view v-for="item in history" :key="item" class="history-chip" @tap="submitSearch(item)">
+          {{ item }}
+        </view>
+      </view>
+      <view v-else class="empty-history">暂无历史搜索</view>
     </view>
   </view>
 </template>
 
 <style scoped>
-.search {
-  padding: 20rpx;
+.search-page {
+  min-height: 100vh;
+  padding: 24rpx;
+  background: #fff;
+  box-sizing: border-box;
 }
-.search__bar {
+
+.search-bar {
   display: flex;
-  gap: 12rpx;
-  margin-bottom: 20rpx;
+  align-items: center;
+  gap: 14rpx;
 }
-.search__city {
-  margin-bottom: 16rpx;
+
+.search-bar__box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  height: 76rpx;
+  padding: 0 22rpx;
+  border-radius: 999rpx;
+  background: #f5f6f8;
+  border: 1rpx solid #edf0f5;
+}
+
+.search-bar__icon {
+  color: #8a94a6;
+  font-size: 34rpx;
+  line-height: 1;
+}
+
+.search-bar__input {
+  flex: 1;
+  height: 76rpx;
+  font-size: 28rpx;
+  color: #172033;
+}
+
+.search-bar__btn {
+  width: 118rpx;
+  height: 76rpx;
+  line-height: 76rpx;
+  border-radius: 999rpx;
+  background: #ff6b35;
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.search-bar__btn::after {
+  border: 0;
+}
+
+.city-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin: 20rpx 0 18rpx;
   color: #8a94a6;
   font-size: 24rpx;
 }
-.search__input {
-  flex: 1;
-  background: #fff;
-  padding: 12rpx 20rpx;
-  border-radius: 30rpx;
+
+.city-row__name {
+  color: #172033;
+  font-weight: 700;
 }
-.search__sort {
+
+.city-row__code {
+  padding: 4rpx 10rpx;
+  border-radius: 999rpx;
+  background: #f5f6f8;
+}
+
+.hot-ticker {
   display: flex;
-  gap: 24rpx;
-  margin-bottom: 16rpx;
+  align-items: center;
+  gap: 14rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #fff4ed, #fff9f2);
+  border: 1rpx solid #ffe2d3;
 }
-.search__sort text.active {
-  color: #1989fa;
-  font-weight: 600;
+
+.hot-ticker__label {
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  background: #ff6b35;
+  color: #fff;
+  font-size: 22rpx;
+  font-weight: 700;
 }
-.search__store {
-  background: #fff;
-  padding: 24rpx;
-  border-radius: 12rpx;
-  margin-bottom: 12rpx;
+
+.hot-ticker__word {
+  color: #172033;
+  font-size: 30rpx;
+  font-weight: 800;
 }
-.search__name {
-  font-weight: 600;
+
+.section {
+  margin-top: 34rpx;
 }
-.search__meta {
-  color: #888;
+
+.section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18rpx;
+}
+
+.section__title {
+  color: #172033;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.section__action {
+  color: #8a94a6;
   font-size: 24rpx;
 }
-.search__loading,
-.search__empty {
+
+.chip-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16rpx;
+}
+
+.hot-chip {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 20rpx;
+  border: 1rpx solid #edf0f5;
+  border-radius: 18rpx;
+  background: #fff;
+}
+
+.hot-chip__rank {
+  width: 34rpx;
+  height: 34rpx;
+  line-height: 34rpx;
   text-align: center;
-  padding: 60rpx 0;
-  color: #888;
+  border-radius: 10rpx;
+  background: #ffefe8;
+  color: #ff6b35;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.hot-chip__text {
+  color: #172033;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.history-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+}
+
+.history-chip {
+  max-width: 100%;
+  padding: 14rpx 20rpx;
+  border-radius: 999rpx;
+  background: #f5f6f8;
+  color: #172033;
+  font-size: 25rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty-history {
+  padding: 32rpx 0;
+  color: #a1a8b5;
+  font-size: 25rpx;
 }
 </style>

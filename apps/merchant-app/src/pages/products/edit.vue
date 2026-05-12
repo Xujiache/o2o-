@@ -17,6 +17,10 @@ interface SkuRow {
   specValue: string;
   price: number; // 分
   stock: number;
+  /** 是否按重量销售 — 商家勾选后才允许填重量 */
+  byWeight: boolean;
+  /** 重量(克),仅当 byWeight=true 时生效 */
+  weightGrams: number;
 }
 
 const productId = ref<string>('');
@@ -89,11 +93,17 @@ async function loadDetail(): Promise<void> {
       coverImageFileId.value = d.coverImageFileId ?? '';
       coverImageUrl.value = d.imageUrl ?? '';
       galleryImages.value = (d.images ?? []).map((id) => ({ fileId: id, url: '' }));
-      skus.value = d.skus.map((s) => ({
-        specValue: s.specValue,
-        price: Number(s.price) || 0,
-        stock: s.stock,
-      }));
+      skus.value = d.skus.map((s) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const wg = (s as any).weightGrams as number | null | undefined;
+        return {
+          specValue: s.specValue,
+          price: Number(s.price) || 0,
+          stock: s.stock,
+          byWeight: typeof wg === 'number' && wg > 0,
+          weightGrams: typeof wg === 'number' && wg > 0 ? wg : 500,
+        };
+      });
     } else {
       errorMsg.value = r.message || '加载失败';
     }
@@ -103,7 +113,18 @@ async function loadDetail(): Promise<void> {
 }
 
 function addSku(): void {
-  skus.value.push({ specValue: `规格${skus.value.length + 1}`, price: priceCents.value || 1000, stock: 10 });
+  skus.value.push({
+    specValue: `规格${skus.value.length + 1}`,
+    price: priceCents.value || 1000,
+    stock: 10,
+    byWeight: false,
+    weightGrams: 500,
+  });
+}
+
+function fmtWeight(grams: number): string {
+  if (grams < 1000) return `${grams} g`;
+  return `${(grams / 1000).toFixed(grams % 1000 === 0 ? 0 : 1)} kg`;
 }
 
 function removeSku(i: number): void {
@@ -200,7 +221,17 @@ async function onSubmit(): Promise<void> {
       price: hasSku.value === 0 ? priceCents.value : undefined,
       stock: hasSku.value === 0 ? stock.value : undefined,
       stockAlertThreshold: stockAlertThreshold.value,
-      skus: hasSku.value === 1 ? (skus.value as SkuReq[]) : undefined,
+      skus:
+        hasSku.value === 1
+          ? skus.value.map(
+              (s): SkuReq => ({
+                specValue: s.specValue,
+                price: s.price,
+                stock: s.stock,
+                weightGrams: s.byWeight && s.weightGrams > 0 ? s.weightGrams : null,
+              }),
+            )
+          : undefined,
       saleStatus: 'on_shelf',
     });
     if (r.code !== '0') {
@@ -336,6 +367,35 @@ onMounted(async () => {
               <view class="edit__sku-half">
                 <text class="edit__sku-label">库存</text>
                 <input class="edit__sku-input" type="number" v-model.number="s.stock" />
+              </view>
+            </view>
+
+            <!-- 按重量销售开关 + 重量输入 -->
+            <view class="edit__sku-weight">
+              <view class="edit__sku-weight-head">
+                <view class="edit__sku-weight-label">
+                  <text class="edit__sku-weight-title">按重量销售</text>
+                  <text class="edit__sku-weight-tip">勾选后展示规格重量,如 500g / 1.2kg</text>
+                </view>
+                <switch :checked="s.byWeight" @change="(e: any) => (s.byWeight = !!e.detail.value)" />
+              </view>
+              <view v-if="s.byWeight" class="edit__sku-weight-body">
+                <view class="edit__sku-weight-input">
+                  <input class="edit__sku-input" type="number" v-model.number="s.weightGrams" placeholder="如:500" />
+                  <text class="edit__sku-weight-unit">克</text>
+                </view>
+                <view class="edit__sku-weight-preview">≈ {{ fmtWeight(s.weightGrams || 0) }}</view>
+                <view class="edit__sku-weight-presets">
+                  <text
+                    v-for="g in [100, 250, 500, 1000, 2000]"
+                    :key="g"
+                    class="edit__sku-weight-preset"
+                    :class="{ 'edit__sku-weight-preset--active': s.weightGrams === g }"
+                    @tap="s.weightGrams = g"
+                  >
+                    {{ fmtWeight(g) }}
+                  </text>
+                </view>
               </view>
             </view>
           </view>
@@ -578,6 +638,78 @@ onMounted(async () => {
   font-size: 24rpx;
   font-weight: 600;
   margin-top: 8rpx;
+}
+
+/* 按重量销售 */
+.edit__sku-weight {
+  margin-top: 16rpx;
+  padding: 18rpx 0 0;
+  border-top: 1rpx dashed rgba(31, 41, 55, 0.08);
+}
+.edit__sku-weight-head {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+.edit__sku-weight-label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rpx;
+}
+.edit__sku-weight-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #172033;
+}
+.edit__sku-weight-tip {
+  font-size: 20rpx;
+  color: #8a94a6;
+}
+.edit__sku-weight-body {
+  margin-top: 14rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+.edit__sku-weight-input {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.edit__sku-weight-input .edit__sku-input {
+  flex: 1;
+}
+.edit__sku-weight-unit {
+  font-size: 24rpx;
+  color: #5a6275;
+  font-weight: 600;
+}
+.edit__sku-weight-preview {
+  font-size: 22rpx;
+  color: #b7791f;
+  font-weight: 700;
+  background: rgba(183, 121, 31, 0.08);
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  align-self: flex-start;
+}
+.edit__sku-weight-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+.edit__sku-weight-preset {
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: #f5f6f8;
+  color: #5a6275;
+  font-size: 22rpx;
+}
+.edit__sku-weight-preset--active {
+  background: linear-gradient(135deg, #1f2937, #b7791f);
+  color: #fff;
+  font-weight: 700;
 }
 
 /* gallery */

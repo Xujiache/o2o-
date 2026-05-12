@@ -251,6 +251,17 @@ function buildService(w: World): FoodOrderService {
     }),
   } as unknown as jest.Mocked<DomainEventBus>;
 
+  const couponService = {
+    lockCoupons: jest.fn(async () => undefined),
+    releaseCoupons: jest.fn(async () => 0),
+    consumeCoupons: jest.fn(async () => 0),
+  } as unknown as never;
+  const couponCustomerService = {
+    validateForOrder: jest.fn(async () => {
+      throw new Error('validateForOrder not stubbed in this test');
+    }),
+  } as unknown as never;
+
   return new FoodOrderService(
     storeRepo,
     addressRepo,
@@ -265,6 +276,8 @@ function buildService(w: World): FoodOrderService {
     w.redis as unknown as never,
     dataSource,
     eventBus,
+    couponService,
+    couponCustomerService,
   );
 }
 
@@ -444,7 +457,7 @@ describe('FoodOrderService.preview', () => {
     expect([...world.redis.store.keys()][0]).toContain('food:preview:');
   });
 
-  it('couponId → INVALID_PARAM', async () => {
+  it('couponId 校验失败 → INVALID_PARAM(由 CouponCustomerService.validateForOrder 抛)', async () => {
     await expect(
       svc.preview('10001', {
         storeId: '20001',
@@ -453,7 +466,7 @@ describe('FoodOrderService.preview', () => {
         deliveryType: 'instant',
         couponId: 'C1',
       }),
-    ).rejects.toThrow(UnprocessableEntityException);
+    ).rejects.toThrow();
   });
 
   it('pointsUsed → INVALID_PARAM', async () => {

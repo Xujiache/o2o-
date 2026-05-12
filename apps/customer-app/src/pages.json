@@ -46,9 +46,11 @@
     { "path": "pages/food/home/index", "style": { "navigationBarTitleText": "外卖首页" } },
     { "path": "pages/food/city-picker/index", "style": { "navigationBarTitleText": "城市切换" } },
     { "path": "pages/food/search/index", "style": { "navigationBarTitleText": "搜索" } },
+    { "path": "pages/food/search/result", "style": { "navigationBarTitleText": "搜索结果" } },
     { "path": "pages/food/store/detail", "style": { "navigationBarTitleText": "店铺详情" } },
     { "path": "pages/food/cart/index", "style": { "navigationBarTitleText": "购物车" } },
     { "path": "pages/food/order/confirm", "style": { "navigationBarTitleText": "确认订单" } },
+    { "path": "pages/food/order/coupon-pick", "style": { "navigationBarTitleText": "选择优惠券" } },
     { "path": "pages/payment/cashier", "style": { "navigationBarTitleText": "支付收银台" } },
     { "path": "pages/payment/result", "style": { "navigationBarTitleText": "支付结果" } },
     { "path": "pages/food/order/list", "style": { "navigationBarTitleText": "我的订单" } },
@@ -57,6 +59,7 @@
     { "path": "pages/food/review/submit", "style": { "navigationBarTitleText": "评价订单" } },
     { "path": "pages/food/order/after-sale-apply", "style": { "navigationBarTitleText": "申请售后" } },
     { "path": "pages/me/aftersales-stub", "style": { "navigationBarTitleText": "售后申请" } },
+    { "path": "pages/me/coupons", "style": { "navigationBarTitleText": "我的优惠券" } },
     { "path": "pages/errand/home/index", "style": { "navigationBarTitleText": "跑腿服务" } },
     { "path": "pages/errand/form/buy", "style": { "navigationBarTitleText": "代买" } },
     { "path": "pages/errand/form/deliver", "style": { "navigationBarTitleText": "代送" } },
@@ -76,6 +79,7 @@
     { "path": "pages/address/city", "style": { "navigationBarTitleText": "选择城市" } },
     { "path": "pages/address/map", "style": { "navigationBarTitleText": "地图选点" } },
     { "path": "pages/me/index", "style": { "navigationBarTitleText": "我的" } },
+    { "path": "pages/me/profile-edit", "style": { "navigationBarTitleText": "编辑资料" } },
     { "path": "pages/me/notification", "style": { "navigationBarTitleText": "消息设置" } },
     { "path": "pages/me/security", "style": { "navigationBarTitleText": "账号安全" } },
     { "path": "pages/profile/realname", "style": { "navigationBarTitleText": "实名认证" } }
@@ -84,7 +88,7 @@
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "O2O 用户端",
     "navigationBarBackgroundColor": "#FFFFFF",
-    "backgroundColor": "#F5F5F5"
+    "backgroundColor": "#FFFFFF"
   },
   "tabBar": {
     "color": "#8A94A6",
@@ -93,7 +97,6 @@
     "borderStyle": "white",
     "list": [
       { "pagePath": "pages/food/home/index", "text": "首页" },
-      { "pagePath": "pages/errand/home/index", "text": "跑腿" },
       { "pagePath": "pages/food/order/list", "text": "订单" },
       { "pagePath": "pages/me/index", "text": "我的" }
     ]

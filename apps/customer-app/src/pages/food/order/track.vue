@@ -29,8 +29,8 @@ onMounted(() => {
 
 <template>
   <view class="track" v-if="track">
-    <view class="track__title">配送轨迹(简化骨架)</view>
-    <view class="track__source">数据源:{{ track.source === 'real' ? '实时' : '占位' }}</view>
+    <view class="track__title">配送轨迹</view>
+    <view class="track__source">数据源:{{ track.source === 'real' ? '实时' : '预计' }}</view>
     <view class="track__row">起点:{{ track.start.lng }}, {{ track.start.lat }}</view>
     <view class="track__row">终点:{{ track.end.lng }}, {{ track.end.lat }}</view>
     <view v-if="track.riderLocation" class="track__row">
@@ -39,7 +39,7 @@ onMounted(() => {
       }})
     </view>
     <view class="track__eta">预计 {{ track.eta }} 分钟送达</view>
-    <view class="track__hint">stage 8 接高德地图后替换为真实路径渲染</view>
+    <view class="track__hint">轨迹信息会随配送状态更新。</view>
   </view>
   <view v-else-if="loading" class="track__loading">加载中…</view>
 </template>

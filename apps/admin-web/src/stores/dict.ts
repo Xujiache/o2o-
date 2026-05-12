@@ -1,5 +1,5 @@
 /**
- * dictStore — 平台 Web 字典缓存(stage 4)
+ * dictStore — 平台 Web 字典缓存
  * 用于:城市下拉、类目筛选、状态映射中文等。每个 key 60s 内复用上次结果。
  */
 import { defineStore } from 'pinia';

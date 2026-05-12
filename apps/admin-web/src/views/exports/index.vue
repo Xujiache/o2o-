@@ -3,11 +3,20 @@ import { ElMessage } from 'element-plus';
 import { ref } from 'vue';
 
 import { createExport, type ExportTaskVo, getExport } from '@/api/admin-exports';
+import PageContainer from '@/components/PageContainer.vue';
+import StatusTag from '@/components/StatusTag.vue';
 
 const loading = ref(false);
 const exportType = ref('food-orders');
 const taskId = ref<string | null>(null);
 const detail = ref<ExportTaskVo | null>(null);
+
+const TYPE_LABEL: Record<string, string> = {
+  'food-orders': '外卖订单',
+  'errand-orders': '跑腿订单',
+  settlements: '结算单',
+  withdrawals: '提现单',
+};
 
 async function create(): Promise<void> {
   loading.value = true;
@@ -33,29 +42,62 @@ async function refresh(): Promise<void> {
 </script>
 
 <template>
-  <el-card>
-    <template #header>报表导出中心</template>
-    <el-form inline label-width="100px">
-      <el-form-item label="导出类型">
-        <el-select v-model="exportType" style="width: 200px">
-          <el-option label="外卖订单" value="food-orders" />
-          <el-option label="跑腿订单" value="errand-orders" />
-          <el-option label="结算单" value="settlements" />
-          <el-option label="提现单" value="withdrawals" />
-        </el-select>
-      </el-form-item>
-      <el-button type="primary" :loading="loading" @click="create">创建导出任务</el-button>
+  <PageContainer title="报表导出中心" subtitle="按业务维度生成离线导出任务">
+    <template #extra>
       <el-button v-if="taskId" @click="refresh">刷新进度</el-button>
-    </el-form>
-    <el-descriptions v-if="detail" :column="2" border style="margin-top: 16px">
-      <el-descriptions-item label="任务 ID">{{ detail.exportTaskId }}</el-descriptions-item>
-      <el-descriptions-item label="编号">{{ detail.exportNo }}</el-descriptions-item>
-      <el-descriptions-item label="类型">{{ detail.exportType }}</el-descriptions-item>
-      <el-descriptions-item label="状态">{{ detail.status }}</el-descriptions-item>
-      <el-descriptions-item v-if="detail.fileUrl" label="文件">
-        <el-link :href="detail.fileUrl" type="primary" target="_blank">下载</el-link>
-      </el-descriptions-item>
-      <el-descriptions-item v-if="detail.errorMessage" label="错误">{{ detail.errorMessage }}</el-descriptions-item>
-    </el-descriptions>
-  </el-card>
+    </template>
+
+    <section class="card-surface form-panel">
+      <el-form inline label-width="100px">
+        <el-form-item label="导出类型">
+          <el-select v-model="exportType" style="width: 200px">
+            <el-option label="外卖订单" value="food-orders" />
+            <el-option label="跑腿订单" value="errand-orders" />
+            <el-option label="结算单" value="settlements" />
+            <el-option label="提现单" value="withdrawals" />
+          </el-select>
+        </el-form-item>
+        <el-button type="primary" :loading="loading" @click="create">创建导出任务</el-button>
+      </el-form>
+    </section>
+
+    <section v-if="detail" class="card-surface detail-panel">
+      <el-descriptions :column="2" border>
+        <el-descriptions-item label="任务 ID">
+          <span class="mono">{{ detail.exportTaskId }}</span>
+        </el-descriptions-item>
+        <el-descriptions-item label="编号">
+          <span class="mono">{{ detail.exportNo }}</span>
+        </el-descriptions-item>
+        <el-descriptions-item label="类型">
+          {{ TYPE_LABEL[detail.exportType] ?? detail.exportType }}
+        </el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <StatusTag :status="detail.status" />
+        </el-descriptions-item>
+        <el-descriptions-item v-if="detail.fileUrl" label="文件">
+          <el-link :href="detail.fileUrl" type="primary" target="_blank">下载</el-link>
+        </el-descriptions-item>
+        <el-descriptions-item v-if="detail.errorMessage" label="错误">
+          <span class="err">{{ detail.errorMessage }}</span>
+        </el-descriptions-item>
+      </el-descriptions>
+    </section>
+  </PageContainer>
 </template>
+
+<style scoped>
+.form-panel {
+  padding: var(--gap-4);
+}
+.detail-panel {
+  padding: var(--gap-4);
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.err {
+  color: var(--status-danger);
+}
+</style>

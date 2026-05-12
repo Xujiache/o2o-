@@ -2,6 +2,11 @@
 import { onMounted, reactive, ref } from 'vue';
 
 import { type AdminSettlementListItemVo, listSettlements } from '@/api/admin-settlements';
+import DataTable from '@/components/DataTable.vue';
+import FilterBar from '@/components/FilterBar.vue';
+import PageContainer from '@/components/PageContainer.vue';
+import StatusTag from '@/components/StatusTag.vue';
+import { formatDate, formatYuan } from '@/utils/format';
 
 import SettlementDetailDrawer from './components/SettlementDetailDrawer.vue';
 
@@ -23,7 +28,7 @@ const STATUS_LABEL: Record<string, string> = Object.fromEntries(STATUS_OPTIONS.m
 
 const query = reactive({ status: '', storeId: '', pageNo: 1, pageSize: 20 });
 
-async function load(): Promise<void> {
+async function fetchList(): Promise<void> {
   loading.value = true;
   try {
     const r = await listSettlements({
@@ -43,15 +48,14 @@ async function load(): Promise<void> {
 
 function onSearch(): void {
   query.pageNo = 1;
-  void load();
+  void fetchList();
 }
 
-function fmt(cents: string): string {
-  return (Number(cents) / 100).toFixed(2);
-}
-
-function fmtDate(ms: number): string {
-  return new Date(ms).toLocaleDateString();
+function onReset(): void {
+  query.status = '';
+  query.storeId = '';
+  query.pageNo = 1;
+  void fetchList();
 }
 
 function viewDetail(id: string): void {
@@ -59,82 +63,109 @@ function viewDetail(id: string): void {
   drawerVisible.value = true;
 }
 
-onMounted(load);
+onMounted(fetchList);
 </script>
 
 <template>
-  <el-card>
-    <template #header>
-      <div class="header">
-        <span>结算单监控</span>
-        <el-form :model="query" :inline="true" size="small">
-          <el-form-item label="状态">
-            <el-select v-model="query.status" style="width: 160px">
-              <el-option v-for="o in STATUS_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="店铺 ID">
-            <el-input v-model="query.storeId" placeholder="storeId" style="width: 160px" />
-          </el-form-item>
-          <el-button type="primary" @click="onSearch">查询</el-button>
-        </el-form>
-      </div>
+  <PageContainer title="结算单监控" subtitle="店铺周期结算与佣金核对">
+    <template #extra>
+      <el-button @click="fetchList">
+        <el-icon><Refresh /></el-icon>
+        <span style="margin-left: 6px">刷新</span>
+      </el-button>
     </template>
 
-    <el-table v-loading="loading" :data="list" stripe>
-      <el-table-column prop="settlementNo" label="结算单号" width="180" />
-      <el-table-column prop="storeId" label="店铺" width="100" />
+    <FilterBar @search="onSearch" @reset="onReset">
+      <div class="filter-field">
+        <label>状态</label>
+        <el-select v-model="query.status" placeholder="全部" clearable style="width: 160px">
+          <el-option v-for="o in STATUS_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
+        </el-select>
+      </div>
+      <div class="filter-field">
+        <label>店铺 ID</label>
+        <el-input
+          v-model="query.storeId"
+          placeholder="storeId"
+          clearable
+          style="width: 180px"
+          @keyup.enter="onSearch"
+        />
+      </div>
+    </FilterBar>
+
+    <DataTable
+      v-model:pageNo="query.pageNo"
+      v-model:pageSize="query.pageSize"
+      :data="list"
+      :loading="loading"
+      :total="total"
+      @page-change="fetchList"
+    >
+      <el-table-column label="结算单号" prop="settlementNo" width="200">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.settlementNo }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="店铺" prop="storeId" width="120">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.storeId }}</span></template
+        >
+      </el-table-column>
       <el-table-column label="周期" width="220">
-        <template #default="{ row }"> {{ fmtDate(row.periodStart) }} ~ {{ fmtDate(row.periodEnd) }} </template>
+        <template #default="{ row }">
+          <span class="muted">{{ formatDate(row.periodStart) }} ~ {{ formatDate(row.periodEnd) }}</span>
+        </template>
       </el-table-column>
-      <el-table-column label="毛收入">
-        <template #default="{ row }">¥{{ fmt(row.grossCents) }}</template>
+      <el-table-column label="毛收入（元）" align="right">
+        <template #default="{ row }"
+          ><span class="mono">{{ formatYuan(row.grossCents) }}</span></template
+        >
       </el-table-column>
-      <el-table-column label="佣金">
-        <template #default="{ row }">¥{{ fmt(row.commissionCents) }}</template>
+      <el-table-column label="佣金（元）" align="right">
+        <template #default="{ row }"
+          ><span class="mono">{{ formatYuan(row.commissionCents) }}</span></template
+        >
       </el-table-column>
-      <el-table-column label="通道费">
-        <template #default="{ row }">¥{{ fmt(row.feeCents) }}</template>
+      <el-table-column label="通道费（元）" align="right">
+        <template #default="{ row }"
+          ><span class="mono">{{ formatYuan(row.feeCents) }}</span></template
+        >
       </el-table-column>
-      <el-table-column label="实结">
-        <template #default="{ row }">¥{{ fmt(row.netCents) }}</template>
+      <el-table-column label="实结（元）" align="right">
+        <template #default="{ row }"
+          ><span class="mono">{{ formatYuan(row.netCents) }}</span></template
+        >
       </el-table-column>
-      <el-table-column prop="orderCount" label="订单数" width="80" />
-      <el-table-column label="状态" width="100">
-        <template #default="{ row }">{{ STATUS_LABEL[row.status] || row.status }}</template>
+      <el-table-column label="订单数" prop="orderCount" width="80" align="right">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.orderCount }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="状态" width="110">
+        <template #default="{ row }">
+          <StatusTag :status="row.status" :label="STATUS_LABEL[row.status] ?? row.status" />
+        </template>
       </el-table-column>
       <el-table-column label="操作" width="80" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="viewDetail(row.settlementId)">详情</el-button>
         </template>
       </el-table-column>
-    </el-table>
-
-    <div class="pager">
-      <el-pagination
-        v-model:current-page="query.pageNo"
-        v-model:page-size="query.pageSize"
-        :total="total"
-        :page-sizes="[10, 20, 50]"
-        layout="total, sizes, prev, pager, next, jumper"
-        @current-change="load"
-        @size-change="load"
-      />
-    </div>
+    </DataTable>
 
     <SettlementDetailDrawer v-model:visible="drawerVisible" :settlement-id="drawerId" />
-  </el-card>
+  </PageContainer>
 </template>
 
 <style scoped>
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
-.pager {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
+
+.muted {
+  color: var(--fg-muted);
+  font-size: 12px;
 }
 </style>

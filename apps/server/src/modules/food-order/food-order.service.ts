@@ -23,6 +23,8 @@ import {
 import type { OrderPriceSnapshotPayload } from '../../database/entities/order-price-snapshot.entity';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
+import { CouponCustomerService } from '../coupon/coupon-customer.service';
+import { CouponService } from '../coupon/coupon.service';
 
 import {
   type CancelOrderDto,
@@ -61,17 +63,11 @@ export class FoodOrderService {
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly dataSource: DataSource,
     private readonly eventBus: DomainEventBus,
+    private readonly couponService: CouponService,
+    private readonly couponCustomerService: CouponCustomerService,
   ) {}
 
   async preview(customerId: string, dto: PreviewOrderDto): Promise<PreviewVo> {
-    // A6 最小化:coupon / points 任意值都拒
-    if (dto.couponId) {
-      throw new UnprocessableEntityException({
-        code: ErrorCode.INVALID_PARAM,
-        detail: 'COUPON_NOT_AVAILABLE',
-        message: '当前活动暂未开放,请下次再来',
-      });
-    }
     if (dto.pointsUsed && dto.pointsUsed > 0) {
       throw new UnprocessableEntityException({
         code: ErrorCode.INVALID_PARAM,
@@ -192,8 +188,18 @@ export class FoodOrderService {
     }
 
     const deliveryFee = BigInt(store.deliveryFee || '0');
-    const discount = BigInt(0); // stage 5 暂不接活动 / 优惠券
-    const payable = goods + deliveryFee - discount;
+    // 优惠券抵扣 — couponId 字段语义是 user_coupon_id
+    let discount = BigInt(0);
+    let userCouponId: string | null = null;
+    let couponName: string | null = null;
+    if (dto.couponId) {
+      const r = await this.couponCustomerService.validateForOrder(customerId, dto.couponId, 'FOOD', goods);
+      discount = r.discountCents;
+      userCouponId = r.userCouponId;
+      couponName = r.couponName;
+    }
+    let payable = goods + deliveryFee - discount;
+    if (payable < 0n) payable = 0n;
 
     // 7. 写 snapshot
     const previewId = randomUUID();
@@ -210,6 +216,8 @@ export class FoodOrderService {
       estimatedDeliveryTime: ESTIMATED_DELIVERY_MINUTES,
       deliveryType: dto.deliveryType,
       reservedTime: dto.reservedTime ? String(dto.reservedTime) : null,
+      userCouponId,
+      couponName,
       addressSnapshot: {
         addressId: address.addressId,
         consignee: address.receiverName,
@@ -264,9 +272,7 @@ export class FoodOrderService {
     }
     const payload = snapshot.payload;
 
-    // 2. 防御:snapshot 内 coupon 字段必须无(preview 已拦截,这里复核)— 当前 payload 不带 couponId,无需复核
-
-    // 3. 事务:锁 sku → 写 stock_lock + INSERT food_order + items + timeline
+    // 3. 事务:锁 sku → 写 stock_lock + INSERT food_order + items + timeline + 锁 coupon
     const orderNo = await this.generateOrderNo();
     const now = Date.now();
     const expireAt = now + ORDER_PAY_TIMEOUT_MS;
@@ -363,6 +369,11 @@ export class FoodOrderService {
         reason: 'order submitted',
         createdAt: String(now),
       });
+
+      // 锁优惠券(user_coupon UNUSED → USED + 写 coupon_lock active)
+      if (payload.userCouponId) {
+        await this.couponService.lockCoupons(em, orderId, payload.userCouponId, customerId);
+      }
 
       return { orderId };
     });
@@ -550,6 +561,9 @@ export class FoodOrderService {
         await em.getRepository(ProductSku).decrement({ skuId: lock.skuId }, 'stockLocked', lock.quantity);
         releasedItems.push({ skuId: lock.skuId, quantity: lock.quantity });
       }
+      // 释放优惠券(coupon_lock active → released + user_coupon USED → UNUSED)
+      await this.couponService.releaseCoupons(em, orderId);
+
       await em.getRepository(OrderTimeline).insert({
         orderId,
         bizType: 'FOOD',

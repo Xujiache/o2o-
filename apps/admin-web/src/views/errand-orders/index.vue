@@ -10,6 +10,12 @@ import {
   listErrandOrders,
 } from '@/api/admin-errand-orders';
 
+import DataTable from '@/components/DataTable.vue';
+import FilterBar from '@/components/FilterBar.vue';
+import PageContainer from '@/components/PageContainer.vue';
+import StatCard from '@/components/StatCard.vue';
+import StatusTag from '@/components/StatusTag.vue';
+
 import ErrandOrderDetailDrawer from './components/ErrandOrderDetailDrawer.vue';
 
 const loading = ref(false);
@@ -38,6 +44,10 @@ const TYPE_OPTIONS: Array<{ label: string; value: ErrandTypeCode | '' }> = [
   { label: '自定义', value: 'CUSTOM' },
 ];
 
+const STATUS_LABEL: Record<string, string> = Object.fromEntries(
+  STATUS_OPTIONS.filter((o) => o.value).map((o) => [o.value as string, o.label]),
+);
+
 const URGENT_LABEL: Record<string, string> = {
   standard: '标准',
   fast: '加急',
@@ -48,13 +58,13 @@ const query = reactive<{
   status: ErrandOrderStatus | '';
   typeCode: ErrandTypeCode | '';
   customerId: string;
-  page: number;
+  pageNo: number;
   pageSize: number;
 }>({
   status: '',
   typeCode: '',
   customerId: '',
-  page: 1,
+  pageNo: 1,
   pageSize: 20,
 });
 
@@ -65,7 +75,7 @@ async function fetchList(): Promise<void> {
       status: query.status || undefined,
       typeCode: query.typeCode || undefined,
       customerId: query.customerId || undefined,
-      page: query.page,
+      page: query.pageNo,
       pageSize: query.pageSize,
     });
     if (r.code === '0' && r.data) {
@@ -88,7 +98,7 @@ function viewDetail(row: AdminErrandOrderListItem): void {
 }
 
 function onSearch(): void {
-  query.page = 1;
+  query.pageNo = 1;
   void fetchList();
 }
 
@@ -96,17 +106,17 @@ function onReset(): void {
   query.status = '';
   query.typeCode = '';
   query.customerId = '';
-  query.page = 1;
+  query.pageNo = 1;
   void fetchList();
 }
 
-function onPageChange(p: number): void {
-  query.page = p;
+function onRefresh(): void {
+  void fetchStats();
   void fetchList();
 }
 
 const fmtDate = (ts: number): string => new Date(ts).toLocaleString();
-const fmtYuan = (cents: string): string => (Number(cents) / 100).toFixed(2);
+const fmtYuan = (cents: string): string => `${(Number(cents || 0) / 100).toFixed(2)} 元`;
 
 onMounted(() => {
   void fetchList();
@@ -115,144 +125,121 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="errand-orders">
-    <el-row :gutter="12" class="errand-orders__stats">
-      <el-col :span="3">
-        <el-card>
-          <div class="stat-num">{{ stats?.totalCount ?? '-' }}</div>
-          <div class="stat-lbl">总订单数</div>
-        </el-card>
-      </el-col>
-      <el-col :span="3">
-        <el-card>
-          <div class="stat-num">{{ stats?.waitPayCount ?? '-' }}</div>
-          <div class="stat-lbl">待支付</div>
-        </el-card>
-      </el-col>
-      <el-col :span="3">
-        <el-card>
-          <div class="stat-num">{{ stats?.paidCount ?? '-' }}</div>
-          <div class="stat-lbl">已支付</div>
-        </el-card>
-      </el-col>
-      <el-col :span="3">
-        <el-card>
-          <div class="stat-num">{{ stats?.dispatchingCount ?? '-' }}</div>
-          <div class="stat-lbl">派单中</div>
-        </el-card>
-      </el-col>
-      <el-col :span="3">
-        <el-card>
-          <div class="stat-num">{{ stats?.assignedCount ?? '-' }}</div>
-          <div class="stat-lbl">骑手已接</div>
-        </el-card>
-      </el-col>
-      <el-col :span="3">
-        <el-card>
-          <div class="stat-num">{{ stats?.completedCount ?? '-' }}</div>
-          <div class="stat-lbl">已完成</div>
-        </el-card>
-      </el-col>
-      <el-col :span="3">
-        <el-card>
-          <div class="stat-num">{{ stats?.cancelledCount ?? '-' }}</div>
-          <div class="stat-lbl">已取消</div>
-        </el-card>
-      </el-col>
-      <el-col :span="3">
-        <el-card>
-          <div class="stat-num">¥{{ fmtYuan(stats?.totalAmount ?? '0') }}</div>
-          <div class="stat-lbl">总金额</div>
-        </el-card>
-      </el-col>
-    </el-row>
+  <PageContainer title="跑腿订单" subtitle="帮买 / 帮送 / 帮办 / 自定义 全量流水">
+    <template #extra>
+      <el-button @click="onRefresh">
+        <el-icon><Refresh /></el-icon>
+        <span style="margin-left: 6px">刷新</span>
+      </el-button>
+    </template>
 
-    <el-card class="errand-orders__filters">
-      <el-form :inline="true" :model="query">
-        <el-form-item label="状态">
-          <el-select v-model="query.status" placeholder="全部" style="width: 140px">
-            <el-option v-for="o in STATUS_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="类型">
-          <el-select v-model="query.typeCode" placeholder="全部" style="width: 140px">
-            <el-option v-for="o in TYPE_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="customerId">
-          <el-input v-model="query.customerId" placeholder="customerId" style="width: 160px" />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="onSearch">查询</el-button>
-          <el-button @click="onReset">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
-
-    <el-card class="errand-orders__table">
-      <el-table v-loading="loading" :data="list" stripe>
-        <el-table-column prop="orderNo" label="订单号" width="160" />
-        <el-table-column prop="typeCode" label="类型" width="80">
-          <template #default="{ row }">
-            <el-tag size="small">{{ row.typeCode }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="status" label="状态" width="120" />
-        <el-table-column prop="urgentLevel" label="紧急度" width="80">
-          <template #default="{ row }">
-            <span>{{ URGENT_LABEL[row.urgentLevel] ?? row.urgentLevel }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="customerId" label="客户" width="120" />
-        <el-table-column label="应付金额" width="120">
-          <template #default="{ row }">¥{{ fmtYuan(row.payableAmount) }}</template>
-        </el-table-column>
-        <el-table-column label="创建时间" width="180">
-          <template #default="{ row }">{{ fmtDate(row.createdAt) }}</template>
-        </el-table-column>
-        <el-table-column label="操作" width="120" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" link @click="viewDetail(row)">详情</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <el-pagination
-        class="errand-orders__pager"
-        :current-page="query.page"
-        :page-size="query.pageSize"
-        :total="total"
-        @current-change="onPageChange"
+    <section class="kpi-row">
+      <StatCard label="总订单" :value="stats?.totalCount ?? '—'" tone="brand" :loading="!stats" />
+      <StatCard label="待支付" :value="stats?.waitPayCount ?? '—'" tone="warning" :loading="!stats" />
+      <StatCard label="已支付" :value="stats?.paidCount ?? '—'" tone="info" :loading="!stats" />
+      <StatCard label="派单中" :value="stats?.dispatchingCount ?? '—'" tone="warning" :loading="!stats" />
+      <StatCard label="骑手已接" :value="stats?.assignedCount ?? '—'" tone="info" :loading="!stats" />
+      <StatCard label="已完成" :value="stats?.completedCount ?? '—'" tone="success" :loading="!stats" />
+      <StatCard label="已取消" :value="stats?.cancelledCount ?? '—'" tone="neutral" :loading="!stats" />
+      <StatCard
+        label="总金额"
+        :value="stats ? `${fmtYuan(stats.totalAmount)}` : '—'"
+        tone="success"
+        :loading="!stats"
       />
-    </el-card>
+    </section>
+
+    <FilterBar @search="onSearch" @reset="onReset">
+      <div class="filter-field">
+        <label>状态</label>
+        <el-select v-model="query.status" placeholder="全部" clearable style="width: 160px">
+          <el-option v-for="o in STATUS_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
+        </el-select>
+      </div>
+      <div class="filter-field">
+        <label>类型</label>
+        <el-select v-model="query.typeCode" placeholder="全部" clearable style="width: 140px">
+          <el-option v-for="o in TYPE_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
+        </el-select>
+      </div>
+      <div class="filter-field">
+        <label>用户</label>
+        <el-input
+          v-model="query.customerId"
+          placeholder="customerId"
+          clearable
+          style="width: 160px"
+          @keyup.enter="onSearch"
+        />
+      </div>
+    </FilterBar>
+
+    <DataTable
+      :data="list"
+      :loading="loading"
+      :total="total"
+      v-model:pageNo="query.pageNo"
+      v-model:pageSize="query.pageSize"
+      @page-change="fetchList"
+    >
+      <el-table-column label="订单号" prop="orderNo" width="180">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.orderNo }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="类型" prop="typeCode" width="80">
+        <template #default="{ row }">
+          <span class="muted">{{ row.typeCode }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="状态" width="130">
+        <template #default="{ row }">
+          <StatusTag :status="row.status" :label="STATUS_LABEL[row.status] ?? row.status" />
+        </template>
+      </el-table-column>
+      <el-table-column label="紧急度" prop="urgentLevel" width="90">
+        <template #default="{ row }">
+          <span class="muted">{{ URGENT_LABEL[row.urgentLevel] ?? row.urgentLevel }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="用户" prop="customerId" width="140">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.customerId }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="应付金额" align="right" width="120">
+        <template #default="{ row }">
+          <span class="mono">{{ fmtYuan(row.payableAmount) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="创建时间" width="180">
+        <template #default="{ row }">
+          <span class="muted">{{ fmtDate(row.createdAt) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="80" fixed="right">
+        <template #default="{ row }">
+          <el-button link type="primary" @click="viewDetail(row)">详情</el-button>
+        </template>
+      </el-table-column>
+    </DataTable>
 
     <ErrandOrderDetailDrawer v-model:visible="drawerVisible" :order-id="drawerOrderId" />
-  </div>
+  </PageContainer>
 </template>
 
 <style scoped>
-.errand-orders {
-  padding: 16px;
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--gap-3);
 }
-.errand-orders__stats {
-  margin-bottom: 12px;
-}
-.errand-orders__filters {
-  margin-bottom: 12px;
-}
-.errand-orders__table {
-  padding: 8px;
-}
-.errand-orders__pager {
-  margin-top: 12px;
-  text-align: right;
-}
-.stat-num {
-  font-size: 20px;
-  font-weight: bold;
-}
-.stat-lbl {
+.mono {
+  font-family: var(--font-mono);
   font-size: 12px;
-  color: #888;
-  margin-top: 4px;
+}
+.muted {
+  color: var(--fg-muted);
+  font-size: 12px;
 }
 </style>

@@ -51,7 +51,7 @@ function onReset(): void {
 }
 
 function fmtYuan(cents: string): string {
-  return (Number(cents) / 100).toFixed(2);
+  return `${(Number(cents) / 100).toFixed(2)} 元`;
 }
 
 onMounted(load);
@@ -81,13 +81,13 @@ onMounted(load);
       <el-table-column prop="merchantId" label="商户 ID" width="120" />
       <el-table-column prop="orderCount" label="订单数" width="90" />
       <el-table-column label="流水">
-        <template #default="{ row }">¥{{ fmtYuan(row.grossCents) }}</template>
+        <template #default="{ row }">{{ fmtYuan(row.grossCents) }}</template>
       </el-table-column>
       <el-table-column label="退款">
-        <template #default="{ row }">¥{{ fmtYuan(row.refundCents) }}</template>
+        <template #default="{ row }">{{ fmtYuan(row.refundCents) }}</template>
       </el-table-column>
       <el-table-column label="净收入">
-        <template #default="{ row }">¥{{ fmtYuan(row.netCents) }}</template>
+        <template #default="{ row }">{{ fmtYuan(row.netCents) }}</template>
       </el-table-column>
       <el-table-column prop="storeRating" label="店铺评分" width="100" />
       <el-table-column prop="snapshotId" label="快照 ID" min-width="160" show-overflow-tooltip />

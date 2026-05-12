@@ -84,6 +84,14 @@ export interface MerchantOrderAddressVo {
   consignee: string;
   mobileMasked: string;
   detail: string;
+  lng: number | null;
+  lat: number | null;
+}
+
+export interface MerchantOrderMapVo {
+  store: { lng: number; lat: number };
+  delivery: { lng: number; lat: number } | null;
+  riderLocation: { lng: number; lat: number; updatedAt: number } | null;
 }
 
 export interface MerchantOrderTimelineEntryVo {
@@ -107,6 +115,7 @@ export interface MerchantOrderDetailVo {
   acceptedAt: number | null;
   readyAt: number | null;
   address: MerchantOrderAddressVo | null;
+  map: MerchantOrderMapVo;
   items: MerchantOrderItemVo[];
   timeline: MerchantOrderTimelineEntryVo[];
   allowedMerchantActions: string[];

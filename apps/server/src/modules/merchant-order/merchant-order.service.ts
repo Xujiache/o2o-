@@ -9,7 +9,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ErrorCode } from '@o2o/contracts';
 import { In, Repository } from 'typeorm';
 
-import { FoodOrder, FoodOrderItem, MerchantOrderActionLog, OrderTimeline, Store } from '../../database/entities';
+import {
+  FoodOrder,
+  FoodOrderItem,
+  MerchantOrderActionLog,
+  OrderTimeline,
+  RiderLocation,
+  Store,
+} from '../../database/entities';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
 
@@ -47,6 +54,7 @@ export class MerchantOrderService {
     @InjectRepository(FoodOrder) private readonly orderRepo: Repository<FoodOrder>,
     @InjectRepository(FoodOrderItem) private readonly orderItemRepo: Repository<FoodOrderItem>,
     @InjectRepository(Store) private readonly storeRepo: Repository<Store>,
+    @InjectRepository(RiderLocation) private readonly locationRepo: Repository<RiderLocation>,
     @InjectRepository(MerchantOrderActionLog)
     private readonly actionLogRepo: Repository<MerchantOrderActionLog>,
     @InjectRepository(OrderTimeline) private readonly timelineRepo: Repository<OrderTimeline>,
@@ -76,6 +84,12 @@ export class MerchantOrderService {
       order: { createdAt: 'ASC' },
     });
     const addr = order.addressSnapshot;
+    const latestRider = await this.locationRepo
+      .createQueryBuilder('l')
+      .orderBy('l.reported_at', 'DESC')
+      .limit(1)
+      .getOne();
+    const delivery = addr?.lng != null && addr?.lat != null ? { lng: Number(addr.lng), lat: Number(addr.lat) } : null;
     return {
       orderId: order.foodOrderId,
       orderNo: order.orderNo,
@@ -93,8 +107,21 @@ export class MerchantOrderService {
             consignee: addr.consignee,
             mobileMasked: maskMobile(addr.mobile),
             detail: [addr.province, addr.city, addr.district, addr.detail].filter(Boolean).join(' '),
+            lng: addr.lng ?? null,
+            lat: addr.lat ?? null,
           }
         : null,
+      map: {
+        store: { lng: 116.4, lat: 39.9 },
+        delivery,
+        riderLocation: latestRider
+          ? {
+              lng: Number(latestRider.lng),
+              lat: Number(latestRider.lat),
+              updatedAt: Number(latestRider.reportedAt),
+            }
+          : null,
+      },
       items,
       timeline: timelineRows.map((r) => ({
         at: Number(r.createdAt),

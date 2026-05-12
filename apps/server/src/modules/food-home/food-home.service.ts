@@ -56,8 +56,8 @@ export class FoodHomeService {
     const stores = await this.storeRepo
       .createQueryBuilder('s')
       .where('s.city_code = :cc', { cc: cityCode })
-      .andWhere("s.business_status = 'online'")
-      .orderBy('s.updated_at', 'DESC')
+      .orderBy("CASE WHEN s.business_status = 'online' THEN 0 ELSE 1 END", 'ASC')
+      .addOrderBy('s.updated_at', 'DESC')
       .limit(MAX_RECOMMENDED_STORES)
       .getMany();
 
@@ -73,6 +73,7 @@ export class FoodHomeService {
       deliveryFee: s.deliveryFee,
       minOrderAmount: s.minOrderAmount,
       businessStatus: s.businessStatus,
+      statusUpdatedAt: Number(s.updatedAt),
     }));
 
     return {

@@ -1,5 +1,5 @@
 /**
- * 平台 Web - 用户管理接口(stage 1)。
+ * 平台 Web - 用户管理接口。
  */
 import type { ApiResponse } from '@o2o/contracts';
 

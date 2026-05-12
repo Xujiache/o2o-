@@ -10,6 +10,8 @@ interface State {
   payChannel: 'wxpay' | 'alipay';
   /** 跨页面选地址回传:address/list 写入,confirm 消费一次后清空 */
   pickedAddressId: string | null;
+  /** 跨页面选券回传:coupon-pick 写入,confirm 消费一次后清空。空串 = 主动不使用券;null = 未变化 */
+  pickedCouponId: string | null;
 }
 
 export const useFoodOrderStore = defineStore('food-order', {
@@ -19,6 +21,7 @@ export const useFoodOrderStore = defineStore('food-order', {
     storeId: null,
     payChannel: 'wxpay',
     pickedAddressId: null,
+    pickedCouponId: null,
   }),
   actions: {
     setPreview(p: PreviewVo, storeId: string): void {
@@ -37,6 +40,14 @@ export const useFoodOrderStore = defineStore('food-order', {
     consumePickedAddress(): string | null {
       const id = this.pickedAddressId;
       this.pickedAddressId = null;
+      return id;
+    },
+    pickCoupon(id: string): void {
+      this.pickedCouponId = id;
+    },
+    consumePickedCoupon(): string | null {
+      const id = this.pickedCouponId;
+      this.pickedCouponId = null;
       return id;
     },
     reset(): void {

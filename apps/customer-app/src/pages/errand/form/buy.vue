@@ -7,7 +7,7 @@ const store = useErrandFormStore();
 const pickup = ref('');
 const delivery = ref('');
 const itemDesc = ref('');
-const budget = ref(0);
+const budgetYuan = ref(0); // 用户输入元;后端用分
 
 const urgentRange = ['标准', '加急', '特急'];
 const urgentLevels = ['standard', 'fast', 'express'] as const;
@@ -19,7 +19,7 @@ function onUrgentChange(e: { detail: { value: number } }): void {
 const submitting = ref(false);
 
 function submit(): void {
-  if (!pickup.value.trim() || !delivery.value.trim() || !itemDesc.value.trim() || budget.value <= 0) {
+  if (!pickup.value.trim() || !delivery.value.trim() || !itemDesc.value.trim() || budgetYuan.value <= 0) {
     uni.showToast({ title: '请填写所有必填项', icon: 'none' });
     return;
   }
@@ -30,7 +30,7 @@ function submit(): void {
     deliveryAddress: { address: delivery.value },
     urgentLevel: urgentLevels[urgentIndex.value],
     itemDesc: itemDesc.value,
-    budget: budget.value,
+    budget: Math.round(budgetYuan.value * 100),
   });
   uni.navigateTo({ url: '/pages/errand/quote/index' });
   submitting.value = false;
@@ -59,8 +59,8 @@ function submit(): void {
         <textarea v-model="itemDesc" placeholder="如:一杯冰美式、一盒草莓..." class="form__textarea" />
       </view>
       <view class="form__field">
-        <view class="form__label"><text>预算上限(分)</text><text class="form__required">*</text></view>
-        <input v-model.number="budget" type="number" placeholder="如:5000(=50 元)" class="form__input" />
+        <view class="form__label"><text>预算上限(元)</text><text class="form__required">*</text></view>
+        <input v-model.number="budgetYuan" type="digit" placeholder="如:50" class="form__input" />
       </view>
       <view class="form__field form__field--last">
         <view class="form__label"><text>紧急度</text></view>
@@ -83,7 +83,7 @@ function submit(): void {
 .form {
   min-height: 100vh;
   padding: 0 0 200rpx;
-  background: #f5f6f8;
+  background: #fff;
 }
 .form__hero {
   position: relative;
@@ -145,7 +145,7 @@ function submit(): void {
   width: 100%;
   min-height: 80rpx;
   padding: 20rpx 24rpx;
-  background: #f7f8fa;
+  background: #fff;
   border-radius: 16rpx;
   font-size: 28rpx;
   color: #172033;
@@ -160,7 +160,7 @@ function submit(): void {
   justify-content: space-between;
   min-height: 80rpx;
   padding: 20rpx 24rpx;
-  background: #f7f8fa;
+  background: #fff;
   border-radius: 16rpx;
   font-size: 28rpx;
   color: #172033;
@@ -176,7 +176,7 @@ function submit(): void {
   right: 0;
   bottom: 0;
   padding: 20rpx 24rpx calc(env(safe-area-inset-bottom, 0rpx) + 24rpx);
-  background: #f5f6f8;
+  background: #fff;
   border-top: 1rpx solid rgba(31, 41, 55, 0.06);
   z-index: 50;
 }

@@ -1,25 +1,72 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
-import MobileInput from '@/components/common/MobileInput.vue';
 import { useAuthStore } from '@/stores/auth';
 
 const auth = useAuthStore();
 const mobile = ref('');
+const code = ref('');
 const sending = ref(false);
+const submitting = ref(false);
+const errorMsg = ref('');
+const remaining = ref(0);
+let timer: ReturnType<typeof setInterval> | null = null;
 
-const valid = computed(() => /^1[3-9]\d{9}$/.test(mobile.value));
+const mobileValid = computed(() => /^1[3-9]\d{9}$/.test(mobile.value));
+const canSendSms = computed(() => mobileValid.value && remaining.value <= 0 && !sending.value);
+const canSubmit = computed(() => mobileValid.value && /^\d{6}$/.test(code.value) && !submitting.value);
+
+function startTimer(): void {
+  remaining.value = auth.smsRemainingSeconds;
+  if (timer) clearInterval(timer);
+  timer = setInterval(() => {
+    remaining.value = auth.smsRemainingSeconds;
+    if (remaining.value <= 0 && timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+  }, 1000);
+}
+
+onMounted(() => {
+  if (auth.smsCountdown?.mobile) mobile.value = auth.smsCountdown.mobile;
+  startTimer();
+});
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer);
+});
 
 async function onSendSms(): Promise<void> {
-  if (!valid.value || sending.value) return;
+  if (!canSendSms.value) return;
+  errorMsg.value = '';
   sending.value = true;
   try {
     await auth.sendSms(mobile.value);
-    uni.navigateTo({ url: `/pages/login/verify?mobile=${mobile.value}` });
-  } catch (e) {
-    uni.showToast({ icon: 'none', title: e instanceof Error ? e.message : '发送失败' });
+    startTimer();
+  } catch (err) {
+    errorMsg.value = err instanceof Error ? err.message : '验证码发送失败';
   } finally {
     sending.value = false;
+  }
+}
+
+async function onLogin(): Promise<void> {
+  if (!canSubmit.value) return;
+  errorMsg.value = '';
+  submitting.value = true;
+  try {
+    await auth.loginByMobile(mobile.value, code.value);
+    auth.clearSmsCountdown();
+    if (auth.hasApplication) {
+      uni.reLaunch({ url: '/pages/onboarding/progress' });
+    } else {
+      uni.reLaunch({ url: '/pages/onboarding/apply' });
+    }
+  } catch (err) {
+    errorMsg.value = err instanceof Error ? err.message : '登录失败';
+  } finally {
+    submitting.value = false;
   }
 }
 </script>
@@ -27,64 +74,135 @@ async function onSendSms(): Promise<void> {
 <template>
   <view class="login">
     <view class="login__hero">
-      <text class="login__badge">Rider App</text>
-      <view class="login__title">骑手登录</view>
-      <view class="login__desc">输入手机号，接收 6 位验证码登录</view>
+      <view class="login__greet">您好，</view>
+      <view class="login__title">欢迎使用笑联骑手</view>
     </view>
-    <view class="login__panel">
-      <MobileInput v-model="mobile" />
-      <button class="login__btn" :disabled="!valid || sending" @click="onSendSms">
-        {{ sending ? '发送中...' : '发送验证码' }}
-      </button>
+
+    <view class="login__card">
+      <view class="login__field">
+        <text class="login__label">手机号</text>
+        <input
+          v-model="mobile"
+          class="login__input"
+          type="number"
+          maxlength="11"
+          placeholder="请输入您的手机号"
+          placeholder-class="login__placeholder"
+        />
+      </view>
+
+      <view class="login__field">
+        <text class="login__label">验证码</text>
+        <view class="login__row">
+          <input
+            v-model="code"
+            class="login__input login__input--inline"
+            type="number"
+            maxlength="6"
+            placeholder="请输入验证码"
+            placeholder-class="login__placeholder"
+          />
+          <text class="login__sms" :class="{ 'login__sms--disabled': !canSendSms }" @click="onSendSms">
+            {{ remaining > 0 ? `${remaining}s 后重发` : sending ? '发送中...' : '获取验证码' }}
+          </text>
+        </view>
+      </view>
+
+      <text v-if="errorMsg" class="login__error">{{ errorMsg }}</text>
+
+      <view class="login__btn login__btn--primary" :class="{ 'login__btn--disabled': !canSubmit }" @tap="onLogin">
+        {{ submitting ? '登录中...' : '登录' }}
+      </view>
     </view>
   </view>
 </template>
 
 <style scoped>
 .login {
-  padding: 56rpx 32rpx;
-  display: flex;
-  flex-direction: column;
-  gap: 32rpx;
+  min-height: 100vh;
+  background: #f6f8fb;
 }
 .login__hero {
-  padding: 54rpx 36rpx;
-  border-radius: 36rpx;
+  padding: 120rpx 56rpx 200rpx;
+  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
   color: #fff;
-  background: linear-gradient(135deg, #0f766e, #14b8a6);
-  box-shadow: 0 24rpx 64rpx rgba(20, 184, 166, 0.26);
 }
-.login__badge {
-  display: inline-flex;
-  padding: 8rpx 18rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.18);
-  font-size: 22rpx;
+.login__greet {
+  font-size: 56rpx;
+  font-weight: 600;
+  line-height: 1.3;
 }
 .login__title {
-  margin-top: 24rpx;
-  font-size: 54rpx;
-  font-weight: 800;
+  font-size: 56rpx;
+  font-weight: 600;
+  line-height: 1.3;
 }
-.login__desc {
-  margin-top: 12rpx;
-  font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.88);
-}
-.login__panel {
-  padding: 32rpx;
-  border-radius: 32rpx;
+.login__card {
+  margin: -120rpx 32rpx 0;
+  padding: 48rpx 40rpx 56rpx;
   background: #fff;
-  box-shadow: 0 18rpx 48rpx rgba(31, 41, 55, 0.08);
+  border-radius: 32rpx;
+  box-shadow: 0 20rpx 60rpx rgba(20, 184, 166, 0.16);
+}
+.login__field {
+  margin-bottom: 32rpx;
+}
+.login__label {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 16rpx;
+}
+.login__input {
+  width: 100%;
+  height: 72rpx;
+  font-size: 28rpx;
+  color: #1f2937;
+  border-bottom: 1rpx solid #e5e7eb;
+}
+.login__placeholder {
+  color: #c7cbd1;
+  font-size: 28rpx;
+}
+.login__row {
+  display: flex;
+  align-items: center;
+  border-bottom: 1rpx solid #e5e7eb;
+}
+.login__input--inline {
+  flex: 1;
+  border-bottom: none;
+}
+.login__sms {
+  font-size: 26rpx;
+  color: #0f766e;
+  padding-left: 16rpx;
+  white-space: nowrap;
+}
+.login__sms--disabled {
+  color: #b0b6bf;
+}
+.login__error {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #ff4d4f;
 }
 .login__btn {
-  margin-top: 32rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 999rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  text-align: center;
+}
+.login__btn--primary {
+  margin-top: 40rpx;
   background: linear-gradient(135deg, #14b8a6, #0f766e);
   color: #fff;
-  border-radius: 999rpx;
-  font-weight: 700;
 }
-.login__btn[disabled] {
+.login__btn--primary.login__btn--disabled {
   background: #9de3dc;
   color: #fff;
 }

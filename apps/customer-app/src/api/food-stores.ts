@@ -13,6 +13,7 @@ export interface FoodStoreItem {
   deliveryFee: string;
   minOrderAmount: string;
   businessStatus: string;
+  statusUpdatedAt?: number;
 }
 export interface FoodStoreListPageVo {
   pageNo: number;
@@ -45,6 +46,8 @@ export interface PublicStoreDetailVo {
   deliveryFee: string;
   intro?: string | null;
   notice?: string | null;
+  businessStatus: string;
+  statusUpdatedAt?: number;
   businessHours: Array<{ dayOfWeek: number; startTime: string; endTime: string }>;
 }
 

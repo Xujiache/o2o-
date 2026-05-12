@@ -52,7 +52,7 @@ function pick(city: CityItem): void {
 }
 .city__search {
   width: 100%;
-  background: #f5f5f5;
+  background: #fff;
   padding: 16rpx 24rpx;
   border-radius: 32rpx;
   font-size: 28rpx;

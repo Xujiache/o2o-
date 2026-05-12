@@ -28,7 +28,10 @@ function buildService(w: World) {
     findOne: jest.fn(async (opt: any) => w.stores.find((s) => s.merchantId === opt.where.merchantId) ?? null),
   };
 
-  const svc = new MerchantReviewService(replyRepo, reviewRepo, storeRepo);
+  const foodOrderRepo: any = { find: jest.fn(async () => []) };
+  const fileService: any = { resolveUrls: jest.fn(async () => ({})) };
+
+  const svc = new MerchantReviewService(replyRepo, reviewRepo, storeRepo, foodOrderRepo, fileService);
   return { svc };
   /* eslint-enable */
 }

@@ -1,16 +1,16 @@
 /**
- * 骑手端接口封装(stage 0 + stage 3)。
+ * 骑手端接口封装。
  */
 import type { ApiResponse } from '@o2o/contracts';
 
 import { request, upload } from '@/utils/request';
 
 export const Endpoints = {
-  // stage 0
+  // 公共接口
   Dictionaries: '/api/v1/pub/dictionaries',
   Cities: '/api/v1/pub/cities',
   FilesUpload: '/api/v1/pub/files/upload',
-  // stage 3 — 骑手端
+  // 骑手端接口
   SmsCode: '/api/v1/r/auth/sms-code',
   Login: '/api/v1/r/auth/login',
   Refresh: '/api/v1/r/auth/refresh',
@@ -51,7 +51,7 @@ export function uploadFile(filePath: string, bizType: string): Promise<ApiRespon
   return upload<UploadResultVo>({ filePath, bizType });
 }
 
-// =================== Stage 3 接口 ===================
+// =================== 骑手端接口 ===================
 
 export type Platform = 'app-android' | 'app-ios';
 

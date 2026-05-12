@@ -6,6 +6,7 @@ import { DataSource, EntityManager, Repository } from 'typeorm';
 import { FoodOrder, OrderTimeline, ProductSku, StockLock } from '../../database/entities';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
+import { CouponService } from '../../modules/coupon/coupon.service';
 import { DistributedLockService } from '../distributed-lock.service';
 
 import { BaseJob } from './base-job';
@@ -25,6 +26,7 @@ export class WaitPayTimeoutCloseJob extends BaseJob {
     @InjectRepository(FoodOrder) private readonly orderRepo: Repository<FoodOrder>,
     private readonly dataSource: DataSource,
     private readonly eventBus: DomainEventBus,
+    private readonly couponService: CouponService,
     protected readonly lock: DistributedLockService,
   ) {
     super();
@@ -72,6 +74,9 @@ export class WaitPayTimeoutCloseJob extends BaseJob {
             await em.getRepository(ProductSku).decrement({ skuId: lock.skuId }, 'stockLocked', lock.quantity);
             released.push({ skuId: lock.skuId, quantity: lock.quantity });
           }
+          // 释放优惠券(user_coupon USED → UNUSED;coupon_lock active → released)
+          await this.couponService.releaseCoupons(em, order.foodOrderId);
+
           await em.getRepository(OrderTimeline).insert({
             orderId: order.foodOrderId,
             bizType: 'FOOD',

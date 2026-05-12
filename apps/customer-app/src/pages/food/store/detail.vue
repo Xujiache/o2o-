@@ -7,6 +7,7 @@ import { type FoodProduct, type FoodStoreProductsVo, getStoreProducts } from '@/
 import { type PublicStoreDetailVo, getPublicStoreDetail } from '@/api/food-stores';
 import { useFoodCartStore } from '@/stores/food-cart';
 import { formatYuan } from '@/utils/format-price';
+import { formatWeight } from '@/utils/format-weight';
 
 const storeId = ref('');
 const data = ref<FoodStoreProductsVo | null>(null);
@@ -57,11 +58,23 @@ const cartCount = computed<number>(() =>
 );
 const cartTotal = computed<string>(() => (cart.cart?.storeId === storeId.value ? cart.cart.totalAmount : '0'));
 const storeName = computed<string>(() => storeInfo.value?.name ?? `店铺 ${storeId.value}`);
+const isStoreResting = computed<boolean>(() => !!storeInfo.value && storeInfo.value.businessStatus !== 'online');
+const restRegisteredAt = computed<string>(() => formatDateTime(storeInfo.value?.statusUpdatedAt));
 const minOrderHint = computed<string>(() => {
   const info = storeInfo.value;
   if (!info) return '加载中…';
+  if (isStoreResting.value) return '店铺目前休息中';
   return `¥${formatYuan(info.minOrderAmount)} 起送 · ¥${formatYuan(info.deliveryFee)} 配送费`;
 });
+
+function formatDateTime(ms?: number | null): string {
+  if (!ms) return '--';
+  const d = new Date(ms);
+  if (Number.isNaN(d.getTime())) return '--';
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(
+    d.getHours(),
+  ).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
 
 async function load(): Promise<void> {
   loading.value = true;
@@ -136,6 +149,10 @@ function firstActiveSku(p: FoodProduct): { skuId: string; quantity: number } | n
 
 /** 用户点商品卡 / 商品卡 + 按钮:始终弹 picker(单/多规格统一) */
 function onProductTap(p: FoodProduct): void {
+  if (isStoreResting.value) {
+    uni.showToast({ title: '店铺目前休息中，暂不可下单', icon: 'none' });
+    return;
+  }
   if (p.saleStatus !== 'on_shelf') {
     uni.showToast({ title: '已售罄', icon: 'none' });
     return;
@@ -165,6 +182,10 @@ function pickerInc(): void {
 }
 
 async function ensureCanWriteCart(): Promise<boolean> {
+  if (isStoreResting.value) {
+    uni.showToast({ title: '店铺目前休息中，暂不可加购', icon: 'none' });
+    return false;
+  }
   if (cart.canSwitchStore(storeId.value)) return true;
   const ok = await new Promise<boolean>((resolve) => {
     uni.showModal({
@@ -206,6 +227,10 @@ async function pickerSubmit(): Promise<void> {
 /** 卡片右下角 +:仅在 productCartCount > 0 时由加减控件触发 */
 async function quickInc(p: FoodProduct, evt?: Event): Promise<void> {
   evt?.stopPropagation?.();
+  if (isStoreResting.value) {
+    uni.showToast({ title: '店铺目前休息中，暂不可加购', icon: 'none' });
+    return;
+  }
   // 多规格商品的卡片 + 走 picker(避免歧义)
   if (p.skus.length > 1) {
     onProductTap(p);
@@ -224,6 +249,7 @@ async function quickInc(p: FoodProduct, evt?: Event): Promise<void> {
 /** 卡片右下角 -:数量 -1,到 0 删除 */
 async function quickDec(p: FoodProduct, evt?: Event): Promise<void> {
   evt?.stopPropagation?.();
+  if (isStoreResting.value) return;
   const sku = firstActiveSku(p);
   if (!sku) return;
   // 多规格剩多个 sku 时不直接减(交给购物车页处理)
@@ -238,6 +264,10 @@ async function quickDec(p: FoodProduct, evt?: Event): Promise<void> {
 
 /** 点底部购物车浮条:打开半屏 sheet(不再 navigate 到全屏页) */
 function goCart(): void {
+  if (isStoreResting.value) {
+    uni.showToast({ title: '店铺目前休息中，暂不可结算', icon: 'none' });
+    return;
+  }
   if (cartCount.value === 0) {
     uni.showToast({ title: '购物车空,先选点商品吧', icon: 'none' });
     return;
@@ -278,6 +308,10 @@ async function cartClearAll(): Promise<void> {
 
 /** 关闭 sheet 并跳确认订单页 */
 function goConfirm(): void {
+  if (isStoreResting.value) {
+    uni.showToast({ title: '店铺目前休息中，暂不可结算', icon: 'none' });
+    return;
+  }
   if (cartCount.value === 0) return;
   cartSheetOpen.value = false;
   uni.navigateTo({ url: `/pages/food/order/confirm?storeId=${storeId.value}` });
@@ -303,6 +337,17 @@ function coverStyle(productId: string): string {
 
 function firstChar(name: string): string {
   return name ? name.slice(0, 1) : '店';
+}
+
+/** 商品卡显示用:单规格直接取该 sku 重量;多规格取最小→最大范围 */
+function productWeightLabel(p: FoodProduct): string {
+  const valid = p.skus.map((s) => s.weightGrams).filter((g): g is number => typeof g === 'number' && g > 0);
+  if (valid.length === 0) return '';
+  if (valid.length === 1) return formatWeight(valid[0]!);
+  const min = Math.min(...valid);
+  const max = Math.max(...valid);
+  if (min === max) return formatWeight(min);
+  return `${formatWeight(min)} - ${formatWeight(max)}`;
 }
 
 function fakeMonthlySold(productId: string): number {
@@ -342,10 +387,13 @@ onUnmounted(() => {
 
     <template v-else-if="data">
       <!-- 顶部店铺信息卡 -->
-      <view class="store__header">
+      <view class="store__header" :class="{ 'store__header--resting': isStoreResting }">
         <view class="store__avatar">{{ firstChar(storeName) }}</view>
         <view class="store__head-main">
-          <text class="store__name">{{ storeName }}</text>
+          <view class="store__name-row">
+            <text class="store__name">{{ storeName }}</text>
+            <text v-if="isStoreResting" class="store__rest-tag">休息中</text>
+          </view>
           <view class="store__meta">
             <view class="store__meta-rating">
               <SvgIcon name="star" :size="20" color="#f7971e" />
@@ -357,6 +405,9 @@ onUnmounted(() => {
             <text class="store__meta-item">30 分钟</text>
           </view>
           <view class="store__notice">{{ minOrderHint }}</view>
+          <view v-if="isStoreResting" class="store__rest-alert">
+            店铺目前休息中，平台登记时间为{{ restRegisteredAt }}
+          </view>
           <view v-if="storeInfo?.notice" class="store__notice store__notice--tip">公告:{{ storeInfo.notice }}</view>
         </view>
       </view>
@@ -397,17 +448,21 @@ onUnmounted(() => {
               v-for="p in productsByCategory[cat.categoryId] || []"
               :key="p.productId"
               class="store__product"
-              :class="{ 'store__product--out': p.saleStatus !== 'on_shelf' }"
+              :class="{ 'store__product--out': p.saleStatus !== 'on_shelf' || isStoreResting }"
               @tap="onProductTap(p)"
             >
               <view class="store__cover" :style="p.imageUrl ? '' : coverStyle(p.productId)">
                 <image v-if="p.imageUrl" :src="p.imageUrl" class="store__cover-img" mode="aspectFill" />
                 <text v-else class="store__cover-letter">{{ firstChar(p.name) }}</text>
-                <view v-if="p.saleStatus !== 'on_shelf'" class="store__cover-mask">已售罄</view>
+                <view v-if="isStoreResting" class="store__cover-mask">休息中</view>
+                <view v-else-if="p.saleStatus !== 'on_shelf'" class="store__cover-mask">已售罄</view>
               </view>
               <view class="store__product-info">
                 <view class="store__product-top">
-                  <text class="store__product-name">{{ p.name }}</text>
+                  <view class="store__product-name-row">
+                    <text class="store__product-name">{{ p.name }}</text>
+                    <text v-if="productWeightLabel(p)" class="store__weight-tag">⚖ {{ productWeightLabel(p) }}</text>
+                  </view>
                   <text v-if="p.description" class="store__product-desc">{{ p.description }}</text>
                   <view class="store__product-meta">
                     <text class="store__product-stat">月售 {{ fakeMonthlySold(p.productId) }}</text>
@@ -421,7 +476,7 @@ onUnmounted(() => {
                     <text v-if="p.originalPrice" class="store__product-orig">¥{{ formatYuan(p.originalPrice) }}</text>
                   </view>
                   <!-- 已加车:加减控件;未加车:+ 按钮(点击弹 picker) -->
-                  <template v-if="productCartCount(p) > 0">
+                  <template v-if="productCartCount(p) > 0 && !isStoreResting">
                     <view class="store__qty">
                       <view class="store__qty-btn store__qty-btn--minus" @tap.stop="quickDec(p, $event)">
                         <text>−</text>
@@ -432,7 +487,12 @@ onUnmounted(() => {
                       </view>
                     </view>
                   </template>
-                  <view v-else class="store__product-add" @tap.stop="onProductTap(p)">
+                  <view
+                    v-else
+                    class="store__product-add"
+                    :class="{ 'store__product-add--disabled': isStoreResting }"
+                    @tap.stop="onProductTap(p)"
+                  >
                     <text class="store__product-add-icon">+</text>
                   </view>
                 </view>
@@ -447,7 +507,7 @@ onUnmounted(() => {
       </view>
 
       <!-- 底部购物车浮条(fixed,始终悬停) -->
-      <view class="store__cart-bar" @tap="goCart">
+      <view class="store__cart-bar" :class="{ 'store__cart-bar--disabled': isStoreResting }" @tap="goCart">
         <view class="store__cart-icon" :class="{ 'store__cart-icon--active': cartCount > 0 }">
           <SvgIcon name="shopping-cart" :size="40" color="#fff" />
           <view v-if="cartCount > 0" class="store__cart-badge">{{ cartCount }}</view>
@@ -457,8 +517,8 @@ onUnmounted(() => {
           <text v-else class="store__cart-empty">未选购商品</text>
           <text class="store__cart-tip">{{ minOrderHint }}</text>
         </view>
-        <view class="store__cart-go" :class="{ 'store__cart-go--active': cartCount > 0 }">
-          {{ cartCount > 0 ? '去结算' : '去看看' }}
+        <view class="store__cart-go" :class="{ 'store__cart-go--active': cartCount > 0 && !isStoreResting }">
+          {{ isStoreResting ? '休息中' : cartCount > 0 ? '去结算' : '去看看' }}
         </view>
       </view>
     </template>
@@ -480,7 +540,12 @@ onUnmounted(() => {
           <view class="sku__head-main">
             <text class="sku__title">{{ pickerProduct.name }}</text>
             <text v-if="pickerProduct.description" class="sku__desc">{{ pickerProduct.description }}</text>
-            <text class="sku__base-price">¥{{ formatYuan(pickerProduct.basePrice) }} 起</text>
+            <view class="sku__price-row">
+              <text class="sku__base-price">¥{{ formatYuan(pickerProduct.basePrice) }} 起</text>
+              <text v-if="productWeightLabel(pickerProduct)" class="sku__head-weight"
+                >⚖ {{ productWeightLabel(pickerProduct) }}</text
+              >
+            </view>
           </view>
           <text class="sku__close" @tap="skuPickerOpen = false">×</text>
         </view>
@@ -499,7 +564,10 @@ onUnmounted(() => {
               }"
               @tap="pickerSelectedSkuId = s.skuId"
             >
-              <text class="sku__spec-name">{{ s.specValue || '默认' }}</text>
+              <view class="sku__spec-name-row">
+                <text class="sku__spec-name">{{ s.specValue || '默认' }}</text>
+                <text v-if="s.weightGrams" class="sku__spec-weight">{{ formatWeight(s.weightGrams) }}</text>
+              </view>
               <text class="sku__spec-price">¥{{ formatYuan(s.price) }}</text>
             </view>
           </view>
@@ -546,8 +614,8 @@ onUnmounted(() => {
               }}
             </text>
           </view>
-          <button class="sku__bar-cta" :disabled="pickerSubmitting" @tap="pickerSubmit">
-            {{ pickerSubmitting ? '加入中…' : '加入购物车' }}
+          <button class="sku__bar-cta" :disabled="pickerSubmitting || isStoreResting" @tap="pickerSubmit">
+            {{ isStoreResting ? '店铺休息中' : pickerSubmitting ? '加入中…' : '加入购物车' }}
           </button>
         </view>
       </view>
@@ -590,7 +658,16 @@ onUnmounted(() => {
             </view>
             <view class="cs__item-main">
               <text class="cs__item-name">{{ it.name }}</text>
-              <text v-if="it.specValue" class="cs__item-spec">{{ it.specValue }}</text>
+              <view class="cs__item-meta">
+                <text v-if="it.specValue" class="cs__item-spec">{{ it.specValue }}</text>
+                <text
+                  v-if="formatWeight(productBySkuId.get(it.skuId)?.skus.find((s) => s.skuId === it.skuId)?.weightGrams)"
+                  class="cs__item-weight"
+                >
+                  ⚖
+                  {{ formatWeight(productBySkuId.get(it.skuId)?.skus.find((s) => s.skuId === it.skuId)?.weightGrams) }}
+                </text>
+              </view>
               <view class="cs__item-priceline">
                 <text class="cs__item-price">¥{{ formatYuan(it.subTotal) }}</text>
                 <text class="cs__item-unit">¥{{ formatYuan(it.unitPrice) }} × {{ it.quantity }}</text>
@@ -621,7 +698,9 @@ onUnmounted(() => {
             <text class="cs__bar-amount">¥{{ formatYuan(cartTotal) }}</text>
             <text class="cs__bar-tip">{{ minOrderHint }}</text>
           </view>
-          <button class="cs__bar-cta" @tap="goConfirm">去结算({{ cartCount }})</button>
+          <button class="cs__bar-cta" :disabled="isStoreResting" @tap="goConfirm">
+            {{ isStoreResting ? '店铺休息中' : `去结算(${cartCount})` }}
+          </button>
         </view>
       </view>
     </view>
@@ -632,7 +711,7 @@ onUnmounted(() => {
 /* ========== Layout shell ========== */
 .store {
   height: 100vh;
-  background: #f5f6f8;
+  background: #fff;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -667,6 +746,9 @@ onUnmounted(() => {
   flex-shrink: 0;
   box-shadow: 0 12rpx 24rpx rgba(0, 0, 0, 0.14);
 }
+.store__header--resting {
+  background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
+}
 .store__head-main {
   flex: 1;
   display: flex;
@@ -678,6 +760,30 @@ onUnmounted(() => {
   font-size: 36rpx;
   font-weight: 700;
   line-height: 1.2;
+}
+.store__name-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  min-width: 0;
+}
+.store__rest-tag {
+  flex-shrink: 0;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: 20rpx;
+  font-weight: 700;
+}
+.store__rest-alert {
+  margin-top: 6rpx;
+  padding: 10rpx 14rpx;
+  border-radius: 14rpx;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 22rpx;
+  line-height: 1.4;
 }
 .store__meta {
   display: flex;
@@ -719,7 +825,7 @@ onUnmounted(() => {
 .store__sidebar {
   width: 184rpx;
   height: 100%;
-  background: #f5f6f8;
+  background: #fff;
   flex-shrink: 0;
   border-top-left-radius: 28rpx;
 }
@@ -795,7 +901,8 @@ onUnmounted(() => {
   border-bottom: none;
 }
 .store__product--out {
-  opacity: 0.5;
+  filter: grayscale(1);
+  opacity: 0.52;
 }
 .store__cover {
   position: relative;
@@ -843,7 +950,14 @@ onUnmounted(() => {
   gap: 6rpx;
   min-width: 0;
 }
+.store__product-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  min-width: 0;
+}
 .store__product-name {
+  flex: 1;
   font-size: 28rpx;
   font-weight: 600;
   color: #172033;
@@ -851,6 +965,16 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.store__weight-tag {
+  flex-shrink: 0;
+  background: rgba(247, 151, 30, 0.12);
+  color: #b7791f;
+  font-size: 18rpx;
+  font-weight: 700;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  line-height: 1.4;
 }
 .store__product-desc {
   font-size: 22rpx;
@@ -903,6 +1027,10 @@ onUnmounted(() => {
   justify-content: center;
   flex-shrink: 0;
   box-shadow: 0 8rpx 18rpx rgba(255, 107, 53, 0.32);
+}
+.store__product-add--disabled {
+  background: #c5c9d2;
+  box-shadow: none;
 }
 .store__product-add-icon {
   color: #fff;
@@ -967,6 +1095,9 @@ onUnmounted(() => {
   color: #fff;
   border-radius: 999rpx;
   box-shadow: 0 16rpx 40rpx rgba(31, 41, 55, 0.32);
+}
+.store__cart-bar--disabled {
+  background: #6b7280;
 }
 .store__cart-icon {
   position: relative;
@@ -1176,7 +1307,7 @@ onUnmounted(() => {
 .sku__spec {
   padding: 14rpx 22rpx;
   border-radius: 16rpx;
-  background: #f7f8fa;
+  background: #fff;
   display: flex;
   flex-direction: column;
   gap: 4rpx;
@@ -1189,6 +1320,34 @@ onUnmounted(() => {
 }
 .sku__spec--out {
   opacity: 0.4;
+}
+.sku__spec-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+.sku__spec-weight {
+  background: rgba(247, 151, 30, 0.12);
+  color: #b7791f;
+  font-size: 18rpx;
+  font-weight: 700;
+  padding: 1rpx 10rpx;
+  border-radius: 999rpx;
+}
+.sku__price-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 4rpx;
+  flex-wrap: wrap;
+}
+.sku__head-weight {
+  background: rgba(247, 151, 30, 0.12);
+  color: #b7791f;
+  font-size: 20rpx;
+  font-weight: 700;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
 }
 .sku__spec-name {
   font-size: 24rpx;
@@ -1210,7 +1369,7 @@ onUnmounted(() => {
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  background: #f7f8fa;
+  background: #fff;
   color: #172033;
   font-size: 36rpx;
   font-weight: 700;
@@ -1233,7 +1392,7 @@ onUnmounted(() => {
   width: 100%;
   min-height: 120rpx;
   padding: 20rpx 24rpx;
-  background: #f7f8fa;
+  background: #fff;
   border-radius: 16rpx;
   font-size: 26rpx;
   color: #172033;
@@ -1293,7 +1452,7 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   height: 67vh;
-  background: #f5f6f8;
+  background: #fff;
   border-radius: 32rpx 32rpx 0 0;
   display: flex;
   flex-direction: column;
@@ -1340,7 +1499,7 @@ onUnmounted(() => {
 .cs__list {
   flex: 1;
   padding: 16rpx 24rpx;
-  background: #f5f6f8;
+  background: #fff;
 }
 .cs__item {
   display: flex;
@@ -1387,12 +1546,26 @@ onUnmounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.cs__item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex-wrap: wrap;
+}
 .cs__item-spec {
   font-size: 22rpx;
   color: #8a94a6;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+}
+.cs__item-weight {
+  background: rgba(247, 151, 30, 0.12);
+  color: #b7791f;
+  font-size: 18rpx;
+  font-weight: 700;
+  padding: 1rpx 10rpx;
+  border-radius: 999rpx;
+  flex-shrink: 0;
 }
 .cs__item-priceline {
   display: flex;

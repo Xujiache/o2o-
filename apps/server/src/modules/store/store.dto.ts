@@ -179,6 +179,9 @@ export class StoreVo {
   @ApiProperty({ required: false })
   avatarFileId?: string | null;
 
+  @ApiProperty({ required: false, description: '封面图实时签名 URL,15min 有效;null=未上传' })
+  avatarUrl?: string | null;
+
   @ApiProperty({ required: false })
   intro?: string | null;
 

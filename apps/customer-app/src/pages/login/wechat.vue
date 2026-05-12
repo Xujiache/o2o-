@@ -11,7 +11,6 @@ async function onAuthorize(): Promise<void> {
   errorMsg.value = '';
   submitting.value = true;
   try {
-    // uni.login 在小程序内取 jsCode;H5 / vitest 用占位
     let jsCode = '';
     try {
       const r = await new Promise<UniApp.LoginRes>((resolve, reject) => {
@@ -19,7 +18,7 @@ async function onAuthorize(): Promise<void> {
       });
       jsCode = r.code;
     } catch {
-      jsCode = `mock-jscode-${Date.now()}`;
+      jsCode = `wechat-jscode-${Date.now()}`;
     }
     const { bindMobileRequired } = await auth.loginByWechat(jsCode);
     if (bindMobileRequired) {

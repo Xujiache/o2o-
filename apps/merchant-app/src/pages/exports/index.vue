@@ -49,7 +49,7 @@ async function exportCSV(): Promise<void> {
 <template>
   <view class="ex">
     <view class="ex__title">数据导出</view>
-    <view class="ex__hint">本阶段仅支持移动端 CSV 导出(导出至剪贴板),平台 Web PDF 导出在 stage 9。</view>
+    <view class="ex__hint">导出后会将 CSV 内容复制到剪贴板。</view>
     <button type="warn" :loading="exporting" @tap="exportCSV">导出最近 100 条结算单</button>
   </view>
 </template>

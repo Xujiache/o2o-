@@ -2,6 +2,11 @@
 import { onMounted, reactive, ref } from 'vue';
 
 import { type AdminViolationItemVo, listViolations } from '@/api/admin-violations';
+import DataTable from '@/components/DataTable.vue';
+import FilterBar from '@/components/FilterBar.vue';
+import PageContainer from '@/components/PageContainer.vue';
+import StatusTag from '@/components/StatusTag.vue';
+import { formatDateTime, formatYuan } from '@/utils/format';
 
 const list = ref<AdminViolationItemVo[]>([]);
 const total = ref(0);
@@ -24,10 +29,11 @@ const TYPE_OPTIONS = [
 ];
 
 const STATUS_LABEL: Record<string, string> = Object.fromEntries(STATUS_OPTIONS.map((o) => [o.value, o.label]));
+const TYPE_LABEL: Record<string, string> = Object.fromEntries(TYPE_OPTIONS.map((o) => [o.value, o.label]));
 
 const query = reactive({ status: '', type: '', riderId: '', pageNo: 1, pageSize: 20 });
 
-async function load(): Promise<void> {
+async function fetchList(): Promise<void> {
   loading.value = true;
   try {
     const r = await listViolations({
@@ -48,83 +54,105 @@ async function load(): Promise<void> {
 
 function onSearch(): void {
   query.pageNo = 1;
-  void load();
+  void fetchList();
 }
 
-function fmt(cents: string | null): string {
-  return cents ? '¥' + (Number(cents) / 100).toFixed(2) : '-';
+function onReset(): void {
+  query.status = '';
+  query.type = '';
+  query.riderId = '';
+  query.pageNo = 1;
+  void fetchList();
 }
 
-function fmtTime(ms: number | null): string {
-  return ms ? new Date(ms).toLocaleString() : '-';
-}
-
-onMounted(load);
+onMounted(fetchList);
 </script>
 
 <template>
-  <el-card>
-    <template #header>
-      <div class="header">
-        <span>骑手违规记录</span>
-        <el-form :model="query" :inline="true" size="small">
-          <el-form-item label="状态">
-            <el-select v-model="query.status" style="width: 140px">
-              <el-option v-for="o in STATUS_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="类型">
-            <el-select v-model="query.type" style="width: 120px">
-              <el-option v-for="o in TYPE_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="骑手 ID">
-            <el-input v-model="query.riderId" placeholder="riderId" style="width: 140px" />
-          </el-form-item>
-          <el-button type="primary" @click="onSearch">查询</el-button>
-        </el-form>
-      </div>
+  <PageContainer title="骑手违规记录" subtitle="超时、投诉、欺诈等违规事件流水">
+    <template #extra>
+      <el-button @click="fetchList">
+        <el-icon><Refresh /></el-icon>
+        <span style="margin-left: 6px">刷新</span>
+      </el-button>
     </template>
 
-    <el-table v-loading="loading" :data="list" stripe>
-      <el-table-column prop="violationId" label="ID" width="80" />
-      <el-table-column prop="riderId" label="骑手" width="100" />
-      <el-table-column prop="type" label="类型" width="80" />
-      <el-table-column prop="description" label="描述" />
-      <el-table-column label="扣款" width="100">
-        <template #default="{ row }">{{ fmt(row.deductCents) }}</template>
+    <FilterBar @search="onSearch" @reset="onReset">
+      <div class="filter-field">
+        <label>状态</label>
+        <el-select v-model="query.status" placeholder="全部" clearable style="width: 160px">
+          <el-option v-for="o in STATUS_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
+        </el-select>
+      </div>
+      <div class="filter-field">
+        <label>类型</label>
+        <el-select v-model="query.type" placeholder="全部" clearable style="width: 140px">
+          <el-option v-for="o in TYPE_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
+        </el-select>
+      </div>
+      <div class="filter-field">
+        <label>骑手 ID</label>
+        <el-input
+          v-model="query.riderId"
+          placeholder="riderId"
+          clearable
+          style="width: 160px"
+          @keyup.enter="onSearch"
+        />
+      </div>
+    </FilterBar>
+
+    <DataTable
+      v-model:pageNo="query.pageNo"
+      v-model:pageSize="query.pageSize"
+      :data="list"
+      :loading="loading"
+      :total="total"
+      @page-change="fetchList"
+    >
+      <el-table-column label="ID" prop="violationId" width="90">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.violationId }}</span></template
+        >
       </el-table-column>
-      <el-table-column label="状态" width="120">
-        <template #default="{ row }">{{ STATUS_LABEL[row.status] || row.status }}</template>
+      <el-table-column label="骑手" prop="riderId" width="120">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.riderId }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="类型" width="100">
+        <template #default="{ row }"
+          ><span class="muted">{{ TYPE_LABEL[row.type] ?? row.type }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="描述" prop="description" />
+      <el-table-column label="扣款（元）" align="right" width="110">
+        <template #default="{ row }"
+          ><span class="mono">{{ formatYuan(row.deductCents) }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="状态" width="130">
+        <template #default="{ row }">
+          <StatusTag :status="row.status" :label="STATUS_LABEL[row.status] ?? row.status" />
+        </template>
       </el-table-column>
       <el-table-column label="上报时间" width="180">
-        <template #default="{ row }">{{ fmtTime(row.reportedAt) }}</template>
+        <template #default="{ row }"
+          ><span class="muted">{{ formatDateTime(row.reportedAt) }}</span></template
+        >
       </el-table-column>
-    </el-table>
-
-    <div class="pager">
-      <el-pagination
-        v-model:current-page="query.pageNo"
-        v-model:page-size="query.pageSize"
-        :total="total"
-        :page-sizes="[10, 20, 50]"
-        layout="total, sizes, prev, pager, next, jumper"
-        @current-change="load"
-        @size-change="load"
-      />
-    </div>
-  </el-card>
+    </DataTable>
+  </PageContainer>
 </template>
 
 <style scoped>
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
-.pager {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
+
+.muted {
+  color: var(--fg-muted);
+  font-size: 12px;
 }
 </style>

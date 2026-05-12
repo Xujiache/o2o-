@@ -1,4 +1,4 @@
-/** Stage 8 — 收益展示工具 */
+/** 收益展示工具 */
 
 export function fmtCents(cents: string | number): string {
   return (Number(cents) / 100).toFixed(2);

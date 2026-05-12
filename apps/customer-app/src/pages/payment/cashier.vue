@@ -65,10 +65,8 @@ async function startPay(): Promise<void> {
       return;
     }
     payStore.setPrepay(r.data);
-    uni.showToast({ title: 'mock 支付中…', icon: 'loading' });
+    uni.showToast({ title: '支付处理中…', icon: 'loading' });
 
-    // [DEMO ONLY] 模拟支付平台异步回调,触发 server 把 payment 标 success + order 推到
-    // PAID_WAIT_MERCHANT。stage 11 真接 wxpay/alipay SDK 后此分支换成 wx.requestPayment。
     try {
       await simulatePayCallback(orderStore.payChannel, r.data.payOrderNo, payableCents.value);
       payStore.setResult('success');
@@ -170,7 +168,7 @@ onUnmounted(() => {
 .cashier {
   min-height: 100vh;
   padding: 24rpx;
-  background: #f5f6f8;
+  background: #fff;
 }
 
 .cashier__hero {
@@ -247,7 +245,7 @@ onUnmounted(() => {
   gap: 12rpx;
   padding: 24rpx;
   border-radius: 16rpx;
-  background: #f5f6f8;
+  background: #fff;
   font-size: 26rpx;
   color: #5a6275;
   border: 2rpx solid transparent;

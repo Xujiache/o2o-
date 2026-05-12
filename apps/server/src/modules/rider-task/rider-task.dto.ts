@@ -69,6 +69,8 @@ export class RiderTaskDetailVo {
   @ApiProperty() requirePickupCode!: boolean;
   /** 是否需要骑手核验收货码(ERRAND 全部类型为 true) */
   @ApiProperty() requireDeliveryCode!: boolean;
+  @ApiProperty({ nullable: true }) pickupLocation!: { lng: number; lat: number; name: string } | null;
+  @ApiProperty({ nullable: true }) deliveryLocation!: { lng: number; lat: number; name: string } | null;
 }
 
 export class AcceptTaskVo {

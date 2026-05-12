@@ -96,3 +96,5 @@ export * from './export-task.entity';
 export * from './risk-exception-log.entity';
 // Stage 10 — 四端联调 1 张新表
 export * from './push-device.entity';
+// 优惠券领取链路 1 张新表
+export * from './user-coupon.entity';

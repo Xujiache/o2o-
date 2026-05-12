@@ -225,6 +225,7 @@ export class ProductService {
             specValue: s.specValue,
             price: String(s.price),
             stock: s.stock,
+            weightGrams: s.weightGrams ?? null,
             createdAt: now,
             updatedAt: now,
           });

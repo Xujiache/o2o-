@@ -1,7 +1,7 @@
 /**
  * 骑手端统一请求封装(基于 uni.request)。
  * - 自动注入 Rider-Token / Idempotency-Key(写接口) / X-Trace-Id
- * - 401 → 调用 refreshHandler(stage 3 注入)→ 失败则 clear token + 跳登录
+ * - 401 → 调用 refreshHandler → 失败则 clear token + 跳登录
  */
 import { ErrorCode, Header, type ApiResponse } from '@o2o/contracts';
 

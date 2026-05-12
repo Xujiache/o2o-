@@ -111,6 +111,14 @@ export class MerchantOrderAddressVo {
   @ApiProperty() consignee!: string;
   @ApiProperty() mobileMasked!: string;
   @ApiProperty() detail!: string;
+  @ApiProperty({ nullable: true }) lng!: number | null;
+  @ApiProperty({ nullable: true }) lat!: number | null;
+}
+
+export class MerchantOrderMapVo {
+  @ApiProperty() store!: { lng: number; lat: number };
+  @ApiProperty({ nullable: true }) delivery!: { lng: number; lat: number } | null;
+  @ApiProperty({ nullable: true }) riderLocation!: { lng: number; lat: number; updatedAt: number } | null;
 }
 
 export class MerchantOrderDetailVo {
@@ -126,6 +134,7 @@ export class MerchantOrderDetailVo {
   @ApiProperty({ nullable: true }) acceptedAt!: number | null;
   @ApiProperty({ nullable: true }) readyAt!: number | null;
   @ApiProperty({ type: () => MerchantOrderAddressVo, nullable: true }) address!: MerchantOrderAddressVo | null;
+  @ApiProperty({ type: () => MerchantOrderMapVo }) map!: MerchantOrderMapVo;
   @ApiProperty({ type: [MerchantOrderItemVo] }) items!: MerchantOrderItemVo[];
   @ApiProperty({ type: [MerchantTimelineItemVo] }) timeline!: MerchantTimelineItemVo[];
   @ApiProperty({ type: [String] }) allowedMerchantActions!: string[];

@@ -1,7 +1,7 @@
 /**
  * 平台 Web 请求封装:axios + Admin-Token + 401 自动 refresh + X-Trace-Id 注入。
  *
- * 401 自动刷新流程(stage 4):
+ * 401 自动刷新流程:
  *  - HTTP 401(或 body.code='UNAUTHORIZED')首次触发 → 用 refreshToken 调 admin-auth.refresh
  *  - 单飞:多个并发 401 共享一个 refresh promise
  *  - 成功 → 更新 token + 重发原请求

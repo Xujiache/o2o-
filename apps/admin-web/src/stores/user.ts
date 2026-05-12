@@ -1,6 +1,6 @@
 /**
  * 平台 Web 用户与权限 store。
- * stage 0 仅 mock 登录;stage 4 接入真 admin-auth(用户名 + 密码 + captcha)。
+ * 管理后台用户会话状态。
  */
 import { defineStore } from 'pinia';
 
@@ -43,7 +43,7 @@ export const useUserStore = defineStore('user', {
         state.permissions.includes(point),
   },
   actions: {
-    /** stage 0 mock 登录 — 直接写 token + permissions(dev token 调试用) */
+    /** 本地登录态写入。 */
     mockLogin(payload: { token: string; principal: PrincipalSummary; permissions: string[] }): void {
       setToken(payload.token);
       setPrincipal(payload.principal);
@@ -52,7 +52,7 @@ export const useUserStore = defineStore('user', {
       this.principal = payload.principal;
       this.permissions = payload.permissions;
     },
-    /** stage 4 真登录:接 admin-auth login response */
+    /** 登录接口响应写入。 */
     onLoginSuccess(payload: {
       adminToken: string;
       refreshToken: string;

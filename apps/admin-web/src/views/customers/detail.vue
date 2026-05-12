@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { type CustomerDetailVo, getCustomerDetail } from '@/api/admin-customers';
 import { useUserStore } from '@/stores/user';
+import { formatDateTime } from '@/utils/format';
 
 import DisableDialog from './components/DisableDialog.vue';
 
@@ -17,6 +18,7 @@ const loading = ref(false);
 
 const dialogOpen = ref(false);
 const dialogOperation = ref<'enable' | 'disable'>('disable');
+const fmtDateTime = formatDateTime;
 
 async function fetchDetail(): Promise<void> {
   loading.value = true;
@@ -79,7 +81,9 @@ onMounted(fetchDetail);
       <el-table :data="detail.recentDevices" stripe>
         <el-table-column label="设备 ID" prop="deviceId" />
         <el-table-column label="平台" prop="platform" width="120" />
-        <el-table-column label="登录时间" prop="loginAt" width="180" />
+        <el-table-column label="登录时间" width="180">
+          <template #default="{ row }">{{ fmtDateTime(row.loginAt) }}</template>
+        </el-table-column>
         <el-table-column label="状态" prop="status" width="100" />
       </el-table>
 
@@ -87,7 +91,9 @@ onMounted(fetchDetail);
       <el-table v-if="detail.riskTags.length" :data="detail.riskTags" stripe>
         <el-table-column label="类型" prop="tagType" width="180" />
         <el-table-column label="原因" prop="reason" />
-        <el-table-column label="创建时间" prop="createdAt" width="180" />
+        <el-table-column label="创建时间" width="180">
+          <template #default="{ row }">{{ fmtDateTime(row.createdAt) }}</template>
+        </el-table-column>
       </el-table>
       <el-empty v-else description="无风控标签" :image-size="48" />
     </el-card>

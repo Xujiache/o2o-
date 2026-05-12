@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** 配送范围编辑(本阶段简化:JSON 输入,stage 5+ 接高德地图多边形拖拽) */
+/** 配送范围编辑。 */
 import { ref } from 'vue';
 
 import { updateStoreSettings } from '@/api';
@@ -52,7 +52,7 @@ async function onSave(): Promise<void> {
 <template>
   <view class="da">
     <view class="da__title">配送范围(GeoJSON Polygon)</view>
-    <text class="da__hint">本阶段为 JSON 编辑占位;stage 5+ 接高德地图拖拽</text>
+    <text class="da__hint">请按 GeoJSON Polygon 格式维护配送范围。</text>
     <textarea class="da__editor" v-model="text" />
     <button class="da__btn" @click="onSave">保存</button>
     <text v-if="okMsg" class="da__ok">{{ okMsg }}</text>

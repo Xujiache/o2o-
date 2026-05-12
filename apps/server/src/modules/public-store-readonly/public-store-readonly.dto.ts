@@ -34,6 +34,10 @@ export class PublicStoreItemVo {
   minOrderAmount!: string;
   @ApiProperty()
   deliveryFee!: string;
+  @ApiProperty()
+  businessStatus!: string;
+  @ApiProperty()
+  statusUpdatedAt!: number;
 }
 
 export class PublicStorePageVo {

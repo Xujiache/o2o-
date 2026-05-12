@@ -2,13 +2,31 @@
 import { onMounted, reactive, ref } from 'vue';
 
 import { listRiskExceptions, type RiskExceptionItemVo } from '@/api/admin-risk';
+import DataTable from '@/components/DataTable.vue';
+import FilterBar from '@/components/FilterBar.vue';
+import PageContainer from '@/components/PageContainer.vue';
+import StatusTag from '@/components/StatusTag.vue';
 
 const loading = ref(false);
 const list = ref<RiskExceptionItemVo[]>([]);
 const total = ref(0);
 const query = reactive({ status: '', exceptionType: '', pageNo: 1, pageSize: 20 });
 
-async function load(): Promise<void> {
+const STATUS_OPTIONS = [
+  { label: '全部', value: '' },
+  { label: '待处理', value: 'OPEN' },
+  { label: '已处理', value: 'HANDLED' },
+  { label: '已忽略', value: 'IGNORED' },
+];
+const STATUS_LABEL: Record<string, string> = Object.fromEntries(STATUS_OPTIONS.map((o) => [o.value, o.label]));
+
+const SEVERITY_TONE: Record<string, 'danger' | 'warning' | 'info' | 'neutral'> = {
+  HIGH: 'danger',
+  MEDIUM: 'warning',
+  LOW: 'info',
+};
+
+async function fetchList(): Promise<void> {
   loading.value = true;
   try {
     const r = await listRiskExceptions({
@@ -26,39 +44,99 @@ async function load(): Promise<void> {
   }
 }
 
-onMounted(load);
+function onSearch(): void {
+  query.pageNo = 1;
+  void fetchList();
+}
+
+function onReset(): void {
+  query.status = '';
+  query.exceptionType = '';
+  query.pageNo = 1;
+  void fetchList();
+}
+
+onMounted(fetchList);
 </script>
 
 <template>
-  <el-card>
-    <template #header>异常订单监控</template>
-    <el-form :model="query" inline size="small" style="margin-bottom: 8px">
-      <el-form-item label="状态">
-        <el-select v-model="query.status" style="width: 120px" clearable>
-          <el-option label="全部" value="" />
-          <el-option label="待处理" value="OPEN" />
-          <el-option label="已处理" value="HANDLED" />
-          <el-option label="已忽略" value="IGNORED" />
+  <PageContainer title="异常订单监控" subtitle="风控引擎扫描产出的可疑订单">
+    <template #extra>
+      <el-button @click="fetchList">
+        <el-icon><Refresh /></el-icon>
+        <span style="margin-left: 6px">刷新</span>
+      </el-button>
+    </template>
+
+    <FilterBar @search="onSearch" @reset="onReset">
+      <div class="filter-field">
+        <label>状态</label>
+        <el-select v-model="query.status" placeholder="全部" clearable style="width: 140px">
+          <el-option v-for="o in STATUS_OPTIONS" :key="o.value" :label="o.label" :value="o.value" />
         </el-select>
-      </el-form-item>
-      <el-button type="primary" @click="load">查询</el-button>
-    </el-form>
-    <el-table v-loading="loading" :data="list" stripe>
-      <el-table-column prop="logId" label="ID" width="80" />
-      <el-table-column prop="exceptionType" label="类型" width="180" />
-      <el-table-column prop="bizType" label="业务" width="80" />
-      <el-table-column prop="bizOrderId" label="订单 ID" width="140" />
-      <el-table-column prop="severity" label="级别" width="80" />
-      <el-table-column prop="description" label="描述" />
-      <el-table-column prop="status" label="状态" width="100" />
-    </el-table>
-    <el-pagination
-      v-model:current-page="query.pageNo"
-      v-model:page-size="query.pageSize"
+      </div>
+      <div class="filter-field">
+        <label>异常类型</label>
+        <el-input
+          v-model="query.exceptionType"
+          placeholder="exceptionType"
+          clearable
+          style="width: 180px"
+          @keyup.enter="onSearch"
+        />
+      </div>
+    </FilterBar>
+
+    <DataTable
+      :data="list"
+      :loading="loading"
       :total="total"
-      style="margin-top: 16px"
-      layout="total, prev, pager, next"
-      @current-change="load"
-    />
-  </el-card>
+      v-model:pageNo="query.pageNo"
+      v-model:pageSize="query.pageSize"
+      @page-change="fetchList"
+    >
+      <el-table-column label="ID" prop="logId" width="90">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.logId }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="类型" prop="exceptionType" width="200">
+        <template #default="{ row }"
+          ><span class="muted">{{ row.exceptionType }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="业务" prop="bizType" width="90">
+        <template #default="{ row }"
+          ><span class="muted">{{ row.bizType }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="订单 ID" prop="bizOrderId" width="160">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.bizOrderId }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="级别" width="90">
+        <template #default="{ row }">
+          <StatusTag :status="row.severity" :label="row.severity" :tone="SEVERITY_TONE[row.severity] ?? 'neutral'" />
+        </template>
+      </el-table-column>
+      <el-table-column label="描述" prop="description" />
+      <el-table-column label="状态" width="110">
+        <template #default="{ row }">
+          <StatusTag :status="row.status" :label="STATUS_LABEL[row.status] ?? row.status" />
+        </template>
+      </el-table-column>
+    </DataTable>
+  </PageContainer>
 </template>
+
+<style scoped>
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.muted {
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+</style>

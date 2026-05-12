@@ -4,6 +4,7 @@ import type { DataSource, EntityManager, Repository } from 'typeorm';
 import type { MerchantAccount, Store, StoreBusinessHour, StoreDeliveryArea } from '../../database/entities';
 import type { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
+import type { FileService } from '../file/file.service';
 
 import { StoreService } from './store.service';
 
@@ -21,6 +22,7 @@ describe('StoreService', () => {
   let merchantRepo: jest.Mocked<Repository<MerchantAccount>>;
   let dataSource: { transaction: jest.Mock };
   let bus: jest.Mocked<DomainEventBus>;
+  let fileService: jest.Mocked<FileService>;
 
   beforeEach(() => {
     stores = [
@@ -140,7 +142,19 @@ describe('StoreService', () => {
       }),
     } as unknown as jest.Mocked<DomainEventBus>;
 
-    svc = new StoreService(storeRepo, hourRepo, areaRepo, merchantRepo, dataSource as unknown as DataSource, bus);
+    fileService = {
+      resolveUrl: jest.fn(async (fileId: string | null | undefined) => (fileId ? `https://mock.cdn/${fileId}` : null)),
+    } as unknown as jest.Mocked<FileService>;
+
+    svc = new StoreService(
+      storeRepo,
+      hourRepo,
+      areaRepo,
+      merchantRepo,
+      dataSource as unknown as DataSource,
+      bus,
+      fileService,
+    );
   });
 
   it('getOwnStore:返回店铺 + 营业时间 + 配送范围', async () => {

@@ -101,7 +101,7 @@ onMounted(load);
 <style scoped>
 .list {
   min-height: 100vh;
-  background: #f5f6f8;
+  background: #fff;
   padding-bottom: 40rpx;
 }
 
@@ -124,7 +124,7 @@ onMounted(load);
 .list__tab {
   padding: 12rpx 28rpx;
   border-radius: 999rpx;
-  background: #f5f6f8;
+  background: #fff;
   font-size: 26rpx;
   color: #5a6275;
   flex-shrink: 0;

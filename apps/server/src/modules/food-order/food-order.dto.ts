@@ -55,7 +55,7 @@ export class PreviewOrderDto {
   @Length(1, 32)
   addressId!: string;
 
-  @ApiProperty({ required: false, description: 'stage 5 任意值返 INVALID_PARAM COUPON_NOT_AVAILABLE' })
+  @ApiProperty({ required: false, description: '用户已领取的优惠券实例 id(user_coupon_id),不传则不抵扣' })
   @IsOptional()
   @IsString()
   couponId?: string;

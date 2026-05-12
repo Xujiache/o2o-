@@ -19,6 +19,9 @@ export class CustomerProfile {
   @Column({ type: 'date', nullable: true })
   birthday!: string | null;
 
+  @Column({ type: 'varchar', length: 120, nullable: true })
+  bio!: string | null;
+
   @Column({ name: 'updated_at', type: 'bigint' })
   updatedAt!: string;
 }

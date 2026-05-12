@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ErrorCode } from '@o2o/contracts';
 import { Repository } from 'typeorm';
@@ -27,16 +27,9 @@ export class ProductQueryService {
   ) {}
 
   async getProducts(storeId: string): Promise<FoodStoreProductsVo> {
-    // 1. 校验店铺存在 + online
+    // 1. 校验店铺存在。休息店铺仍返回商品,由客户端置灰展示。
     const store = await this.storeRepo.findOne({ where: { storeId } });
     if (!store) throw new NotFoundException({ code: ErrorCode.DATA_NOT_FOUND, message: 'store not found' });
-    if (store.businessStatus !== 'online') {
-      throw new UnprocessableEntityException({
-        code: ErrorCode.STATUS_INVALID,
-        detail: 'STORE_NOT_OPEN',
-        message: '店铺当前未营业',
-      });
-    }
 
     // 2. categories
     const categoryRows = await this.categoryRepo.find({ where: { storeId } });
@@ -67,6 +60,7 @@ export class ProductQueryService {
           specValue: s.specValue,
           price: s.price,
           availableStock: Math.max(0, s.stock - s.stockLocked),
+          weightGrams: s.weightGrams ?? null,
         }));
       // 计算 saleStatus:已为 on_shelf 但所有 sku 都 availableStock<=0 → sold_out 渲染
       let saleStatus = p.saleStatus;

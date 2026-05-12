@@ -9,6 +9,11 @@ import {
   type RiderListItemVo,
   updateRiderStatus,
 } from '@/api/admin-riders';
+
+import DataTable from '@/components/DataTable.vue';
+import FilterBar from '@/components/FilterBar.vue';
+import PageContainer from '@/components/PageContainer.vue';
+import StatusTag from '@/components/StatusTag.vue';
 import { useUserStore } from '@/stores/user';
 
 const userStore = useUserStore();
@@ -44,7 +49,15 @@ async function fetchList(): Promise<void> {
   }
 }
 
-onMounted(fetchList);
+function onSearch(): void {
+  query.pageNo = 1;
+  void fetchList();
+}
+function onReset(): void {
+  query.accountStatus = '';
+  query.pageNo = 1;
+  void fetchList();
+}
 
 async function onToggle(row: RiderListItemVo, target: 'enabled' | 'disabled'): Promise<void> {
   if (!row.riderId) {
@@ -68,74 +81,80 @@ async function onToggle(row: RiderListItemVo, target: 'enabled' | 'disabled'): P
     /* 取消 */
   }
 }
+
+onMounted(fetchList);
 </script>
 
 <template>
-  <div class="rider-status">
-    <el-card>
-      <el-form :model="query" :inline="true">
-        <el-form-item label="账号状态">
-          <el-select
-            v-model="query.accountStatus"
-            placeholder="全部"
-            clearable
-            style="width: 140px"
-            @change="
-              () => {
-                query.pageNo = 1;
-                void fetchList();
-              }
-            "
-          >
-            <el-option label="启用" value="active" />
-            <el-option label="禁用" value="disabled" />
-          </el-select>
-        </el-form-item>
-      </el-form>
+  <PageContainer title="骑手账号管控" subtitle="已通过审核骑手的启用 / 禁用">
+    <template #extra>
+      <el-button @click="fetchList">
+        <el-icon><Refresh /></el-icon>
+        <span style="margin-left: 6px">刷新</span>
+      </el-button>
+    </template>
 
-      <el-table :data="list" v-loading="loading" stripe>
-        <el-table-column label="骑手 ID" prop="riderId" width="100" />
-        <el-table-column label="手机号" prop="mobile" width="140" />
-        <el-table-column label="姓名" prop="realName" width="140" />
-        <el-table-column label="身份证" prop="idCardNo" width="200" />
-        <el-table-column label="操作" width="200" fixed="right">
-          <template #default="{ row }">
-            <el-button v-if="userStore.has('admin:riders:manage')" link type="danger" @click="onToggle(row, 'disabled')"
-              >禁用</el-button
-            >
-            <el-button v-if="userStore.has('admin:riders:manage')" link type="success" @click="onToggle(row, 'enabled')"
-              >启用</el-button
-            >
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="rider-status__pagination">
-        <el-pagination
-          background
-          layout="total, prev, pager, next"
-          :total="total"
-          :current-page="query.pageNo"
-          :page-size="query.pageSize"
-          @current-change="
-            (p: number) => {
-              query.pageNo = p;
-              void fetchList();
-            }
-          "
-        />
+    <FilterBar @search="onSearch" @reset="onReset">
+      <div class="filter-field">
+        <label>账号状态</label>
+        <el-select v-model="query.accountStatus" placeholder="全部" clearable style="width: 160px">
+          <el-option label="启用" value="active" />
+          <el-option label="禁用" value="disabled" />
+        </el-select>
       </div>
-    </el-card>
-  </div>
+    </FilterBar>
+
+    <DataTable
+      :data="list"
+      :loading="loading"
+      :total="total"
+      v-model:pageNo="query.pageNo"
+      v-model:pageSize="query.pageSize"
+      @page-change="fetchList"
+    >
+      <el-table-column label="骑手 ID" prop="riderId" width="140">
+        <template #default="{ row }">
+          <span v-if="row.riderId" class="mono">{{ row.riderId }}</span>
+          <span v-else class="muted">—</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="手机号" prop="mobile" width="160">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.mobile }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="姓名" prop="realName" width="140" />
+      <el-table-column label="身份证" prop="idCardNo" width="220">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.idCardNo }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="审核" width="110">
+        <template #default="{ row }">
+          <StatusTag :status="row.auditStatus" />
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="200" fixed="right">
+        <template #default="{ row }">
+          <el-button v-if="userStore.has('admin:riders:manage')" link type="danger" @click="onToggle(row, 'disabled')"
+            >禁用</el-button
+          >
+          <el-button v-if="userStore.has('admin:riders:manage')" link type="success" @click="onToggle(row, 'enabled')"
+            >启用</el-button
+          >
+        </template>
+      </el-table-column>
+    </DataTable>
+  </PageContainer>
 </template>
 
 <style scoped>
-.rider-status {
-  padding: 16px;
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
-.rider-status__pagination {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
+.muted {
+  color: var(--fg-muted);
+  font-size: 12px;
 }
 </style>

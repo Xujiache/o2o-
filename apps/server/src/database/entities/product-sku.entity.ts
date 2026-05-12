@@ -23,6 +23,14 @@ export class ProductSku {
   @Column({ name: 'stock_locked', type: 'int', default: 0 })
   stockLocked!: number;
 
+  /**
+   * 规格重量(克),可选 — 商家勾选"按重量销售"时填写.
+   * NULL = 不按重量销售(普通件装).
+   * 用克为单位避免浮点误差,前端按 < 1000 显克 / >= 1000 显千克.
+   */
+  @Column({ name: 'weight_grams', type: 'int', nullable: true })
+  weightGrams!: number | null;
+
   @Column({ name: 'created_at', type: 'bigint' })
   createdAt!: string;
 

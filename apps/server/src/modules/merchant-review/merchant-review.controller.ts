@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { Audit } from '../../common/decorators/audit.decorator';
@@ -7,7 +7,7 @@ import { Idempotent } from '../../common/decorators/idempotent.decorator';
 import { MerchantJwtGuard } from '../auth/guards/scope-jwt.guard';
 import type { CurrentPrincipal } from '../auth/types';
 
-import { ReplyReviewDto, ReplyReviewVo } from './merchant-review.dto';
+import { ReplyReviewDto, ReplyReviewVo, ReviewListQueryDto, ReviewListVo } from './merchant-review.dto';
 import { MerchantReviewService } from './merchant-review.service';
 
 @ApiTags('merchant-review')
@@ -16,6 +16,13 @@ import { MerchantReviewService } from './merchant-review.service';
 @ApiBearerAuth('Merchant-Token')
 export class MerchantReviewController {
   constructor(private readonly service: MerchantReviewService) {}
+
+  @Get()
+  @ApiOperation({ summary: '商家评价列表(分页 + 已/未回复筛选 + 评分筛选)' })
+  @ApiOkResponse({ type: ReviewListVo })
+  async list(@CurrentUser() p: CurrentPrincipal, @Query() dto: ReviewListQueryDto): Promise<ReviewListVo> {
+    return this.service.list(p.principalId, dto);
+  }
 
   @Post(':reviewId/reply')
   @Idempotent({ scope: 'review:reply', ttlSeconds: 60 })

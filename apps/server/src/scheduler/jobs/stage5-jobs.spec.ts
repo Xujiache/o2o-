@@ -149,7 +149,13 @@ describe('Stage 5 jobs', () => {
   describe('WaitPayTimeoutCloseJob', () => {
     it('无超时单 → debug 不抛', async () => {
       const w = makeWorld();
-      const job = new WaitPayTimeoutCloseJob(fakeOrderRepo(w), fakeDataSource(w), fakeBus(w), fakeLock());
+      const job = new WaitPayTimeoutCloseJob(
+        fakeOrderRepo(w),
+        fakeDataSource(w),
+        fakeBus(w),
+        { releaseCoupons: jest.fn(async () => 0) } as never,
+        fakeLock(),
+      );
       await expect(job.do()).resolves.toBeUndefined();
       expect(w.orders).toHaveLength(0);
     });
@@ -170,7 +176,13 @@ describe('Stage 5 jobs', () => {
         quantity: 2,
         status: 'active',
       } as unknown as StockLock);
-      const job = new WaitPayTimeoutCloseJob(fakeOrderRepo(w), fakeDataSource(w), fakeBus(w), fakeLock());
+      const job = new WaitPayTimeoutCloseJob(
+        fakeOrderRepo(w),
+        fakeDataSource(w),
+        fakeBus(w),
+        { releaseCoupons: jest.fn(async () => 0) } as never,
+        fakeLock(),
+      );
       await job.do();
       expect(w.orders[0]!.status).toBe('CANCELLED');
       expect(w.stockLocks[0]!.status).toBe('released');

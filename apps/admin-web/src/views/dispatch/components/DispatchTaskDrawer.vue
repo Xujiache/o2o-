@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue';
 
 import { type AdminDispatchDetailVo, getDispatchDetail } from '@/api/admin-dispatch';
+import { formatDateTime } from '@/utils/format';
 
 const props = defineProps<{ visible: boolean; dispatchTaskId: string | null }>();
 const emit = defineEmits<{ 'update:visible': [boolean] }>();
@@ -22,14 +23,10 @@ async function load(): Promise<void> {
 
 watch(
   () => [props.visible, props.dispatchTaskId],
-  ([v, id]) => {
-    if (v && id) void load();
+  ([visible, id]) => {
+    if (visible && id) void load();
   },
 );
-
-function fmtTime(ms: number | null): string {
-  return ms ? new Date(ms).toLocaleString() : '-';
-}
 
 function close(): void {
   emit('update:visible', false);
@@ -45,11 +42,11 @@ function close(): void {
       <el-descriptions-item label="业务类型">{{ detail.bizType }}</el-descriptions-item>
       <el-descriptions-item label="订单">{{ detail.bizOrderId }}</el-descriptions-item>
       <el-descriptions-item v-if="detail.bizTaskId" label="任务 ID">{{ detail.bizTaskId }}</el-descriptions-item>
-      <el-descriptions-item label="接单骑手">{{ detail.acceptedRiderId ?? '-' }}</el-descriptions-item>
+      <el-descriptions-item label="接单骑手">{{ detail.acceptedRiderId ?? '--' }}</el-descriptions-item>
       <el-descriptions-item label="重试次数">{{ detail.retryCount }}</el-descriptions-item>
-      <el-descriptions-item label="派单时间">{{ fmtTime(detail.dispatchedAt) }}</el-descriptions-item>
-      <el-descriptions-item label="超时时间">{{ fmtTime(detail.timeoutAt) }}</el-descriptions-item>
-      <el-descriptions-item label="完成时间">{{ fmtTime(detail.completedAt) }}</el-descriptions-item>
+      <el-descriptions-item label="派单时间">{{ formatDateTime(detail.dispatchedAt) }}</el-descriptions-item>
+      <el-descriptions-item label="超时时间">{{ formatDateTime(detail.timeoutAt) }}</el-descriptions-item>
+      <el-descriptions-item label="完成时间">{{ formatDateTime(detail.completedAt) }}</el-descriptions-item>
       <el-descriptions-item label="候选骑手" :span="2">
         <span v-if="!detail.candidateRiderIds.length">无</span>
         <span v-for="r in detail.candidateRiderIds" :key="r" class="cand">{{ r }}</span>

@@ -2,6 +2,10 @@
 import { onMounted, reactive, ref } from 'vue';
 
 import { type DisableRecordItemVo, listDisableRecords } from '@/api/admin-customer-disable';
+import DataTable from '@/components/DataTable.vue';
+import FilterBar from '@/components/FilterBar.vue';
+import PageContainer from '@/components/PageContainer.vue';
+import StatusTag from '@/components/StatusTag.vue';
 
 const loading = ref(false);
 const list = ref<DisableRecordItemVo[]>([]);
@@ -12,6 +16,8 @@ const query = reactive<{
   pageNo: number;
   pageSize: number;
 }>({ accountType: '', accountId: '', pageNo: 1, pageSize: 20 });
+
+const TYPE_LABEL: Record<string, string> = { customer: '用户', merchant: '商家', rider: '骑手' };
 
 async function fetchList(): Promise<void> {
   loading.value = true;
@@ -36,6 +42,13 @@ function onSearch(): void {
   void fetchList();
 }
 
+function onReset(): void {
+  query.accountType = '';
+  query.accountId = '';
+  query.pageNo = 1;
+  void fetchList();
+}
+
 function fmtDate(ts: string): string {
   const n = Number(ts);
   if (!n) return '-';
@@ -46,79 +59,83 @@ onMounted(fetchList);
 </script>
 
 <template>
-  <div class="disable-records">
-    <el-card>
-      <template #header>
-        <div class="header">
-          <span>账号禁用启用流水</span>
-        </div>
-      </template>
-      <el-form :model="query" :inline="true">
-        <el-form-item label="账号类型">
-          <el-select v-model="query.accountType" placeholder="全部" clearable style="width: 140px">
-            <el-option label="用户" value="customer" />
-            <el-option label="商家" value="merchant" />
-            <el-option label="骑手" value="rider" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="账号 ID">
-          <el-input v-model="query.accountId" placeholder="账号 ID" clearable @keyup.enter="onSearch" />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="onSearch">查询</el-button>
-        </el-form-item>
-      </el-form>
+  <PageContainer title="账号禁用启用流水" subtitle="多账号类型的禁用/解禁操作审计">
+    <template #extra>
+      <el-button @click="fetchList">
+        <el-icon><Refresh /></el-icon>
+        <span style="margin-left: 6px">刷新</span>
+      </el-button>
+    </template>
 
-      <el-table :data="list" v-loading="loading" stripe>
-        <el-table-column label="时间" width="180">
-          <template #default="{ row }">{{ fmtDate(row.createdAt) }}</template>
-        </el-table-column>
-        <el-table-column label="账号类型" prop="accountType" width="100" />
-        <el-table-column label="账号 ID" prop="accountId" width="140" />
-        <el-table-column label="动作" width="100">
-          <template #default="{ row }">
-            <el-tag :type="row.action === 'disable' ? 'danger' : 'success'">
-              {{ row.action === 'disable' ? '禁用' : '启用' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="原因" prop="reason" />
-        <el-table-column label="操作人" prop="operatorUsername" width="140" />
-      </el-table>
-
-      <div class="pagination">
-        <el-pagination
-          background
-          layout="total, prev, pager, next, sizes"
-          :total="total"
-          :current-page="query.pageNo"
-          :page-size="query.pageSize"
-          @current-change="
-            (p: number) => {
-              query.pageNo = p;
-              void fetchList();
-            }
-          "
-          @size-change="
-            (s: number) => {
-              query.pageSize = s;
-              query.pageNo = 1;
-              void fetchList();
-            }
-          "
+    <FilterBar @search="onSearch" @reset="onReset">
+      <div class="filter-field">
+        <label>账号类型</label>
+        <el-select v-model="query.accountType" placeholder="全部" clearable style="width: 140px">
+          <el-option label="用户" value="customer" />
+          <el-option label="商家" value="merchant" />
+          <el-option label="骑手" value="rider" />
+        </el-select>
+      </div>
+      <div class="filter-field">
+        <label>账号 ID</label>
+        <el-input
+          v-model="query.accountId"
+          placeholder="账号 ID"
+          clearable
+          style="width: 180px"
+          @keyup.enter="onSearch"
         />
       </div>
-    </el-card>
-  </div>
+    </FilterBar>
+
+    <DataTable
+      :data="list"
+      :loading="loading"
+      :total="total"
+      v-model:pageNo="query.pageNo"
+      v-model:pageSize="query.pageSize"
+      @page-change="fetchList"
+    >
+      <el-table-column label="时间" width="180">
+        <template #default="{ row }"
+          ><span class="muted">{{ fmtDate(row.createdAt) }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="账号类型" prop="accountType" width="110">
+        <template #default="{ row }">
+          <span class="muted">{{ TYPE_LABEL[row.accountType] ?? row.accountType }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="账号 ID" prop="accountId" width="160">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.accountId }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="动作" width="100">
+        <template #default="{ row }">
+          <StatusTag
+            :status="row.action === 'disable' ? 'disabled' : 'enabled'"
+            :label="row.action === 'disable' ? '禁用' : '启用'"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column label="原因" prop="reason" />
+      <el-table-column label="操作人" prop="operatorUsername" width="160">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.operatorUsername }}</span></template
+        >
+      </el-table-column>
+    </DataTable>
+  </PageContainer>
 </template>
 
 <style scoped>
-.disable-records {
-  padding: 16px;
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
-.pagination {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
+.muted {
+  color: var(--fg-muted);
+  font-size: 12px;
 }
 </style>

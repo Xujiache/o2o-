@@ -5,6 +5,10 @@ import { useRouter } from 'vue-router';
 
 import { type AccountStatus, type CustomerListItemVo, listCustomers, type RealnameStatus } from '@/api/admin-customers';
 import { disableCustomer, enableCustomer } from '@/api/admin-customer-disable';
+import DataTable from '@/components/DataTable.vue';
+import FilterBar from '@/components/FilterBar.vue';
+import PageContainer from '@/components/PageContainer.vue';
+import StatusTag from '@/components/StatusTag.vue';
 import { useUserStore } from '@/stores/user';
 
 const router = useRouter();
@@ -13,6 +17,13 @@ const loading = ref(false);
 const list = ref<CustomerListItemVo[]>([]);
 const total = ref(0);
 const canManage = (): boolean => userStore.has('admin:customers:disable');
+
+const REALNAME_LABEL: Record<string, string> = {
+  unverified: '未实名',
+  pending: '审核中',
+  verified: '已实名',
+  failed: '失败',
+};
 
 const query = reactive<{
   keyword: string;
@@ -108,93 +119,105 @@ onMounted(fetchList);
 </script>
 
 <template>
-  <div class="customers">
-    <el-card>
-      <el-form :model="query" :inline="true">
-        <el-form-item label="关键字">
-          <el-input v-model="query.keyword" placeholder="userId / 手机号" clearable @keyup.enter="onSearch" />
-        </el-form-item>
-        <el-form-item label="实名状态">
-          <el-select v-model="query.realnameStatus" placeholder="全部" clearable style="width: 140px">
-            <el-option label="未实名" value="unverified" />
-            <el-option label="审核中" value="pending" />
-            <el-option label="已实名" value="verified" />
-            <el-option label="失败" value="failed" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="账号状态">
-          <el-select v-model="query.accountStatus" placeholder="全部" clearable style="width: 140px">
-            <el-option label="正常" value="active" />
-            <el-option label="禁用" value="disabled" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="onSearch">查询</el-button>
-          <el-button @click="onReset">重置</el-button>
-          <el-button v-if="canManage()" link type="primary" @click="viewDisableRecords">禁用记录</el-button>
-        </el-form-item>
-      </el-form>
+  <PageContainer title="用户管理" subtitle="C 端用户列表 · 实名与账号状态">
+    <template #extra>
+      <el-button v-if="canManage()" @click="viewDisableRecords">禁用记录</el-button>
+      <el-button @click="fetchList">
+        <el-icon><Refresh /></el-icon>
+        <span style="margin-left: 6px">刷新</span>
+      </el-button>
+    </template>
 
-      <el-table :data="list" v-loading="loading" stripe>
-        <el-table-column label="用户 ID" prop="userId" width="120" />
-        <el-table-column label="手机号" prop="mobileMasked" width="150" />
-        <el-table-column label="昵称" prop="nickname" />
-        <el-table-column label="实名状态" prop="realnameStatus" width="120" />
-        <el-table-column label="账号状态" prop="accountStatus" width="100">
-          <template #default="{ row }">
-            <el-tag :type="row.accountStatus === 'disabled' ? 'danger' : 'success'">
-              {{ row.accountStatus === 'disabled' ? '已禁用' : '正常' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="注册时间" prop="registeredAt" width="180" />
-        <el-table-column label="最近登录" prop="lastLoginAt" width="180" />
-        <el-table-column label="操作" width="240" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="primary" @click="viewDetail(row)">详情</el-button>
-            <el-button v-if="canManage() && row.accountStatus === 'active'" link type="danger" @click="onDisable(row)"
-              >禁用</el-button
-            >
-            <el-button v-if="canManage() && row.accountStatus === 'disabled'" link type="success" @click="onEnable(row)"
-              >启用</el-button
-            >
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="customers__pagination">
-        <el-pagination
-          background
-          layout="total, prev, pager, next, sizes"
-          :total="total"
-          :current-page="query.pageNo"
-          :page-size="query.pageSize"
-          @current-change="
-            (p: number) => {
-              query.pageNo = p;
-              void fetchList();
-            }
-          "
-          @size-change="
-            (s: number) => {
-              query.pageSize = s;
-              query.pageNo = 1;
-              void fetchList();
-            }
-          "
+    <FilterBar @search="onSearch" @reset="onReset">
+      <div class="filter-field">
+        <label>关键字</label>
+        <el-input
+          v-model="query.keyword"
+          placeholder="userId / 手机号"
+          clearable
+          style="width: 200px"
+          @keyup.enter="onSearch"
         />
       </div>
-    </el-card>
-  </div>
+      <div class="filter-field">
+        <label>实名状态</label>
+        <el-select v-model="query.realnameStatus" placeholder="全部" clearable style="width: 140px">
+          <el-option label="未实名" value="unverified" />
+          <el-option label="审核中" value="pending" />
+          <el-option label="已实名" value="verified" />
+          <el-option label="失败" value="failed" />
+        </el-select>
+      </div>
+      <div class="filter-field">
+        <label>账号状态</label>
+        <el-select v-model="query.accountStatus" placeholder="全部" clearable style="width: 140px">
+          <el-option label="正常" value="active" />
+          <el-option label="禁用" value="disabled" />
+        </el-select>
+      </div>
+    </FilterBar>
+
+    <DataTable
+      :data="list"
+      :loading="loading"
+      :total="total"
+      v-model:pageNo="query.pageNo"
+      v-model:pageSize="query.pageSize"
+      @page-change="fetchList"
+    >
+      <el-table-column label="用户 ID" prop="userId" width="140">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.userId }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="手机号" prop="mobileMasked" width="150">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.mobileMasked }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="昵称" prop="nickname" />
+      <el-table-column label="实名状态" width="120">
+        <template #default="{ row }">
+          <StatusTag :status="row.realnameStatus" :label="REALNAME_LABEL[row.realnameStatus] ?? row.realnameStatus" />
+        </template>
+      </el-table-column>
+      <el-table-column label="账号状态" width="110">
+        <template #default="{ row }">
+          <StatusTag :status="row.accountStatus" :label="row.accountStatus === 'disabled' ? '已禁用' : '正常'" />
+        </template>
+      </el-table-column>
+      <el-table-column label="注册时间" prop="registeredAt" width="180">
+        <template #default="{ row }"
+          ><span class="muted">{{ row.registeredAt }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="最近登录" prop="lastLoginAt" width="180">
+        <template #default="{ row }"
+          ><span class="muted">{{ row.lastLoginAt }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="操作" width="240" fixed="right">
+        <template #default="{ row }">
+          <el-button link type="primary" @click="viewDetail(row)">详情</el-button>
+          <el-button v-if="canManage() && row.accountStatus === 'active'" link type="danger" @click="onDisable(row)">
+            禁用
+          </el-button>
+          <el-button v-if="canManage() && row.accountStatus === 'disabled'" link type="success" @click="onEnable(row)">
+            启用
+          </el-button>
+        </template>
+      </el-table-column>
+    </DataTable>
+  </PageContainer>
 </template>
 
 <style scoped>
-.customers {
-  padding: 16px;
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
-.customers__pagination {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
+.muted {
+  color: var(--fg-muted);
+  font-size: 12px;
 }
 </style>

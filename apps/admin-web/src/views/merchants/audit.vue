@@ -4,10 +4,17 @@ import { useRouter } from 'vue-router';
 
 import { type ApplicationListItemVo, type AuditStatus, listApplications } from '@/api/admin-merchants';
 
+import DataTable from '@/components/DataTable.vue';
+import FilterBar from '@/components/FilterBar.vue';
+import PageContainer from '@/components/PageContainer.vue';
+import StatusTag from '@/components/StatusTag.vue';
+import { formatDateTime } from '@/utils/format';
+
 const router = useRouter();
 const loading = ref(false);
 const list = ref<ApplicationListItemVo[]>([]);
 const total = ref(0);
+const fmtDateTime = formatDateTime;
 
 const query = reactive<{
   auditStatus: AuditStatus | '';
@@ -20,6 +27,13 @@ const query = reactive<{
   pageNo: 1,
   pageSize: 20,
 });
+
+const AUDIT_LABEL: Record<string, string> = {
+  pending: '待审核',
+  approved: '已通过',
+  rejected: '已驳回',
+  disabled: '已禁用',
+};
 
 async function fetchList(): Promise<void> {
   loading.value = true;
@@ -59,82 +73,87 @@ onMounted(fetchList);
 </script>
 
 <template>
-  <div class="merchant-audit">
-    <el-card>
-      <el-form :model="query" :inline="true">
-        <el-form-item label="关键字">
-          <el-input v-model="query.keyword" placeholder="店名 / 法人 / 商家ID" clearable @keyup.enter="onSearch" />
-        </el-form-item>
-        <el-form-item label="审核状态">
-          <el-select v-model="query.auditStatus" placeholder="全部" clearable style="width: 140px">
-            <el-option label="待审" value="pending" />
-            <el-option label="通过" value="approved" />
-            <el-option label="驳回" value="rejected" />
-            <el-option label="禁用" value="disabled" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="onSearch">查询</el-button>
-          <el-button @click="onReset">重置</el-button>
-        </el-form-item>
-      </el-form>
+  <PageContainer title="商家审核" subtitle="入驻申请资质核验 · 通过后开店">
+    <template #extra>
+      <el-button @click="fetchList">
+        <el-icon><Refresh /></el-icon>
+        <span style="margin-left: 6px">刷新</span>
+      </el-button>
+    </template>
 
-      <el-table :data="list" v-loading="loading" stripe>
-        <el-table-column label="申请 ID" prop="applicationId" width="120" />
-        <el-table-column label="商家 ID" prop="merchantId" width="100" />
-        <el-table-column label="店铺名" prop="storeName" />
-        <el-table-column label="法人" prop="legalPersonMasked" width="120" />
-        <el-table-column label="营业执照" prop="licenseNoMasked" width="200" />
-        <el-table-column label="状态" prop="auditStatus" width="100">
-          <template #default="{ row }">
-            <el-tag
-              :type="row.auditStatus === 'approved' ? 'success' : row.auditStatus === 'rejected' ? 'danger' : 'warning'"
-            >
-              {{ row.auditStatus }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="提交时间" prop="submittedAt" width="180" />
-        <el-table-column label="操作" width="100" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="primary" @click="viewDetail(row)">详情</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="merchant-audit__pagination">
-        <el-pagination
-          background
-          layout="total, prev, pager, next, sizes"
-          :total="total"
-          :current-page="query.pageNo"
-          :page-size="query.pageSize"
-          @current-change="
-            (p: number) => {
-              query.pageNo = p;
-              void fetchList();
-            }
-          "
-          @size-change="
-            (s: number) => {
-              query.pageSize = s;
-              query.pageNo = 1;
-              void fetchList();
-            }
-          "
+    <FilterBar @search="onSearch" @reset="onReset">
+      <div class="filter-field">
+        <label>关键字</label>
+        <el-input
+          v-model="query.keyword"
+          placeholder="店名 / 法人 / 商家ID"
+          clearable
+          style="width: 240px"
+          @keyup.enter="onSearch"
         />
       </div>
-    </el-card>
-  </div>
+      <div class="filter-field">
+        <label>审核状态</label>
+        <el-select v-model="query.auditStatus" placeholder="全部" clearable style="width: 160px">
+          <el-option label="待审核" value="pending" />
+          <el-option label="已通过" value="approved" />
+          <el-option label="已驳回" value="rejected" />
+          <el-option label="已禁用" value="disabled" />
+        </el-select>
+      </div>
+    </FilterBar>
+
+    <DataTable
+      :data="list"
+      :loading="loading"
+      :total="total"
+      v-model:pageNo="query.pageNo"
+      v-model:pageSize="query.pageSize"
+      @page-change="fetchList"
+    >
+      <el-table-column label="申请 ID" prop="applicationId" width="140">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.applicationId }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="商家 ID" prop="merchantId" width="120">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.merchantId }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="店铺名" prop="storeName" min-width="160" show-overflow-tooltip />
+      <el-table-column label="法人" prop="legalPersonMasked" width="130" />
+      <el-table-column label="营业执照" prop="licenseNoMasked" width="180">
+        <template #default="{ row }"
+          ><span class="mono">{{ row.licenseNoMasked }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="状态" width="110">
+        <template #default="{ row }">
+          <StatusTag :status="row.auditStatus" :label="AUDIT_LABEL[row.auditStatus] || row.auditStatus" />
+        </template>
+      </el-table-column>
+      <el-table-column label="提交时间" width="180">
+        <template #default="{ row }"
+          ><span class="muted">{{ fmtDateTime(row.submittedAt) }}</span></template
+        >
+      </el-table-column>
+      <el-table-column label="操作" width="80" fixed="right">
+        <template #default="{ row }">
+          <el-button link type="primary" @click="viewDetail(row)">详情</el-button>
+        </template>
+      </el-table-column>
+    </DataTable>
+  </PageContainer>
 </template>
 
 <style scoped>
-.merchant-audit {
-  padding: 16px;
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
-.merchant-audit__pagination {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
+.muted {
+  color: var(--fg-muted);
+  font-size: 12px;
 }
 </style>

@@ -60,7 +60,7 @@ export const routes: RouteRecordRaw[] = [
           permission: 'admin:menu:roles-permissions',
         },
       },
-      // Stage 1 — 用户管理
+      // 用户管理
       {
         path: 'admin/customers',
         component: () => import('@/views/customers/index.vue'),
@@ -81,7 +81,7 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/views/customers/realname-records.vue'),
         meta: { title: '实名记录', permission: 'admin:customers:view' },
       },
-      // Stage 2 — 商家管理
+      // 商家管理
       {
         path: 'admin/merchants/audit',
         component: () => import('@/views/merchants/audit.vue'),
@@ -102,7 +102,7 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/views/merchants/statistics.vue'),
         meta: { title: '商家经营快照', menu: true, icon: 'TrendCharts', permission: 'admin:settlements:view' },
       },
-      // Stage 3 — 骑手管理
+      // 骑手管理
       {
         path: 'admin/riders/audit',
         component: () => import('@/views/riders/audit.vue'),
@@ -123,7 +123,7 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/views/riders/delivery-area.vue'),
         meta: { title: '骑手配送区域', menu: true, icon: 'MapLocation', permission: 'admin:riders:manage' },
       },
-      // Stage 4 — 城市站点 / 类目
+      // 城市站点 / 类目
       {
         path: 'admin/cities',
         component: () => import('@/views/cities/index.vue'),
@@ -139,7 +139,7 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/views/categories/errand.vue'),
         meta: { title: '跑腿类目', menu: true, icon: 'Van', permission: 'admin:menu:categories' },
       },
-      // Stage 5 — 外卖订单监控
+      // 外卖订单监控
       {
         path: 'admin/food-orders',
         component: () => import('@/views/food-orders/index.vue'),
@@ -150,7 +150,7 @@ export const routes: RouteRecordRaw[] = [
           permission: 'admin:menu:food-orders',
         },
       },
-      // Stage 6 — 跑腿订单监控
+      // 跑腿订单监控
       {
         path: 'admin/errand-orders',
         component: () => import('@/views/errand-orders/index.vue'),
@@ -161,7 +161,7 @@ export const routes: RouteRecordRaw[] = [
           permission: 'admin:menu:errand-orders',
         },
       },
-      // Stage 7 — 商家售后/结算/提现监控
+      // 商家售后/结算/提现监控
       {
         path: 'admin/after-sales',
         component: () => import('@/views/after-sales/index.vue'),
@@ -192,7 +192,7 @@ export const routes: RouteRecordRaw[] = [
           permission: 'admin:menu:withdrawals',
         },
       },
-      // Stage 8 — 调度监控 / 轨迹回放 / 违规记录
+      // 调度监控 / 轨迹回放 / 违规记录
       {
         path: 'admin/dispatch',
         component: () => import('@/views/dispatch/index.vue'),
