@@ -264,10 +264,13 @@ export class TraceService {
     const qr = await this.qrRepo.findOne({ where: { traceQrId: qrId } });
     if (!qr) throw new NotFoundException({ code: ErrorCode.DATA_NOT_FOUND });
     const lookup = await this.lookupQrByCode(qr.qrCode);
-    const records = await this.recordRepo.find({
-      where: [{ traceQrId: qrId }, { traceBatchId: qr.traceBatchId, traceQrId: null as never }],
-      order: { happenedAt: 'DESC' },
-    });
+    // QR 维度节点 ∪ 该批次维度节点(traceQrId IS NULL);用 QueryBuilder 保证 NULL 匹配在 MySQL 下生效
+    const records = await this.recordRepo
+      .createQueryBuilder('r')
+      .where('r.traceQrId = :qid', { qid: qrId })
+      .orWhere('(r.traceBatchId = :bid AND r.traceQrId IS NULL)', { bid: qr.traceBatchId })
+      .orderBy('r.happenedAt', 'DESC')
+      .getMany();
     return { ...lookup, records: records.map((r) => this.recordToVo(r)) };
   }
 

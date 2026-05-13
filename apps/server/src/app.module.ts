@@ -14,6 +14,7 @@ import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { IdempotencyInterceptor } from './common/interceptors/idempotency.interceptor';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { buildPinoOptions } from './common/logger/pino.config';
+import { FoodDeprecatedMiddleware } from './common/middleware/food-deprecated.middleware';
 import { TraceIdMiddleware } from './common/middleware/trace-id.middleware';
 import configuration from './config/configuration';
 import { DatabaseModule } from './config/database.module';
@@ -247,5 +248,6 @@ import { SchedulerModule } from './scheduler/scheduler.module';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer.apply(TraceIdMiddleware).forRoutes('*');
+    consumer.apply(FoodDeprecatedMiddleware).forRoutes('*');
   }
 }
