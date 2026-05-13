@@ -98,3 +98,14 @@ export * from './risk-exception-log.entity';
 export * from './push-device.entity';
 // 优惠券领取链路 1 张新表
 export * from './user-coupon.entity';
+// Stage 12 — 生鲜商城与自提 5 张新表(grocery_order/grocery_order_item/pickup_point/pickup_time_slot/pickup_verify_log)
+export * from './pickup-point.entity';
+export * from './pickup-time-slot.entity';
+export * from './grocery-order.entity';
+export * from './grocery-order-item.entity';
+export * from './pickup-verify-log.entity';
+// Stage 13 — 溯源 4 张新表(trace_batch/trace_qr/trace_record/trace_scan_log)
+export * from './trace-batch.entity';
+export * from './trace-qr.entity';
+export * from './trace-record.entity';
+export * from './trace-scan-log.entity';

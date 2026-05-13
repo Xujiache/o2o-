@@ -4,7 +4,7 @@ import { IsIn, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-valida
 export class CreateCouponDto {
   @ApiProperty() @IsString() @IsNotEmpty() couponName!: string;
   @ApiProperty() @IsIn(['AMOUNT', 'DISCOUNT']) couponType!: 'AMOUNT' | 'DISCOUNT';
-  @ApiProperty() @IsIn(['FOOD', 'ERRAND', 'ALL']) bizType!: 'FOOD' | 'ERRAND' | 'ALL';
+  @ApiProperty() @IsIn(['FOOD', 'ERRAND', 'GROCERY', 'ALL']) bizType!: 'FOOD' | 'ERRAND' | 'GROCERY' | 'ALL';
   @ApiProperty() @IsString() threshold!: string;
   @ApiProperty() @IsString() discount!: string;
   @ApiProperty() @IsInt() @Min(1) totalStock!: number;

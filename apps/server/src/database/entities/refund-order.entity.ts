@@ -1,6 +1,6 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
-export type RefundOrderBizType = 'FOOD' | 'ERRAND';
+export type RefundOrderBizType = 'FOOD' | 'ERRAND' | 'GROCERY';
 export type RefundOrderStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'CLOSED';
 
 @Entity('refund_order')

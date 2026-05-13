@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import {
   ForbiddenException,
   Inject,
@@ -15,6 +17,7 @@ import {
   ErrandOrder,
   ErrandTimeline,
   FoodOrder,
+  GroceryOrder,
   OrderTimeline,
   PaymentOrder,
   ProductSku,
@@ -44,6 +47,7 @@ export class PaymentService {
     @InjectRepository(FoodOrder) private readonly orderRepo: Repository<FoodOrder>,
     @InjectRepository(PaymentOrder) private readonly payRepo: Repository<PaymentOrder>,
     @InjectRepository(ErrandOrder) private readonly errandOrderRepo: Repository<ErrandOrder>,
+    @InjectRepository(GroceryOrder) private readonly groceryOrderRepo: Repository<GroceryOrder>,
     private readonly gateway: IntegrationGatewayService,
     private readonly dataSource: DataSource,
     private readonly eventBus: DomainEventBus,
@@ -160,6 +164,42 @@ export class PaymentService {
         });
       }
       return { payableAmount: order.payableAmount, expireAt: order.expireAt };
+    }
+    if (bizType === 'GROCERY') {
+      const g = await this.groceryOrderRepo.findOne({ where: { groceryOrderId: orderId } });
+      if (!g || g.customerId !== customerId) {
+        throw new NotFoundException({
+          code: ErrorCode.DATA_NOT_FOUND,
+          detail: 'ORDER_NOT_FOUND',
+          message: '订单不存在',
+        });
+      }
+      // 主单支付
+      if (g.status === 'WAIT_PAY') {
+        if (Number(g.expireAt) < Date.now()) {
+          throw new UnprocessableEntityException({
+            code: ErrorCode.STATUS_INVALID,
+            detail: 'ORDER_EXPIRED',
+            message: '订单已超时',
+          });
+        }
+        return { payableAmount: g.estimatedPayableAmount, expireAt: g.expireAt };
+      }
+      // 差价补付
+      if (g.status === 'DIFF_PAYING' && g.diffPayStatus === 'unpaid' && g.diffAmount) {
+        const diff = BigInt(g.diffAmount);
+        if (diff <= 0n) {
+          throw new UnprocessableEntityException({ code: ErrorCode.STATUS_INVALID, detail: 'NO_DIFF_TO_PAY' });
+        }
+        // 差价单 24h 过期(给用户充足时间补付)
+        const diffExpire = String(Date.now() + 24 * 3600 * 1000);
+        return { payableAmount: String(diff), expireAt: diffExpire };
+      }
+      throw new UnprocessableEntityException({
+        code: ErrorCode.STATUS_INVALID,
+        detail: 'ORDER_NOT_PAYABLE',
+        message: '当前订单状态无法支付',
+      });
     }
     // ERRAND
     const errand = await this.errandOrderRepo.findOne({ where: { errandOrderId: orderId } });
@@ -281,6 +321,8 @@ export class PaymentService {
 
       if (payment.bizType === 'FOOD') {
         await this.applyFoodPaid(em, payment, parsed.paidAmountCents, now, channel);
+      } else if (payment.bizType === 'GROCERY') {
+        await this.applyGroceryPaid(em, payment, parsed.paidAmountCents, now);
       } else {
         await this.applyErrandPaid(em, payment, parsed.paidAmountCents, now);
       }
@@ -301,6 +343,25 @@ export class PaymentService {
       { bizType: 'payment', bizId: payment.paymentOrderId },
     );
 
+    if (payment.bizType === 'GROCERY') {
+      const g = await this.groceryOrderRepo.findOne({ where: { groceryOrderId: payment.bizId } });
+      if (g && g.status === 'PAID_WAIT_PICKUP') {
+        await this.eventBus.publish(
+          EventName.PaymentSucceeded,
+          {
+            payOrderId: payment.paymentOrderId,
+            payOrderNo: payment.payOrderNo,
+            bizType: 'GROCERY',
+            bizId: payment.bizId,
+            payChannel: channel,
+            paidAmount: String(parsed.paidAmountCents),
+            paidAt: now,
+          },
+          { bizType: 'grocery-order', bizId: payment.bizId },
+        );
+      }
+      return { ok: true };
+    }
     if (payment.bizType === 'FOOD') {
       const order = await this.orderRepo.findOne({ where: { foodOrderId: payment.bizId } });
       if (order && order.status === 'PAID_WAIT_MERCHANT') {
@@ -480,6 +541,78 @@ export class PaymentService {
       payload: { paidAmount: paidAmountCents, payOrderId: payment.paymentOrderId },
       operator: 'system',
       createdAt: String(now),
+    });
+  }
+
+  private async applyGroceryPaid(
+    em: EntityManager,
+    payment: PaymentOrder,
+    paidAmountCents: number,
+    now: number,
+  ): Promise<void> {
+    const g = await em.getRepository(GroceryOrder).findOne({ where: { groceryOrderId: payment.bizId } });
+    if (!g) {
+      throw new NotFoundException({
+        code: ErrorCode.DATA_NOT_FOUND,
+        detail: 'GROCERY_ORDER_NOT_FOUND',
+        message: '生鲜订单不存在',
+      });
+    }
+
+    // 1) 主单支付:WAIT_PAY → PAID_WAIT_PICKUP + 生成提货码
+    if (g.status === 'WAIT_PAY' && g.payStatus === 'unpaid') {
+      const code = String(Math.floor(100000 + Math.random() * 900000));
+      const salt = process.env.PICKUP_CODE_SALT ?? 'o2o-grocery-default-salt';
+      const hash = createHash('sha256').update(`${code}${salt}`).digest('hex');
+      await em.getRepository(GroceryOrder).update(
+        { groceryOrderId: payment.bizId },
+        {
+          status: 'PAID_WAIT_PICKUP',
+          payStatus: 'paid',
+          paidAmount: String(paidAmountCents),
+          paidAt: String(now),
+          pickupCode: code,
+          pickupCodeHash: hash,
+          updatedAt: String(now),
+        },
+      );
+      return;
+    }
+
+    // 2) 差价支付:DIFF_PAYING + diffPayStatus=unpaid → diffPayStatus=paid + 状态进入 PICKED_UP
+    if (g.status === 'DIFF_PAYING' && g.diffPayStatus === 'unpaid') {
+      // 校验金额一致
+      const expectDiff = BigInt(g.diffAmount ?? '0');
+      if (expectDiff !== BigInt(paidAmountCents)) {
+        throw new UnprocessableEntityException({
+          code: ErrorCode.STATUS_INVALID,
+          detail: 'DIFF_AMOUNT_MISMATCH',
+          message: `差价不一致 expect=${expectDiff} actual=${paidAmountCents}`,
+        });
+      }
+      await em.getRepository(GroceryOrder).update(
+        { groceryOrderId: payment.bizId },
+        {
+          status: 'PICKED_UP',
+          diffPayStatus: 'paid',
+          pickedUpAt: String(now),
+          updatedAt: String(now),
+        },
+      );
+      return;
+    }
+
+    // 3) 异常路径:状态不允许接收支付 — 已被关单或重复回调,触发退款
+    setImmediate(() => {
+      void this.adminRefundService
+        .createFromArbitration({
+          bizType: 'GROCERY',
+          bizOrderId: payment.bizId,
+          paymentOrderId: payment.paymentOrderId,
+          amount: String(paidAmountCents),
+          provider: 'wxpay',
+        })
+        .catch(() => undefined);
     });
   }
 }

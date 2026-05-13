@@ -45,6 +45,10 @@ import {
   ExportTask,
   RefundOrder,
   RiskExceptionLog,
+  // Stage 12 — 生鲜
+  GroceryOrder,
+  GroceryOrderItem,
+  PickupTimeSlot,
 } from '../database/entities';
 import { AuthEntitiesModule } from '../modules/auth/auth-entities.module';
 import { CouponModule } from '../modules/coupon/coupon.module';
@@ -64,6 +68,7 @@ import { DisabledAccountTokenBroadcastJob } from './jobs/disabled-account-token-
 import { DispatchTimeoutRetryJob } from './jobs/dispatch-timeout-retry.job';
 import { ExpiredCleanupJob } from './jobs/expired-cleanup.job';
 import { ExportTaskProcessJob } from './jobs/export-task-process.job';
+import { GroceryOrderExpireJob } from './jobs/grocery-order-expire.job';
 import { LicenseExpiryReminderJob } from './jobs/license-expiry-reminder.job';
 import { LoginAnomalyDetectionJob } from './jobs/login-anomaly-detection.job';
 import { MarketingActivityToggleJob } from './jobs/marketing-activity-toggle.job';
@@ -152,6 +157,10 @@ import { SchedulerController } from './scheduler.controller';
       ExportTask,
       RefundOrder,
       RiskExceptionLog,
+      // Stage 12 — 生鲜
+      GroceryOrder,
+      GroceryOrderItem,
+      PickupTimeSlot,
     ]),
     IntegrationGatewayModule,
     ErrandDispatchModule,
@@ -212,6 +221,8 @@ import { SchedulerController } from './scheduler.controller';
     CouponExpireJob,
     MarketingActivityToggleJob,
     ReconciliationJob,
+    // Stage 12 — 生鲜
+    GroceryOrderExpireJob,
   ],
   exports: [ConfigCacheRefreshJob],
 })

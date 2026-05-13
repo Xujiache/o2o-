@@ -1,6 +1,6 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
-export type PaymentOrderBizType = 'FOOD' | 'ERRAND';
+export type PaymentOrderBizType = 'FOOD' | 'ERRAND' | 'GROCERY';
 export type PaymentOrderChannel = 'wxpay' | 'alipay';
 export type PaymentOrderStatus = 'pending' | 'success' | 'failed' | 'expired' | 'refunded';
 

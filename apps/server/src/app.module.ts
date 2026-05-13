@@ -65,6 +65,9 @@ import { FinanceModule } from './modules/finance/finance.module';
 import { FoodHomeModule } from './modules/food-home/food-home.module';
 import { FoodOrderModule } from './modules/food-order/food-order.module';
 import { GatewayModule } from './modules/gateway/gateway.module';
+import { GroceryOrderModule } from './modules/grocery-order/grocery-order.module';
+import { GroceryProductModule } from './modules/grocery-product/grocery-product.module';
+import { GroceryWeighModule } from './modules/grocery-weigh/grocery-weigh.module';
 import { IntegrationGatewayModule } from './modules/integration-gateway/integration-gateway.module';
 import { MarketingModule } from './modules/marketing/marketing.module';
 import { MerchantAfterSaleModule } from './modules/merchant-after-sale/merchant-after-sale.module';
@@ -78,6 +81,8 @@ import { MerchantStatisticsModule } from './modules/merchant-statistics/merchant
 import { MerchantWithdrawalModule } from './modules/merchant-withdrawal/merchant-withdrawal.module';
 import { MessageSettingModule } from './modules/message-setting/message-setting.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { PickupPointModule } from './modules/pickup-point/pickup-point.module';
+import { PickupVerifyModule } from './modules/pickup-verify/pickup-verify.module';
 import { PointsModule } from './modules/points/points.module';
 import { ProductModule } from './modules/product/product.module';
 import { ProductQueryModule } from './modules/product-query/product-query.module';
@@ -100,6 +105,7 @@ import { StockModule } from './modules/stock/stock.module';
 import { StoreModule } from './modules/store/store.module';
 import { StoreQueryModule } from './modules/store-query/store-query.module';
 import { SystemModule } from './modules/system/system.module';
+import { TraceModule } from './modules/trace/trace.module';
 import { TrackModule } from './modules/track/track.module';
 import { TrackQueryModule } from './modules/track-query/track-query.module';
 import { UserProfileModule } from './modules/user-profile/user-profile.module';
@@ -221,6 +227,14 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     AdminPaymentModule,
     PushDeviceModule,
     PointsModule,
+    // Stage 12 — 生鲜商城 + 自提 + 核销 + 称重
+    PickupPointModule,
+    GroceryProductModule,
+    GroceryOrderModule,
+    PickupVerifyModule,
+    GroceryWeighModule,
+    // Stage 13 — 溯源
+    TraceModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

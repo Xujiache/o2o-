@@ -19,6 +19,17 @@ export class CartItem {
   @Column({ type: 'int', default: 1 })
   quantity!: number;
 
+  @Column({
+    name: 'pricing_mode_snapshot',
+    type: 'enum',
+    enum: ['fixed', 'weighed'],
+    default: 'fixed',
+  })
+  pricingModeSnapshot!: 'fixed' | 'weighed';
+
+  @Column({ name: 'estimated_weight_g', type: 'int', nullable: true })
+  estimatedWeightG!: number | null;
+
   @Column({ name: 'created_at', type: 'bigint' })
   createdAt!: string;
 

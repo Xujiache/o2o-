@@ -180,10 +180,15 @@ function buildService(w: World): PaymentService {
     createFromArbitration: jest.fn(async () => ({ refundOrderId: 'r1' })),
   } as unknown as never;
 
+  const groceryOrderRepo = {
+    findOne: jest.fn(async () => null),
+  } as unknown as Repository<import('../../database/entities').GroceryOrder>;
+
   return new PaymentService(
     orderRepo,
     payRepo,
     errandOrderRepo,
+    groceryOrderRepo,
     gateway,
     dataSource,
     eventBus,

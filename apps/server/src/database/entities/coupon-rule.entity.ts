@@ -1,7 +1,7 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
 export type CouponType = 'AMOUNT' | 'DISCOUNT';
-export type CouponBizType = 'FOOD' | 'ERRAND' | 'ALL';
+export type CouponBizType = 'FOOD' | 'ERRAND' | 'GROCERY' | 'ALL';
 export type CouponRuleStatus = 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'DISABLED';
 
 @Entity('coupon_rule')

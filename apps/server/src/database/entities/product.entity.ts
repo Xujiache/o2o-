@@ -1,11 +1,15 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
 export type ProductSaleStatus = 'draft' | 'on_shelf' | 'off_shelf' | 'sold_out';
+export type ProductType = 'food' | 'grocery';
+export type ProductPricingMode = 'fixed' | 'weighed';
+export type ProductWeightUnit = 'jin' | 'kg' | 'g';
 
 @Entity('product')
 @Index('idx_store_status', ['storeId', 'saleStatus'])
 @Index('idx_product_category', ['categoryId'])
 @Index('idx_alert', ['stock', 'stockAlertThreshold'])
+@Index('idx_product_type_status', ['productType', 'saleStatus'])
 export class Product {
   @PrimaryGeneratedColumn({ name: 'product_id', type: 'bigint' })
   productId!: string;
@@ -15,6 +19,34 @@ export class Product {
 
   @Column({ name: 'category_id', type: 'bigint' })
   categoryId!: string;
+
+  @Column({
+    name: 'product_type',
+    type: 'enum',
+    enum: ['food', 'grocery'],
+    default: 'food',
+  })
+  productType!: ProductType;
+
+  @Column({
+    name: 'pricing_mode',
+    type: 'enum',
+    enum: ['fixed', 'weighed'],
+    default: 'fixed',
+  })
+  pricingMode!: ProductPricingMode;
+
+  @Column({ name: 'weight_unit', type: 'varchar', length: 8, nullable: true })
+  weightUnit!: ProductWeightUnit | null;
+
+  @Column({ name: 'min_weight_g', type: 'int', nullable: true })
+  minWeightG!: number | null;
+
+  @Column({ name: 'max_weight_g', type: 'int', nullable: true })
+  maxWeightG!: number | null;
+
+  @Column({ name: 'unit_price_per_jin', type: 'bigint', nullable: true })
+  unitPricePerJin!: string | null;
 
   @Column({ type: 'varchar', length: 128 })
   name!: string;

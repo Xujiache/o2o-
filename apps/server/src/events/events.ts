@@ -300,7 +300,7 @@ export interface FoodOrderCreatedPayload {
 export interface PaymentSucceededPayload {
   payOrderId: string;
   payOrderNo: string;
-  bizType: 'FOOD' | 'ERRAND';
+  bizType: 'FOOD' | 'ERRAND' | 'GROCERY';
   bizId: string;
   payChannel: 'wxpay' | 'alipay';
   paidAmount: string;
@@ -572,7 +572,7 @@ export interface ArbitrationCompletedPayload {
 export interface RefundExecutedPayload {
   refundOrderId: string;
   refundNo: string;
-  bizType: 'FOOD' | 'ERRAND';
+  bizType: 'FOOD' | 'ERRAND' | 'GROCERY';
   bizOrderId: string;
   amount: string;
   status: 'SUCCESS' | 'FAILED';
@@ -582,7 +582,7 @@ export interface RefundExecutedPayload {
 export interface CouponPublishedPayload {
   couponRuleId: string;
   couponName: string;
-  bizType: 'FOOD' | 'ERRAND' | 'ALL';
+  bizType: 'FOOD' | 'ERRAND' | 'GROCERY' | 'ALL';
   totalStock: number;
   validFrom: number;
   validTo: number;

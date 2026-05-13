@@ -187,7 +187,7 @@ export class CouponCustomerService {
         uc_used_at: string | null;
         r_coupon_name: string;
         r_coupon_type: 'AMOUNT' | 'DISCOUNT';
-        r_biz_type: 'FOOD' | 'ERRAND' | 'ALL';
+        r_biz_type: 'FOOD' | 'ERRAND' | 'GROCERY' | 'ALL';
         r_threshold: string;
         r_discount: string;
         r_valid_from: string;

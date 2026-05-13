@@ -2,10 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsIn, IsInt, IsOptional, Min } from 'class-validator';
 
 export class AvailableCouponsQueryDto {
-  @ApiProperty({ required: false, enum: ['FOOD', 'ERRAND', 'ALL'] })
+  @ApiProperty({ required: false, enum: ['FOOD', 'ERRAND', 'GROCERY', 'ALL'] })
   @IsOptional()
-  @IsIn(['FOOD', 'ERRAND', 'ALL'])
-  bizType?: 'FOOD' | 'ERRAND' | 'ALL';
+  @IsIn(['FOOD', 'ERRAND', 'GROCERY', 'ALL'])
+  bizType?: 'FOOD' | 'ERRAND' | 'GROCERY' | 'ALL';
 
   @ApiProperty({ required: false, default: 1 })
   @IsOptional()
@@ -43,7 +43,7 @@ export class AvailableCouponItemVo {
   @ApiProperty() couponRuleId!: string;
   @ApiProperty() couponName!: string;
   @ApiProperty() couponType!: 'AMOUNT' | 'DISCOUNT';
-  @ApiProperty() bizType!: 'FOOD' | 'ERRAND' | 'ALL';
+  @ApiProperty() bizType!: 'FOOD' | 'ERRAND' | 'GROCERY' | 'ALL';
   @ApiProperty() threshold!: string;
   @ApiProperty() discount!: string;
   @ApiProperty() remainStock!: number;
@@ -64,7 +64,7 @@ export class MyCouponItemVo {
   @ApiProperty() couponRuleId!: string;
   @ApiProperty() couponName!: string;
   @ApiProperty() couponType!: 'AMOUNT' | 'DISCOUNT';
-  @ApiProperty() bizType!: 'FOOD' | 'ERRAND' | 'ALL';
+  @ApiProperty() bizType!: 'FOOD' | 'ERRAND' | 'GROCERY' | 'ALL';
   @ApiProperty() threshold!: string;
   @ApiProperty() discount!: string;
   @ApiProperty() validFrom!: number;
