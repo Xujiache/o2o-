@@ -7,7 +7,7 @@ import SvgIcon from '@/components/common/SvgIcon.vue';
 import { type CustomerRealnameStatus, useAuthStore } from '@/stores/auth';
 import { maskPhone } from '@/utils/format';
 
-type EntryKey = 'orders' | 'coupons' | 'notifications' | 'address' | 'security' | 'realname';
+type EntryKey = 'grocery-orders' | 'errand-orders' | 'coupons' | 'notifications' | 'address' | 'security' | 'realname';
 
 interface EntryItem {
   key: EntryKey;
@@ -25,10 +25,10 @@ const realnameMap: Record<CustomerRealnameStatus, { label: string; className: st
 };
 
 const quickEntries: EntryItem[] = [
-  { key: 'orders', label: '订单', icon: 'clipboard' },
+  { key: 'grocery-orders', label: '商城订单', icon: 'clipboard' },
+  { key: 'errand-orders', label: '跑腿订单', icon: 'truck' },
   { key: 'address', label: '地址', icon: 'location-pin' },
   { key: 'realname', label: '实名', icon: 'shield-check' },
-  { key: 'security', label: '安全', icon: 'lock' },
 ];
 
 const serviceEntries: EntryItem[] = [
@@ -68,8 +68,12 @@ function editProfile(): void {
 }
 
 function navigateByKey(key: EntryKey): void {
-  if (key === 'orders') {
-    uni.switchTab({ url: '/pages/food/order/list' });
+  if (key === 'grocery-orders') {
+    uni.switchTab({ url: '/pages/grocery/order/list' });
+    return;
+  }
+  if (key === 'errand-orders') {
+    uni.navigateTo({ url: '/pages/errand/order/list' });
     return;
   }
   if (key === 'coupons') {
@@ -333,7 +337,8 @@ onShow(async () => {
 .me__quick-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10rpx;
+  row-gap: 18rpx;
+  column-gap: 10rpx;
   margin-top: 18rpx;
   padding: 22rpx 12rpx;
   border-radius: 22rpx;

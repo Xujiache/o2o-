@@ -253,6 +253,42 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/views/exports/index.vue'),
         meta: { title: '报表导出', menu: true, icon: 'Download', permission: 'admin:menu:exports' },
       },
+      // 溯源中心
+      {
+        path: 'admin/trace/batches',
+        component: () => import('@/views/trace/BatchList.vue'),
+        meta: { title: '批次管理', menu: true, icon: 'Box', permission: 'admin:menu:trace' },
+      },
+      {
+        path: 'admin/trace/batches/create',
+        component: () => import('@/views/trace/BatchCreate.vue'),
+        meta: { title: '新建批次', permission: 'admin:menu:trace' },
+      },
+      {
+        path: 'admin/trace/batches/:id',
+        component: () => import('@/views/trace/BatchDetail.vue'),
+        meta: { title: '批次详情', permission: 'admin:menu:trace' },
+      },
+      {
+        path: 'admin/trace/records/create',
+        component: () => import('@/views/trace/RecordCreate.vue'),
+        meta: { title: '节点录入', menu: true, icon: 'Edit', permission: 'admin:menu:trace' },
+      },
+      {
+        path: 'admin/trace/lookup',
+        component: () => import('@/views/trace/QrLookup.vue'),
+        meta: { title: '二维码定位', menu: true, icon: 'Search', permission: 'admin:menu:trace' },
+      },
+      {
+        path: 'admin/trace/qrcodes/:qrId',
+        component: () => import('@/views/trace/QrDetail.vue'),
+        meta: { title: 'QR 详情', permission: 'admin:menu:trace' },
+      },
+      {
+        path: 'admin/trace/stats',
+        component: () => import('@/views/trace/Stats.vue'),
+        meta: { title: '扫码统计', menu: true, icon: 'DataLine', permission: 'admin:menu:trace' },
+      },
     ],
   },
   {

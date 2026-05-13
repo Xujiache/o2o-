@@ -8,6 +8,10 @@
       }
     },
     {
+      "path": "pages/index/index",
+      "style": { "navigationBarTitleText": "首页" }
+    },
+    {
       "path": "pages/permission/location",
       "style": {
         "navigationBarTitleText": "定位授权"
@@ -43,22 +47,18 @@
         "navigationBarTitleText": "页面错误"
       }
     },
-    { "path": "pages/food/home/index", "style": { "navigationBarTitleText": "外卖首页" } },
-    { "path": "pages/food/city-picker/index", "style": { "navigationBarTitleText": "城市切换" } },
-    { "path": "pages/food/search/index", "style": { "navigationBarTitleText": "搜索" } },
-    { "path": "pages/food/search/result", "style": { "navigationBarTitleText": "搜索结果" } },
-    { "path": "pages/food/store/detail", "style": { "navigationBarTitleText": "店铺详情" } },
-    { "path": "pages/food/cart/index", "style": { "navigationBarTitleText": "购物车" } },
-    { "path": "pages/food/order/confirm", "style": { "navigationBarTitleText": "确认订单" } },
-    { "path": "pages/food/order/coupon-pick", "style": { "navigationBarTitleText": "选择优惠券" } },
+    { "path": "pages/grocery/home", "style": { "navigationBarTitleText": "生鲜商城" } },
+    { "path": "pages/grocery/product/list", "style": { "navigationBarTitleText": "商品列表" } },
+    { "path": "pages/grocery/product/detail", "style": { "navigationBarTitleText": "商品详情" } },
+    { "path": "pages/grocery/cart", "style": { "navigationBarTitleText": "购物车" } },
+    { "path": "pages/grocery/pickup-point/list", "style": { "navigationBarTitleText": "自提点" } },
+    { "path": "pages/grocery/checkout", "style": { "navigationBarTitleText": "结算" } },
+    { "path": "pages/grocery/order/list", "style": { "navigationBarTitleText": "我的订单" } },
+    { "path": "pages/grocery/order/detail", "style": { "navigationBarTitleText": "订单详情" } },
+    { "path": "pages/trace/scan", "style": { "navigationBarTitleText": "扫码溯源" } },
+    { "path": "pages/trace/detail", "style": { "navigationBarTitleText": "溯源详情" } },
     { "path": "pages/payment/cashier", "style": { "navigationBarTitleText": "支付收银台" } },
     { "path": "pages/payment/result", "style": { "navigationBarTitleText": "支付结果" } },
-    { "path": "pages/food/order/list", "style": { "navigationBarTitleText": "我的订单" } },
-    { "path": "pages/food/order/detail", "style": { "navigationBarTitleText": "订单详情" } },
-    { "path": "pages/food/order/track", "style": { "navigationBarTitleText": "配送轨迹" } },
-    { "path": "pages/food/review/submit", "style": { "navigationBarTitleText": "评价订单" } },
-    { "path": "pages/food/order/after-sale-apply", "style": { "navigationBarTitleText": "申请售后" } },
-    { "path": "pages/me/aftersales-stub", "style": { "navigationBarTitleText": "售后申请" } },
     { "path": "pages/me/coupons", "style": { "navigationBarTitleText": "我的优惠券" } },
     { "path": "pages/errand/home/index", "style": { "navigationBarTitleText": "跑腿服务" } },
     { "path": "pages/errand/form/buy", "style": { "navigationBarTitleText": "代买" } },
@@ -69,6 +69,7 @@
     { "path": "pages/errand/confirm/index", "style": { "navigationBarTitleText": "确认订单" } },
     { "path": "pages/errand/order/list", "style": { "navigationBarTitleText": "跑腿订单" } },
     { "path": "pages/errand/order/detail", "style": { "navigationBarTitleText": "订单详情" } },
+    { "path": "pages/errand/order/contact-service", "style": { "navigationBarTitleText": "联系客服" } },
     { "path": "pages/errand/track/index", "style": { "navigationBarTitleText": "配送轨迹" } },
     { "path": "pages/errand/address-picker/index", "style": { "navigationBarTitleText": "选择地址" } },
     { "path": "pages/errand/image-upload/index", "style": { "navigationBarTitleText": "上传图片" } },
@@ -93,12 +94,13 @@
   },
   "tabBar": {
     "color": "#8A94A6",
-    "selectedColor": "#FF6B35",
+    "selectedColor": "#11998E",
     "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [
-      { "pagePath": "pages/food/home/index", "text": "首页" },
-      { "pagePath": "pages/food/order/list", "text": "订单" },
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/grocery/home", "text": "商城" },
+      { "pagePath": "pages/grocery/order/list", "text": "订单" },
       { "pagePath": "pages/me/index", "text": "我的" }
     ]
   }

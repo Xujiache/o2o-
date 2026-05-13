@@ -19,6 +19,7 @@ import SvgIcon from '@/components/common/SvgIcon.vue';
 
 import { getStore, listProducts, listStockAlerts, setBusinessStatus, type StoreVo } from '@/api';
 import { listAfterSales } from '@/api/after-sales';
+import { listPickupPoints, listPickupSlots, listVerifyLogs } from '@/api/grocery';
 import { listPendingOrders } from '@/api/merchant-orders';
 import { listReviews, type ReviewListItemVo } from '@/api/reviews';
 import { getStatistics, type StatisticsVo } from '@/api/statistics';
@@ -35,6 +36,11 @@ const unrepliedCount = ref(0);
 const latestReviews = ref<ReviewListItemVo[]>([]);
 const productCount = ref(0);
 
+// 商城快捷区 — 今日预约/已核销/待核销
+const groceryReservedToday = ref(0);
+const groceryVerifiedToday = ref(0);
+const groceryPendingToday = computed(() => Math.max(0, groceryReservedToday.value - groceryVerifiedToday.value));
+
 async function loadAll(): Promise<void> {
   await Promise.allSettled([
     loadStore(),
@@ -44,7 +50,35 @@ async function loadAll(): Promise<void> {
     loadStockAlerts(),
     loadReviews(),
     loadProductCount(),
+    loadGrocery(),
   ]);
+}
+
+async function loadGrocery(): Promise<void> {
+  const today = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
+  const [pointsRes, verifyRes] = await Promise.all([
+    listPickupPoints(),
+    listVerifyLogs({ fromDate: today, toDate: today, result: '1', pageNo: 1, pageSize: 1 }),
+  ]);
+  if (verifyRes.code === '0' && verifyRes.data) {
+    groceryVerifiedToday.value = verifyRes.data.total;
+  }
+  if (pointsRes.code !== '0' || !pointsRes.data || pointsRes.data.length === 0) {
+    groceryReservedToday.value = 0;
+    return;
+  }
+  // 累加今日所有自提点的 reserved
+  let sum = 0;
+  const slotResults = await Promise.all(pointsRes.data.map((p) => listPickupSlots(p.pickupPointId, today, today)));
+  for (const r of slotResults) {
+    if (r.code === '0' && r.data) {
+      for (const s of r.data) sum += s.reserved;
+    }
+  }
+  groceryReservedToday.value = sum;
 }
 
 async function loadStore(): Promise<void> {
@@ -242,6 +276,16 @@ function gotoStat(): void {
   uni.switchTab({ url: '/pages/statistics/index' });
 }
 
+function gotoGroceryVerify(): void {
+  uni.switchTab({ url: '/pages/grocery/verify' });
+}
+function gotoGroceryStock(): void {
+  uni.navigateTo({ url: '/pages/grocery/stock-list' });
+}
+function gotoGroceryOrders(): void {
+  uni.navigateTo({ url: '/pages/grocery/orders' });
+}
+
 function fmtTime(ms: number): string {
   const d = new Date(ms);
   return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -279,6 +323,31 @@ function fmtTime(ms: number): string {
         <view v-else class="wb__hero-cta" @tap="gotoOnboarding">去入驻 ›</view>
       </view>
       <text v-if="isPausedByPlatform" class="wb__hero-warn">店铺已被平台暂停,请联系运营</text>
+    </view>
+
+    <!-- 商城快捷区 — 今日商城自提核心数据 -->
+    <view class="wb__grocery">
+      <view class="wb__grocery-head">
+        <view class="wb__grocery-titlebar">
+          <SvgIcon name="shopping-cart" :size="22" color="#b7791f" />
+          <text class="wb__grocery-title">商城核销</text>
+        </view>
+        <view class="wb__grocery-cta" @tap="gotoGroceryVerify">去核销 ›</view>
+      </view>
+      <view class="wb__grocery-grid">
+        <view class="wb__grocery-cell" @tap="gotoGroceryStock">
+          <text class="wb__grocery-num">{{ groceryReservedToday }}</text>
+          <text class="wb__grocery-label">今日待发货</text>
+        </view>
+        <view class="wb__grocery-cell wb__grocery-cell--warn" @tap="gotoGroceryVerify">
+          <text class="wb__grocery-num">{{ groceryPendingToday }}</text>
+          <text class="wb__grocery-label">待核销</text>
+        </view>
+        <view class="wb__grocery-cell wb__grocery-cell--ok" @tap="gotoGroceryOrders">
+          <text class="wb__grocery-num">{{ groceryVerifiedToday }}</text>
+          <text class="wb__grocery-label">已核销</text>
+        </view>
+      </view>
     </view>
 
     <!-- 经营概览(合并今日数据 + 同比 + 关键指标) -->
@@ -484,9 +553,73 @@ function fmtTime(ms: number): string {
   font-weight: 700;
 }
 
+/* 商城快捷区(覆盖 hero 底部) */
+.wb__grocery {
+  margin: -32rpx 24rpx 0;
+  padding: 22rpx 24rpx;
+  background: #fff;
+  border: 1rpx solid #e6e9ee;
+  border-radius: 14rpx;
+  box-shadow: 0 12rpx 32rpx rgba(31, 41, 55, 0.06);
+  position: relative;
+  z-index: 2;
+}
+.wb__grocery-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14rpx;
+}
+.wb__grocery-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+.wb__grocery-title {
+  font-size: 28rpx;
+  font-weight: 800;
+  color: #172033;
+}
+.wb__grocery-cta {
+  font-size: 22rpx;
+  color: #b7791f;
+  font-weight: 700;
+}
+.wb__grocery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12rpx;
+}
+.wb__grocery-cell {
+  padding: 18rpx 14rpx;
+  background: linear-gradient(135deg, #fff7e0, #f9eecf);
+  border-radius: 12rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+}
+.wb__grocery-cell--warn {
+  background: linear-gradient(135deg, #fdecea, #fcd9d4);
+}
+.wb__grocery-cell--ok {
+  background: linear-gradient(135deg, #e9f7ef, #c8eed8);
+}
+.wb__grocery-num {
+  font-size: 44rpx;
+  font-weight: 800;
+  color: #172033;
+  line-height: 1;
+  font-feature-settings: 'tnum';
+}
+.wb__grocery-label {
+  font-size: 22rpx;
+  color: #5a6275;
+}
+
 /* 经营概览 */
 .wb__overview {
-  margin: -32rpx 24rpx 0;
+  margin: 16rpx 24rpx 0;
   padding: 28rpx 28rpx 24rpx;
   background: #fff;
   border: 1rpx solid #e6e9ee;

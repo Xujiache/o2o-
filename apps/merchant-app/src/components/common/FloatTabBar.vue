@@ -2,12 +2,12 @@
 import SvgIcon from '@/components/common/SvgIcon.vue';
 
 interface Props {
-  active: 'workbench' | 'orders' | 'products' | 'statistics' | 'me';
+  active: 'workbench' | 'orders' | 'products' | 'grocery' | 'statistics' | 'me';
 }
 defineProps<Props>();
 
 interface Tab {
-  key: 'workbench' | 'orders' | 'products' | 'statistics' | 'me';
+  key: 'workbench' | 'orders' | 'products' | 'grocery' | 'statistics' | 'me';
   icon: string;
   label: string;
   path: string;
@@ -16,6 +16,7 @@ interface Tab {
 const TABS: Tab[] = [
   { key: 'workbench', icon: 'layout-grid', label: '工作台', path: '/pages/workbench/index' },
   { key: 'orders', icon: 'bell', label: '订单', path: '/pages/orders/pending' },
+  { key: 'grocery', icon: 'shopping-cart', label: '商城', path: '/pages/grocery/verify' },
   { key: 'products', icon: 'package', label: '商品', path: '/pages/products/list' },
   { key: 'statistics', icon: 'chart-bar', label: '统计', path: '/pages/statistics/index' },
   { key: 'me', icon: 'user', label: '我的', path: '/pages/me/index' },
@@ -39,7 +40,7 @@ function onTap(t: Tab): void {
         :class="{ 'ftb__item--active': active === t.key }"
         @tap="onTap(t)"
       >
-        <SvgIcon :name="t.icon" :size="40" :color="active === t.key ? ACTIVE_COLOR : INACTIVE_COLOR" />
+        <SvgIcon :name="t.icon" :size="36" :color="active === t.key ? ACTIVE_COLOR : INACTIVE_COLOR" />
         <text class="ftb__label" :class="{ 'ftb__label--active': active === t.key }">{{ t.label }}</text>
       </view>
     </view>
@@ -65,8 +66,8 @@ function onTap(t: Tab): void {
   box-shadow:
     0 18rpx 48rpx rgba(31, 41, 55, 0.18),
     0 4rpx 12rpx rgba(31, 41, 55, 0.08);
-  padding: 14rpx 10rpx;
-  gap: 2rpx;
+  padding: 12rpx 6rpx;
+  gap: 0;
   backdrop-filter: blur(12px);
   box-sizing: border-box;
 }
@@ -76,8 +77,8 @@ function onTap(t: Tab): void {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4rpx;
-  padding: 10rpx 4rpx;
+  gap: 2rpx;
+  padding: 8rpx 2rpx;
   border-radius: 999rpx;
   transition: background 200ms ease;
 }

@@ -30,9 +30,19 @@
     { "path": "pages/withdrawals/records", "style": { "navigationBarTitleText": "提现记录" } },
     { "path": "pages/exports/index", "style": { "navigationBarTitleText": "数据导出" } },
     { "path": "pages/reviews/list", "style": { "navigationBarTitleText": "评价回复" } },
-    { "path": "pages/me/index", "style": { "navigationBarTitleText": "个人中心" } }
+    { "path": "pages/me/index", "style": { "navigationBarTitleText": "个人中心" } },
+    { "path": "pages/grocery/verify", "style": { "navigationBarTitleText": "商城核销" } },
+    { "path": "pages/grocery/products", "style": { "navigationBarTitleText": "生鲜商品" } },
+    { "path": "pages/grocery/product-edit", "style": { "navigationBarTitleText": "编辑生鲜商品" } },
+    { "path": "pages/grocery/pickup-points", "style": { "navigationBarTitleText": "自提点管理" } },
+    { "path": "pages/grocery/pickup-slots", "style": { "navigationBarTitleText": "时段配置" } },
+    { "path": "pages/grocery/orders", "style": { "navigationBarTitleText": "商城订单" } },
+    { "path": "pages/grocery/weigh", "style": { "navigationBarTitleText": "称重结算" } },
+    { "path": "pages/grocery/diff-wait", "style": { "navigationBarTitleText": "等待补付" } },
+    { "path": "pages/grocery/stock-list", "style": { "navigationBarTitleText": "今日备货" } }
   ],
   "globalStyle": {
+    "navigationStyle": "custom",
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "O2O 商家端",
     "navigationBarBackgroundColor": "#FFFFFF",
@@ -46,6 +56,7 @@
     "list": [
       { "pagePath": "pages/workbench/index", "text": "工作台" },
       { "pagePath": "pages/orders/pending", "text": "订单" },
+      { "pagePath": "pages/grocery/verify", "text": "商城" },
       { "pagePath": "pages/products/list", "text": "商品" },
       { "pagePath": "pages/statistics/index", "text": "统计" },
       { "pagePath": "pages/me/index", "text": "我的" }

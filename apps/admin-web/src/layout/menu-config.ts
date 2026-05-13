@@ -107,6 +107,17 @@ export const MENU_GROUPS: MenuGroup[] = [
     ],
   },
   {
+    key: 'trace',
+    title: '溯源中心',
+    icon: 'Box',
+    children: [
+      { path: '/admin/trace/batches', title: '批次管理', icon: 'Box', permission: 'admin:menu:trace' },
+      { path: '/admin/trace/records/create', title: '节点录入', icon: 'Edit', permission: 'admin:menu:trace' },
+      { path: '/admin/trace/lookup', title: '二维码定位', icon: 'Search', permission: 'admin:menu:trace' },
+      { path: '/admin/trace/stats', title: '扫码统计', icon: 'DataLine', permission: 'admin:menu:trace' },
+    ],
+  },
+  {
     key: 'system',
     title: '系统',
     icon: 'Setting',

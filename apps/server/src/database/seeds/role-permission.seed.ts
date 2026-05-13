@@ -339,6 +339,40 @@ const PERMISSIONS: PermRow[] = [
     parentCode: 'admin:menu:settlements',
     sort: 901,
   },
+  // Stage 13 — 溯源中心
+  { code: 'admin:menu:trace', name: '溯源中心菜单', scope: 'admin', type: 'menu', sort: 880 },
+  {
+    code: 'admin:trace:batch:write',
+    name: '批次创建/作废',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:trace',
+    sort: 1,
+  },
+  {
+    code: 'admin:trace:qr:generate',
+    name: '二维码生成',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:trace',
+    sort: 2,
+  },
+  {
+    code: 'admin:trace:qr:export',
+    name: '二维码 CSV 下载',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:trace',
+    sort: 3,
+  },
+  {
+    code: 'admin:trace:record:write',
+    name: '溯源节点录入/编辑/删除',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:trace',
+    sort: 4,
+  },
 ];
 
 export async function seedRolesAndPermissions(
@@ -438,6 +472,7 @@ export async function seedRolesAndPermissions(
     ['AUDITOR', 'admin:menu:dashboard'],
     ['AUDITOR', 'admin:dashboard:view'],
     ['AUDITOR', 'admin:menu:risk'],
+    ['AUDITOR', 'admin:menu:trace'],
     ['AUDITOR', 'admin:risk:view'],
     // Stage 10 — AUDITOR 可见订单时间线 + 支付单(只读)
     ['AUDITOR', 'admin:order:timeline:view'],
