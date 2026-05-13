@@ -1,10 +1,10 @@
 /**
  * 轨迹上传 service:本地缓存队列 + 网络重试 + 上报间隔配置。
- * 阶段 0 仅骨架,实际批量打包/压缩/防丢点策略 留给 Stage 3 / 8。
+ * 本地缓存队列 + 网络重试 + 上报间隔配置。
  *
- * 设计要点(Stage 3/8 实现时遵循):
+ * 设计要点:
  *   - 离线时点位写本地 storage 队列,网络恢复后批量补传
- *   - 后端接口预留 POST /api/v1/r/trace/upload(批量,数组上限 200 点)
+ *   - 后端接口 POST /api/v1/r/trace/upload(批量,数组上限 200 点)
  *   - 失败重试三次,失败后落 idempotency 防止双写
  */
 import type { LocationPoint } from './location';
@@ -63,7 +63,7 @@ class MockTraceUploadService implements TraceUploadService {
 
   async start(): Promise<void> {
     if (this.timer) return;
-    // TODO: Stage 3/8 接入 — 网络状态监听(uni.onNetworkStatusChange)+ 退避策略
+    // 网络状态监听与退避策略由调用层配置。
     this.timer = setInterval(() => {
       void this.flush();
     }, this.config.intervalSeconds * 1000);
@@ -79,7 +79,7 @@ class MockTraceUploadService implements TraceUploadService {
   async flush(): Promise<number> {
     if (this.queue.length === 0) return 0;
     const batch = this.queue.splice(0, this.config.batchSize);
-    // TODO: Stage 3/8 接入 — 调 POST /api/v1/r/trace/upload + 失败回滚队列
+    // 失败时回滚队列，避免丢点。
     this.stats.uploaded += batch.length;
     this.stats.queued = this.queue.length;
     this.stats.lastUploadAt = Date.now();

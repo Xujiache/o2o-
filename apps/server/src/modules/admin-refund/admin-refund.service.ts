@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ErrorCode } from '@o2o/contracts';
+import { In, Repository } from 'typeorm';
 
-import { RefundOrder, type RefundOrderBizType } from '../../database/entities';
+import { PaymentOrder, RefundOrder, type RefundOrderBizType } from '../../database/entities';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
 
@@ -20,14 +21,52 @@ export interface CreateRefundInput {
 export class AdminRefundService {
   constructor(
     @InjectRepository(RefundOrder) private readonly repo: Repository<RefundOrder>,
+    @InjectRepository(PaymentOrder) private readonly paymentRepo: Repository<PaymentOrder>,
     private readonly eventBus: DomainEventBus,
   ) {}
 
   /**
    * 由仲裁触发,创建退款单 + mock 执行 + emit RefundExecuted。
    * 真实接 wxpay 在 stage 11。
+   *
+   * 校验:本次 amount + 同 bizOrderId 已存在 PENDING/SUCCESS 的累计 amount <= 原支付 paid_amount。
+   * 否则会产生超额退款。
    */
   async createFromArbitration(input: CreateRefundInput): Promise<RefundOrder> {
+    const amount = BigInt(input.amount);
+    if (amount <= 0n) {
+      throw new UnprocessableEntityException({
+        code: ErrorCode.INVALID_PARAM,
+        detail: 'INVALID_REFUND_AMOUNT',
+        message: 'refund amount must be positive',
+      });
+    }
+
+    // 累计退款校验:原支付金额 - 本订单已存在的 PENDING+SUCCESS 退款累计 >= 本次申请金额
+    if (input.paymentOrderId) {
+      const payment = await this.paymentRepo.findOne({ where: { paymentOrderId: input.paymentOrderId } });
+      if (!payment) {
+        throw new NotFoundException({
+          code: ErrorCode.DATA_NOT_FOUND,
+          detail: 'PAYMENT_NOT_FOUND',
+          message: 'payment order not found',
+        });
+      }
+      const paidAmount = BigInt(payment.paidAmount ?? payment.payableAmount);
+      const existing = await this.repo.find({
+        where: { paymentOrderId: input.paymentOrderId, status: In(['PENDING', 'SUCCESS']) },
+        select: ['amount'],
+      });
+      const refunded = existing.reduce((acc, r) => acc + BigInt(r.amount), 0n);
+      if (refunded + amount > paidAmount) {
+        throw new UnprocessableEntityException({
+          code: ErrorCode.STATUS_INVALID,
+          detail: 'REFUND_EXCEEDS_PAID',
+          message: `refund total ${(refunded + amount).toString()} exceeds paid ${paidAmount.toString()}`,
+        });
+      }
+    }
+
     const now = Date.now();
     const refundNo = this.genRefundNo(now);
     const order = this.repo.create({

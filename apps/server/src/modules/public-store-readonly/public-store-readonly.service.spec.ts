@@ -16,6 +16,16 @@ describe('PublicStoreReadonlyService', () => {
   let hourRepo: jest.Mocked<Repository<StoreBusinessHour>>;
   let productRepo: jest.Mocked<Repository<Product>>;
   let merchantRepo: jest.Mocked<Repository<MerchantAccount>>;
+  const fileService = {
+    resolveUrl: jest.fn(async (fileId: string | null | undefined) => (fileId ? `https://mock.cdn/${fileId}` : null)),
+    resolveUrls: jest.fn(async (fileIds: Array<string | null | undefined>) =>
+      Object.fromEntries(
+        fileIds
+          .filter((fileId): fileId is string => Boolean(fileId))
+          .map((fileId) => [fileId, `https://mock.cdn/${fileId}`]),
+      ),
+    ),
+  };
 
   beforeEach(() => {
     stores = [
@@ -27,7 +37,7 @@ describe('PublicStoreReadonlyService', () => {
         businessScope: '中餐',
         minOrderAmount: '1500',
         deliveryFee: '300',
-        avatarFileId: null,
+        avatarFileId: 'fid-store',
         intro: null,
         notice: null,
         cityCode: 'BJ',
@@ -77,7 +87,7 @@ describe('PublicStoreReadonlyService', () => {
     ];
     merchants = [
       { merchantId: '1', mobile: 'm1', accountStatus: 'active' } as MerchantAccount,
-      { merchantId: '2', mobile: 'm2', accountStatus: 'pending' } as MerchantAccount,
+      { merchantId: '2', mobile: 'm2', accountStatus: 'active' } as MerchantAccount,
     ];
 
     storeRepo = {
@@ -85,18 +95,21 @@ describe('PublicStoreReadonlyService', () => {
         async ({ where }: { where: Partial<Store> }) => stores.find((s) => s.storeId === where.storeId) ?? null,
       ),
       createQueryBuilder: jest.fn(() => {
-        // 模拟 join MerchantAccount 过滤 + status=online
-        const filtered = stores.filter(
-          (s) =>
-            s.businessStatus === 'online' &&
-            merchants.find((m) => m.merchantId === s.merchantId)?.accountStatus === 'active',
-        );
+        const filtered = stores
+          .filter((s) => merchants.find((m) => m.merchantId === s.merchantId)?.accountStatus === 'active')
+          .sort((a, b) => {
+            const aStatus = a.businessStatus === 'online' ? 0 : 1;
+            const bStatus = b.businessStatus === 'online' ? 0 : 1;
+            if (aStatus !== bStatus) return aStatus - bStatus;
+            return Number(b.updatedAt) - Number(a.updatedAt);
+          });
         const qb: Record<string, unknown> = {};
         const chain = () => qb;
         qb.innerJoin = jest.fn(chain);
         qb.where = jest.fn(chain);
         qb.andWhere = jest.fn(chain);
         qb.orderBy = jest.fn(chain);
+        qb.addOrderBy = jest.fn(chain);
         qb.skip = jest.fn(chain);
         qb.take = jest.fn(chain);
         qb.getManyAndCount = jest.fn(async () => [filtered, filtered.length] as [Store[], number]);
@@ -110,15 +123,21 @@ describe('PublicStoreReadonlyService', () => {
 
     productRepo = {
       createQueryBuilder: jest.fn(() => {
-        const filtered = products.filter((p) => p.saleStatus === 'on_shelf');
+        let storeId = '';
         const qb: Record<string, unknown> = {};
         const chain = () => qb;
-        qb.where = jest.fn(chain);
+        qb.where = jest.fn((_sql: string, params?: { sid?: string }) => {
+          if (params?.sid) storeId = params.sid;
+          return qb;
+        });
         qb.andWhere = jest.fn(chain);
         qb.orderBy = jest.fn(chain);
         qb.skip = jest.fn(chain);
         qb.take = jest.fn(chain);
-        qb.getManyAndCount = jest.fn(async () => [filtered, filtered.length] as [Product[], number]);
+        qb.getManyAndCount = jest.fn(async () => {
+          const filtered = products.filter((p) => p.storeId === storeId && p.saleStatus === 'on_shelf');
+          return [filtered, filtered.length] as [Product[], number];
+        });
         return qb;
       }),
     } as unknown as jest.Mocked<Repository<Product>>;
@@ -130,13 +149,16 @@ describe('PublicStoreReadonlyService', () => {
       ),
     } as unknown as jest.Mocked<Repository<MerchantAccount>>;
 
-    svc = new PublicStoreReadonlyService(storeRepo, hourRepo, productRepo, merchantRepo);
+    jest.clearAllMocks();
+    svc = new PublicStoreReadonlyService(storeRepo, hourRepo, productRepo, merchantRepo, fileService as never);
   });
 
-  it('listStores:只返回 online 店铺(过滤 paused/offline 店 + 非 active 商家)', async () => {
+  it('listStores:返回 active 商家的在线和休息店铺,在线排前', async () => {
     const r = await svc.listStores({});
-    expect(r.total).toBe(1);
+    expect(r.total).toBe(2);
     expect(r.list[0]!.storeId).toBe('201');
+    expect(r.list[0]!.avatarUrl).toBe('https://mock.cdn/fid-store');
+    expect(r.list[1]!.storeId).toBe('202');
   });
 
   it('getStoreDetail online 店铺 + active 商家 → 详情含营业时间', async () => {
@@ -145,8 +167,14 @@ describe('PublicStoreReadonlyService', () => {
     expect(detail.businessHours).toHaveLength(1);
   });
 
-  it('getStoreDetail offline 店铺 → NotFound', async () => {
-    await expect(svc.getStoreDetail('202')).rejects.toBeInstanceOf(NotFoundException);
+  it('getStoreDetail offline 店铺仍可访问', async () => {
+    const detail = await svc.getStoreDetail('202');
+    expect(detail.storeId).toBe('202');
+    expect(detail.businessStatus).toBe('offline');
+  });
+
+  it('getStoreDetail 不存在店铺 → NotFound', async () => {
+    await expect(svc.getStoreDetail('404')).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('listProducts 只返回 on_shelf', async () => {
@@ -155,7 +183,8 @@ describe('PublicStoreReadonlyService', () => {
     expect(r.list[0]!.productId).toBe('100');
   });
 
-  it('listProducts offline 店铺 → NotFound', async () => {
-    await expect(svc.listProducts('202', {})).rejects.toBeInstanceOf(NotFoundException);
+  it('listProducts offline 店铺返回空商品列表', async () => {
+    const r = await svc.listProducts('202', {});
+    expect(r.list).toHaveLength(0);
   });
 });

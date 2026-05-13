@@ -39,10 +39,6 @@ onMounted(async () => {
 function goToForm(typeCode: string): void {
   uni.navigateTo({ url: FORM_PATH[typeCode] ?? '/pages/errand/form/custom' });
 }
-function goToOrders(): void {
-  uni.setStorageSync('order-list-default-mode', 'errand');
-  uni.switchTab({ url: '/pages/food/order/list' });
-}
 </script>
 
 <template>
@@ -66,16 +62,6 @@ function goToOrders(): void {
       </view>
     </view>
 
-    <view class="home__section">
-      <view class="home__entry" @click="goToOrders">
-        <view class="home__entry-icon"><SvgIcon name="clipboard" :size="36" color="#5b5ff8" /></view>
-        <view class="home__entry-main">
-          <text class="home__entry-title">我的跑腿订单</text>
-          <text class="home__entry-desc">查看订单状态、轨迹与历史</text>
-        </view>
-        <text class="home__entry-arrow">›</text>
-      </view>
-    </view>
     <FloatTabBar active="home" />
   </view>
 </template>
@@ -166,44 +152,5 @@ function goToOrders(): void {
   font-size: 22rpx;
   color: #8a94a6;
   line-height: 1.4;
-}
-
-.home__entry {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  padding: 24rpx 28rpx;
-  background: #fff;
-  border-radius: 24rpx;
-  box-shadow: 0 12rpx 32rpx rgba(31, 41, 55, 0.06);
-}
-.home__entry-icon {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 16rpx;
-  background: linear-gradient(135deg, rgba(91, 95, 248, 0.12), rgba(0, 184, 217, 0.12));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36rpx;
-}
-.home__entry-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-}
-.home__entry-title {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #172033;
-}
-.home__entry-desc {
-  font-size: 22rpx;
-  color: #8a94a6;
-}
-.home__entry-arrow {
-  color: #c5c9d2;
-  font-size: 36rpx;
 }
 </style>

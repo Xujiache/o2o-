@@ -1,6 +1,12 @@
 import { BadRequestException, ForbiddenException, UnauthorizedException } from '@nestjs/common';
 
-import type { MerchantAccount, MerchantWithdrawal, Store, SysConfig } from '../../database/entities';
+import type {
+  MerchantAccount,
+  MerchantSettlement,
+  MerchantWithdrawal,
+  Store,
+  SysConfig,
+} from '../../database/entities';
 import type { DomainEventBus } from '../../events/domain-event-bus';
 import type { SmsService } from '../sms/sms.service';
 
@@ -13,6 +19,7 @@ interface World {
   configs: SysConfig[];
   events: { name: string; payload: unknown }[];
   smsValid: boolean;
+  settlements?: MerchantSettlement[];
 }
 
 function buildService(w: World) {
@@ -62,9 +69,13 @@ function buildService(w: World) {
     }),
   } as unknown as DomainEventBus;
 
+  const settlementRepo: any = {
+    find: jest.fn(async () => w.settlements ?? []),
+  };
   const svc = new MerchantWithdrawalService(
     withdrawalRepo,
     accountRepo,
+    settlementRepo,
     storeRepo,
     sysConfigRepo,
     smsService,
@@ -84,6 +95,8 @@ describe('MerchantWithdrawalService', () => {
       configs: [],
       events: [],
       smsValid: true,
+      // 预置 1 笔已 READY 结算 9,000,000 分,覆盖所有测试用例的提现金额
+      settlements: [{ storeId: '20001', status: 'READY', netCents: '9000000' } as MerchantSettlement],
     };
   });
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * 登录页 — 双栏:左侧品牌展示,右侧表单。
- * mock 模式 captcha 输入 'dev' 跳过校验(便于开发联调)。
+ * 登录页表单、验证码和会话写入。
  */
 import { Lock, Picture, User } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -134,9 +134,7 @@ onMounted(() => {
           </el-form-item>
         </el-form>
 
-        <div class="login__hint">
-          默认账号 <code>super_admin</code> · 密码 <code>O2o@2026-Admin</code>;mock 模式验证码可输入 <code>dev</code>。
-        </div>
+        <div class="login__hint">请输入管理员账号、密码和验证码。</div>
       </div>
     </main>
   </div>

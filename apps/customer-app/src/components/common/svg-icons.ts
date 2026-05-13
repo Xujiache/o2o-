@@ -14,7 +14,10 @@ export const ICONS: Record<string, string> = {
   settings:
     '<circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>',
   'chevron-right': '<polyline points="9 18 15 12 9 6"/>',
+  'chevron-left': '<polyline points="15 18 9 12 15 6"/>',
   'chevron-down': '<polyline points="6 9 12 15 18 9"/>',
+  'sliders-horizontal':
+    '<line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/><line x1="21" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="3" y2="12"/><line x1="21" y1="20" x2="16" y2="20"/><line x1="12" y1="20" x2="3" y2="20"/><circle cx="12" cy="4" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="14" cy="20" r="2"/>',
   plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
   minus: '<line x1="5" y1="12" x2="19" y2="12"/>',
   check: '<polyline points="20 6 9 17 4 12"/>',

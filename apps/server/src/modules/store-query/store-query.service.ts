@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Store } from '../../database/entities';
+import { FileService } from '../file/file.service';
 
 import {
   type FoodStoreItemVo,
@@ -13,7 +14,10 @@ import {
 
 @Injectable()
 export class StoreQueryService {
-  constructor(@InjectRepository(Store) private readonly storeRepo: Repository<Store>) {}
+  constructor(
+    @InjectRepository(Store) private readonly storeRepo: Repository<Store>,
+    private readonly fileService: FileService,
+  ) {}
 
   async list(query: ListStoresQueryDto): Promise<FoodStoreListPageVo> {
     const pageNo = query.pageNo ?? 1;
@@ -25,8 +29,6 @@ export class StoreQueryService {
     if (query.keyword) {
       qb = qb.andWhere('(s.name LIKE :kw OR s.intro LIKE :kw)', { kw: `%${query.keyword}%` });
     }
-    // categoryId 本阶段忽略(stage 5 platform_category 与 store 间无映射表;DESIGN 标注 stage 6/9 接)
-    // sort: distance/sales/rating 本阶段无真实数据,统一退化为 updated_at DESC(mock)
     qb = qb
       .orderBy("CASE WHEN s.business_status = 'online' THEN 0 ELSE 1 END", 'ASC')
       .addOrderBy('s.updated_at', 'DESC');
@@ -37,11 +39,12 @@ export class StoreQueryService {
       .skip((pageNo - 1) * pageSize)
       .take(pageSize)
       .getMany();
+    const urlMap = await this.fileService.resolveUrls(stores.map((s) => s.avatarFileId));
 
     const list: FoodStoreItemVo[] = stores.map((s) => ({
       storeId: s.storeId,
       name: s.name,
-      iconUrl: s.avatarFileId,
+      iconUrl: s.avatarFileId ? (urlMap[s.avatarFileId] ?? null) : null,
       intro: s.intro,
       distance: this.mockDistance(query.lng, query.lat),
       sales: 0,
@@ -55,7 +58,6 @@ export class StoreQueryService {
     return { pageNo, pageSize, total, list };
   }
 
-  /** stage 5 mock,stage 8 真接 amap-distance.adapter */
   private mockDistance(lng?: number, lat?: number): number | null {
     if (lng == null || lat == null) return null;
     return 1500;

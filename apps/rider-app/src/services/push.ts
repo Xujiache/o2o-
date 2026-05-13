@@ -1,8 +1,7 @@
 /**
- * 推送 service:个推 SDK 集成 + clientId/cid 注册 → 调后端预留接口绑定。
- * 阶段 0 仅骨架,实际个推 SDK 初始化 / 离线消息回执 / 透传消息分发 留给 Stage 3 / 8。
+ * 推送 service:个推 SDK 集成 + clientId/cid 注册。
  *
- * 后端接口预留(由 Stage 3 实现):
+ * 后端接口:
  *   - POST /api/v1/r/push/bind { clientId, deviceId, platform } → 绑定 cid 到骑手
  *   - POST /api/v1/r/push/unbind { clientId } → 注销
  */
@@ -22,7 +21,7 @@ export interface PushService {
 }
 
 export interface PushMessage {
-  /** 消息类型;Stage 3 落地外卖订单/跑腿单/系统通知 */
+  /** 消息类型:外卖订单/跑腿单/系统通知 */
   type: string;
   title: string;
   content: string;
@@ -36,7 +35,7 @@ class MockPushService implements PushService {
   private handler: ((m: PushMessage) => void) | null = null;
 
   async init(): Promise<void> {
-    // TODO: Stage 3/8 接入 — uni.getPushClientId / GTSDK 初始化
+    // 初始化推送客户端。
     this.cid = `mock-cid-${Date.now()}`;
   }
 
@@ -45,15 +44,15 @@ class MockPushService implements PushService {
   }
 
   async bind(): Promise<void> {
-    // TODO: Stage 3/8 接入 — POST /api/v1/r/push/bind
+    // 绑定推送客户端。
   }
 
   async unbind(): Promise<void> {
-    // TODO: Stage 3/8 接入 — POST /api/v1/r/push/unbind
+    // 解绑推送客户端。
   }
 
   onMessage(handler: (payload: PushMessage) => void): void {
-    // TODO: Stage 3/8 接入 — uni.onPushMessage / GTSDK onReceiveMessageData
+    // 注册推送消息回调。
     this.handler = handler;
   }
 

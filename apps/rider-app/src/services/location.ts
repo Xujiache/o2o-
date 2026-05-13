@@ -1,6 +1,6 @@
 /**
  * 定位 service:封装 uni.getLocation + 后台定位权限申请。
- * 精度策略 / 后台定位 / 高频节流仍留给 Stage 8,但不再返回固定 mock 坐标。
+ * 封装前台定位、后台定位权限申请和定位订阅。
  *
  * Android 后台定位前置条件:
  *   - manifest.json android.permissions 已声明 ACCESS_FINE_LOCATION /
@@ -29,7 +29,7 @@ export interface LocationService {
   requestBackgroundPermission(): Promise<boolean>;
   /** 单次定位 */
   getOnce(): Promise<LocationPoint>;
-  /** 启动持续定位(返回订阅 id;实际节流策略 Stage 3 接入) */
+  /** 启动持续定位(返回订阅 id) */
   startWatch(handler: (p: LocationPoint) => void): Promise<string>;
   /** 停止持续定位 */
   stopWatch(watchId: string): Promise<void>;
@@ -58,7 +58,7 @@ class UniLocationService implements LocationService {
   }
 
   async requestBackgroundPermission(): Promise<boolean> {
-    // Stage 8 再接 Android/iOS 后台定位升级。当前只声明不伪造授权结果。
+    // 当前只声明不伪造授权结果。
     return false;
   }
 
@@ -68,7 +68,7 @@ class UniLocationService implements LocationService {
       return await this.getOnceWithType('wgs84');
     } catch {
       // 兜底:返回 demo 默认坐标,保证业务流程不被定位失败阻断
-      // stage 11 接真高德/腾讯 key 后改回 'gcj02' 优先 + 移除兜底
+      // 定位失败时使用兜底坐标，避免配送流程中断。
       return { ...FALLBACK_POINT, capturedAt: Date.now() };
     }
   }

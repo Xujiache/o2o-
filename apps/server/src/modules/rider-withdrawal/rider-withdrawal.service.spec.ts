@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, UnauthorizedException } from '@nestjs/common';
 
-import type { RiderAccount, RiderWithdrawal, SysConfig } from '../../database/entities';
+import type { RiderAccount, RiderEarning, RiderWithdrawal, SysConfig } from '../../database/entities';
 import type { DomainEventBus } from '../../events/domain-event-bus';
 import type { SmsService } from '../sms/sms.service';
 
@@ -11,6 +11,7 @@ interface World {
   accounts: RiderAccount[];
   configs: SysConfig[];
   smsValid: boolean;
+  earnings?: RiderEarning[];
 }
 
 function buildService(w: World) {
@@ -50,7 +51,10 @@ function buildService(w: World) {
   const eventBus = {
     publish: jest.fn(async () => ({ eventId: 'e1' })),
   } as unknown as DomainEventBus;
-  const svc = new RiderWithdrawalService(repo, accountRepo, sysConfigRepo, smsService, eventBus);
+  const earningRepo: any = {
+    find: jest.fn(async () => w.earnings ?? []),
+  };
+  const svc = new RiderWithdrawalService(repo, accountRepo, earningRepo, sysConfigRepo, smsService, eventBus);
   return { svc };
   /* eslint-enable */
 }
@@ -63,6 +67,8 @@ describe('RiderWithdrawalService', () => {
       accounts: [{ riderId: '30001', mobile: '13800000001', accountStatus: 'active' } as RiderAccount],
       configs: [],
       smsValid: true,
+      // 预置 1 笔已 READY 结算 2,000,000 分,覆盖所有测试用例的提现金额
+      earnings: [{ riderId: '30001', status: 'READY', totalAmount: '2000000' } as RiderEarning],
     };
   });
 

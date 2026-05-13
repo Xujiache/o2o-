@@ -43,6 +43,7 @@ function buildService(w: World) {
         }) ?? null
       );
     }),
+    find: jest.fn(async () => w.rows),
   };
   const eventBus: any = {
     publish: jest.fn(async (name: string, payload: unknown) => {
@@ -50,7 +51,15 @@ function buildService(w: World) {
       return { eventId: `${name}-1` };
     }),
   };
-  return { svc: new AdminRefundService(repo, eventBus) };
+  const paymentRepo: any = {
+    findOne: jest.fn(async () => ({
+      paymentOrderId: 'P1',
+      paidAmount: '999999',
+      payableAmount: '999999',
+    })),
+    find: jest.fn(async () => []),
+  };
+  return { svc: new AdminRefundService(repo, paymentRepo, eventBus) };
   /* eslint-enable */
 }
 

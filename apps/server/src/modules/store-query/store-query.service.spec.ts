@@ -8,6 +8,15 @@ describe('StoreQueryService', () => {
   let svc: StoreQueryService;
   let stores: Store[];
   let storeRepo: jest.Mocked<Repository<Store>>;
+  const fileService = {
+    resolveUrls: jest.fn(async (fileIds: Array<string | null | undefined>) =>
+      Object.fromEntries(
+        fileIds
+          .filter((fileId): fileId is string => Boolean(fileId))
+          .map((fileId) => [fileId, `https://mock.cdn/${fileId}`]),
+      ),
+    ),
+  };
 
   beforeEach(() => {
     stores = [
@@ -72,6 +81,7 @@ describe('StoreQueryService', () => {
           return qb;
         });
         qb.orderBy = jest.fn().mockImplementation(() => qb);
+        qb.addOrderBy = jest.fn().mockImplementation(() => qb);
         let _skip = 0;
         let _take = 20;
         qb.skip = jest.fn().mockImplementation((n: number) => {
@@ -83,13 +93,18 @@ describe('StoreQueryService', () => {
           return qb;
         });
         const filtered = (): Store[] => {
-          let arr = stores.filter((s) => s.businessStatus === 'online');
+          let arr = [...stores];
           if (filters.cc) arr = arr.filter((s) => s.cityCode === filters.cc);
           if (filters.kw) {
             const k = filters.kw.replace(/%/g, '');
             arr = arr.filter((s) => s.name.includes(k) || (s.intro ?? '').includes(k));
           }
-          return arr.sort((a, b) => Number(b.updatedAt) - Number(a.updatedAt));
+          return arr.sort((a, b) => {
+            const aStatus = a.businessStatus === 'online' ? 0 : 1;
+            const bStatus = b.businessStatus === 'online' ? 0 : 1;
+            if (aStatus !== bStatus) return aStatus - bStatus;
+            return Number(b.updatedAt) - Number(a.updatedAt);
+          });
         };
         qb.getCount = jest.fn().mockImplementation(async () => filtered().length);
         qb.getMany = jest.fn().mockImplementation(async () => filtered().slice(_skip, _skip + _take));
@@ -97,22 +112,25 @@ describe('StoreQueryService', () => {
       }),
     } as unknown as jest.Mocked<Repository<Store>>;
 
-    svc = new StoreQueryService(storeRepo);
+    jest.clearAllMocks();
+    svc = new StoreQueryService(storeRepo, fileService as never);
   });
 
-  it('基本分页:cityCode=BJ → 返 2 个 online 店铺,sales/rating mock', async () => {
+  it('基本分页:cityCode=BJ → 返回在线和休息店铺,sales/rating mock', async () => {
     const r = await svc.list({ cityCode: 'BJ' });
     expect(r.pageNo).toBe(1);
     expect(r.pageSize).toBe(20);
-    expect(r.total).toBe(2);
-    expect(r.list).toHaveLength(2);
+    expect(r.total).toBe(3);
+    expect(r.list).toHaveLength(3);
     expect(r.list[0]!.sales).toBe(0);
     expect(r.list[0]!.rating).toBe(5);
+    expect(r.list[0]!.iconUrl).toBe('https://mock.cdn/fid-1');
   });
 
-  it('paused 店铺不返(business_status 过滤)', async () => {
+  it('paused 店铺保留并排在在线店铺之后', async () => {
     const r = await svc.list({ cityCode: 'BJ' });
-    expect(r.list.find((x) => x.storeId === '20004')).toBeUndefined();
+    expect(r.list.find((x) => x.storeId === '20004')).toBeDefined();
+    expect(r.list.at(-1)!.storeId).toBe('20004');
   });
 
   it('cityCode=SH → 仅返上海一家店铺', async () => {

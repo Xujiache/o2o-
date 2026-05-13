@@ -1,7 +1,7 @@
 /**
- * 阶段 0 后端接口封装(平台 Web 视角)。
+ * 后端接口封装(平台 Web 视角)。
  * 实际调用:audit-logs / integrations-health(本端核心)+ dictionaries(初始化)。
- * cities / files-upload 平台 Web 阶段 0 不调用,保留 endpoint 常量便于跨端核对。
+ * cities / files-upload endpoint 常量用于跨端核对。
  */
 import type { ApiResponse } from '@o2o/contracts';
 

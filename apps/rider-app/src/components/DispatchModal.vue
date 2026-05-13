@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * 派单弹窗 — 接单大厅或工作台监听到 DispatchStarted push 后弹出。
- * 简化:本组件仅展示派单信息 + 抢单按钮,真实推送回调在 stage 11 接 getui SDK。
+ * 展示派单信息与抢单按钮。
  */
 import { ref } from 'vue';
 

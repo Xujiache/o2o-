@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Endpoints } from './index';
 
 describe('merchant-app endpoints', () => {
-  it('Stage 2 接口路径与后端契约一致', () => {
+  it('接口路径与后端契约一致', () => {
     expect(Endpoints.SmsCode).toBe('/api/v1/m/auth/sms-code');
     expect(Endpoints.Login).toBe('/api/v1/m/auth/login');
     expect(Endpoints.Refresh).toBe('/api/v1/m/auth/refresh');

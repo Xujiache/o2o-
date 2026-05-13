@@ -1,9 +1,9 @@
 import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ErrorCode } from '@o2o/contracts';
-import { MoreThanOrEqual, Repository } from 'typeorm';
+import { In, MoreThanOrEqual, Repository } from 'typeorm';
 
-import { RiderAccount, RiderWithdrawal, SysConfig } from '../../database/entities';
+import { RiderAccount, RiderEarning, RiderWithdrawal, SysConfig } from '../../database/entities';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { SmsService } from '../sms/sms.service';
 
@@ -28,10 +28,33 @@ export class RiderWithdrawalService {
     @InjectRepository(RiderWithdrawal)
     private readonly withdrawalRepo: Repository<RiderWithdrawal>,
     @InjectRepository(RiderAccount) private readonly accountRepo: Repository<RiderAccount>,
+    @InjectRepository(RiderEarning) private readonly earningRepo: Repository<RiderEarning>,
     @InjectRepository(SysConfig) private readonly sysConfigRepo: Repository<SysConfig>,
     private readonly smsService: SmsService,
     private readonly eventBus: DomainEventBus,
   ) {}
+
+  /**
+   * 可提现余额 = 已结算 earning(READY/PAID 的 totalAmount 合计)
+   *            - 已申请未拒绝的提现累计(PENDING/APPROVED/COMPLETED 的 amountCents 合计)
+   *
+   * RiderEarning 状态 PENDING 表示日终结算流程尚未完成,不可计入余额。
+   */
+  private async computeAvailableBalance(riderId: string): Promise<bigint> {
+    const earnings = await this.earningRepo.find({
+      where: { riderId, status: In(['READY', 'PAID']) },
+      select: ['totalAmount'],
+    });
+    const earned = earnings.reduce((acc, e) => acc + BigInt(e.totalAmount), 0n);
+
+    const withdrawals = await this.withdrawalRepo.find({
+      where: { riderId, status: In(['PENDING', 'APPROVED', 'COMPLETED']) },
+      select: ['amountCents'],
+    });
+    const drawn = withdrawals.reduce((acc, w) => acc + BigInt(w.amountCents), 0n);
+
+    return earned - drawn;
+  }
 
   private async getLimit(): Promise<WithdrawalLimit> {
     const cfg = await this.sysConfigRepo.findOne({ where: { configKey: 'rider.withdrawal.limit' } });
@@ -86,10 +109,25 @@ export class RiderWithdrawalService {
     }
 
     const limit = await this.getLimit();
+    if (dto.amountCents <= 0) {
+      throw new BadRequestException({
+        code: ErrorCode.INVALID_PARAM,
+        message: 'amount must be positive',
+      });
+    }
     if (dto.amountCents > limit.single) {
       throw new BadRequestException({
         code: ErrorCode.INVALID_PARAM,
         message: `amount exceeds single limit ${limit.single}`,
+      });
+    }
+
+    const available = await this.computeAvailableBalance(riderId);
+    if (BigInt(dto.amountCents) > available) {
+      throw new BadRequestException({
+        code: ErrorCode.INVALID_PARAM,
+        detail: 'INSUFFICIENT_BALANCE',
+        message: `amount exceeds available balance ${available.toString()}`,
       });
     }
 

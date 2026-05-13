@@ -1,18 +1,18 @@
 /**
- * 商家端接口封装(stage 0 + stage 2)。
+ * 商家端接口封装。
  */
 import type { ApiResponse } from '@o2o/contracts';
 
 import { request, upload } from '@/utils/request';
 
 export const Endpoints = {
-  // stage 0
+  // 公共接口
   Dictionaries: '/api/v1/pub/dictionaries',
   Cities: '/api/v1/pub/cities',
   FilesUpload: '/api/v1/pub/files/upload',
   AdminIntegrationsHealth: '/api/v1/admin/integrations/health',
   AdminAuditLogs: '/api/v1/admin/audit-logs',
-  // stage 2 — 商家端
+  // 商家端接口
   SmsCode: '/api/v1/m/auth/sms-code',
   Login: '/api/v1/m/auth/login',
   Refresh: '/api/v1/m/auth/refresh',
@@ -56,7 +56,7 @@ export function uploadFile(filePath: string, bizType: string): Promise<ApiRespon
   return upload<UploadResultVo>({ filePath, bizType });
 }
 
-// =================== Stage 2 接口 ===================
+// =================== 商家端接口 ===================
 
 export type Platform = 'app-android' | 'app-ios';
 

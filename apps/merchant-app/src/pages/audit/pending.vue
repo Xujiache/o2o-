@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** 商家端审核中占位页:阶段 0 占位,阶段 2 接入入驻审核流程 */
+/** 商家端审核中页面。 */
 function back(): void {
   uni.reLaunch({ url: '/pages/launch/index' });
 }

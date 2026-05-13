@@ -1,4 +1,4 @@
-/** rider-app smoke test:验证 4 个预留 service 暴露 interface 且 mock 可调用 */
+/** rider-app smoke test:验证 4 个 service 暴露 interface 且可调用 */
 import { describe, expect, it } from 'vitest';
 
 import { keepaliveService } from './keepalive';

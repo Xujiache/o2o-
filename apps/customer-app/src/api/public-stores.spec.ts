@@ -1,6 +1,5 @@
 /**
- * stage 2 公开店铺接口路径冒烟(用户端公共接口,无 token 调用)。
- * 实际 fetch 在 stage 5 接入店铺/商品 UI 时配套实现。
+ * 公开店铺接口路径冒烟(用户端公共接口,无 token 调用)。
  */
 import { describe, expect, it } from 'vitest';
 

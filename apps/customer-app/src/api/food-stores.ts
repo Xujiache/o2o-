@@ -41,6 +41,7 @@ export interface PublicStoreDetailVo {
   storeId: string;
   name: string;
   avatarFileId?: string | null;
+  avatarUrl?: string | null;
   businessScope: string;
   minOrderAmount: string;
   deliveryFee: string;

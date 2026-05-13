@@ -24,6 +24,7 @@ import {
 import type { PaymentOrderBizType, PaymentOrderChannel } from '../../database/entities/payment-order.entity';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
+import { AdminRefundService } from '../admin-refund/admin-refund.service';
 import { CouponService } from '../coupon/coupon.service';
 import { IntegrationGatewayService } from '../integration-gateway/integration-gateway.service';
 
@@ -48,6 +49,7 @@ export class PaymentService {
     private readonly eventBus: DomainEventBus,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly couponService: CouponService,
+    private readonly adminRefundService: AdminRefundService,
   ) {}
 
   async getForCustomer(customerId: string, payOrderId: string): Promise<CustomerPaymentVo> {
@@ -350,7 +352,29 @@ export class PaymentService {
       });
     }
     if (order.status !== 'WAIT_PAY') {
-      // 已被 15min job 提前关单 — 不应继续推进,但 payment 已 success,记录事实即可
+      // 已被 15min job 提前关单 — 不能继续推进订单,但通道已收钱,必须发起自动退款。
+      await em.getRepository(OrderTimeline).insert({
+        orderId: payment.bizId,
+        bizType: 'FOOD',
+        fromStatus: order.status,
+        toStatus: order.status,
+        actorType: 'system',
+        actorId: 'callback',
+        reason: `late callback after ${order.status} — auto refund initiated`,
+        createdAt: String(now),
+      });
+      // 注册到 transaction commit 之后异步创建退款单(避免与本事务交叉)
+      setImmediate(() => {
+        void this.adminRefundService
+          .createFromArbitration({
+            bizType: 'FOOD',
+            bizOrderId: payment.bizId,
+            paymentOrderId: payment.paymentOrderId,
+            amount: String(paidAmountCents),
+            provider: channel,
+          })
+          .catch(() => undefined);
+      });
       return;
     }
     await em.getRepository(FoodOrder).update(
@@ -414,7 +438,30 @@ export class PaymentService {
       });
     }
     if (errand.status !== 'WAIT_PAY') {
-      // 已被 15min job 关单 — payment 已 success,不再推进,直接返
+      // 已被 15min job 关单 — 通道已收钱,必须发起自动退款
+      await em.getRepository(ErrandTimeline).insert({
+        errandOrderId: payment.bizId,
+        eventType: 'REFUNDED',
+        payload: {
+          paidAmount: paidAmountCents,
+          payOrderId: payment.paymentOrderId,
+          orderStatus: errand.status,
+          reason: 'late_callback_after_cancel',
+        },
+        operator: 'system',
+        createdAt: String(now),
+      });
+      setImmediate(() => {
+        void this.adminRefundService
+          .createFromArbitration({
+            bizType: 'ERRAND',
+            bizOrderId: payment.bizId,
+            paymentOrderId: payment.paymentOrderId,
+            amount: String(paidAmountCents),
+            provider: 'wxpay',
+          })
+          .catch(() => undefined);
+      });
       return;
     }
     await em.getRepository(ErrandOrder).update(

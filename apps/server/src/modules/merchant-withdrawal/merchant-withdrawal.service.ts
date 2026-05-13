@@ -1,9 +1,9 @@
 import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ErrorCode } from '@o2o/contracts';
-import { MoreThanOrEqual, Repository } from 'typeorm';
+import { In, MoreThanOrEqual, Repository } from 'typeorm';
 
-import { MerchantAccount, MerchantWithdrawal, Store, SysConfig } from '../../database/entities';
+import { MerchantAccount, MerchantSettlement, MerchantWithdrawal, Store, SysConfig } from '../../database/entities';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
 import { SmsService } from '../sms/sms.service';
@@ -30,11 +30,36 @@ export class MerchantWithdrawalService {
     private readonly withdrawalRepo: Repository<MerchantWithdrawal>,
     @InjectRepository(MerchantAccount)
     private readonly accountRepo: Repository<MerchantAccount>,
+    @InjectRepository(MerchantSettlement)
+    private readonly settlementRepo: Repository<MerchantSettlement>,
     @InjectRepository(Store) private readonly storeRepo: Repository<Store>,
     @InjectRepository(SysConfig) private readonly sysConfigRepo: Repository<SysConfig>,
     private readonly smsService: SmsService,
     private readonly eventBus: DomainEventBus,
   ) {}
+
+  /**
+   * 可提现余额 = 已结算到位金额(READY/PAID 的 netCents 合计)
+   *            - 已申请但未拒绝/失败的提现累计(PENDING/APPROVED/COMPLETED 的 amountCents 合计)
+   *
+   * 这是当前最务实的口径,在没有独立 wallet/balance 表的情况下保证提现不超过实际可结算金额。
+   * 真正的资金账本应在 stage 11/12 引入 merchant_balance + ledger 表替代。
+   */
+  private async computeAvailableBalance(storeId: string): Promise<bigint> {
+    const settlements = await this.settlementRepo.find({
+      where: { storeId, status: In(['READY', 'PAID']) },
+      select: ['netCents'],
+    });
+    const settled = settlements.reduce((acc, s) => acc + BigInt(s.netCents), 0n);
+
+    const withdrawals = await this.withdrawalRepo.find({
+      where: { storeId, status: In(['PENDING', 'APPROVED', 'COMPLETED']) },
+      select: ['amountCents'],
+    });
+    const drawn = withdrawals.reduce((acc, w) => acc + BigInt(w.amountCents), 0n);
+
+    return settled - drawn;
+  }
 
   private async getLimit(): Promise<WithdrawalLimit> {
     const cfg = await this.sysConfigRepo.findOne({ where: { configKey: 'merchant.withdrawal.limit' } });
@@ -102,10 +127,26 @@ export class MerchantWithdrawalService {
     const acct = await this.ensureRealnameApproved(merchantId);
 
     const limit = await this.getLimit();
+    if (dto.amountCents <= 0) {
+      throw new BadRequestException({
+        code: ErrorCode.INVALID_PARAM,
+        message: 'amount must be positive',
+      });
+    }
     if (dto.amountCents > limit.single) {
       throw new BadRequestException({
         code: ErrorCode.INVALID_PARAM,
         message: `amount exceeds single limit ${limit.single}`,
+      });
+    }
+
+    // 余额校验:防止超过实际可提现金额
+    const available = await this.computeAvailableBalance(store.storeId);
+    if (BigInt(dto.amountCents) > available) {
+      throw new BadRequestException({
+        code: ErrorCode.INVALID_PARAM,
+        detail: 'INSUFFICIENT_BALANCE',
+        message: `amount exceeds available balance ${available.toString()}`,
       });
     }
 

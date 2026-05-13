@@ -28,6 +28,7 @@ const pickerSelectedSkuId = ref<string>('');
 const pickerQuantity = ref<number>(1);
 const pickerRemark = ref<string>('');
 const pickerSubmitting = ref(false);
+const storeAvatarLoadFailed = ref(false);
 
 /** 半屏购物车 sheet 开关 */
 const cartSheetOpen = ref(false);
@@ -58,6 +59,7 @@ const cartCount = computed<number>(() =>
 );
 const cartTotal = computed<string>(() => (cart.cart?.storeId === storeId.value ? cart.cart.totalAmount : '0'));
 const storeName = computed<string>(() => storeInfo.value?.name ?? `店铺 ${storeId.value}`);
+const storeAvatarUrl = computed<string>(() => (storeAvatarLoadFailed.value ? '' : (storeInfo.value?.avatarUrl ?? '')));
 const isStoreResting = computed<boolean>(() => !!storeInfo.value && storeInfo.value.businessStatus !== 'online');
 const restRegisteredAt = computed<string>(() => formatDateTime(storeInfo.value?.statusUpdatedAt));
 const minOrderHint = computed<string>(() => {
@@ -85,6 +87,7 @@ async function load(): Promise<void> {
     ]);
     if (storeRes.code === '0' && storeRes.data) {
       storeInfo.value = storeRes.data;
+      storeAvatarLoadFailed.value = false;
     }
     if (productsRes.code === '0' && productsRes.data) {
       data.value = productsRes.data;
@@ -339,6 +342,10 @@ function firstChar(name: string): string {
   return name ? name.slice(0, 1) : '店';
 }
 
+function onStoreAvatarError(): void {
+  storeAvatarLoadFailed.value = true;
+}
+
 /** 商品卡显示用:单规格直接取该 sku 重量;多规格取最小→最大范围 */
 function productWeightLabel(p: FoodProduct): string {
   const valid = p.skus.map((s) => s.weightGrams).filter((g): g is number => typeof g === 'number' && g > 0);
@@ -388,7 +395,16 @@ onUnmounted(() => {
     <template v-else-if="data">
       <!-- 顶部店铺信息卡 -->
       <view class="store__header" :class="{ 'store__header--resting': isStoreResting }">
-        <view class="store__avatar">{{ firstChar(storeName) }}</view>
+        <view class="store__avatar">
+          <image
+            v-if="storeAvatarUrl"
+            :src="storeAvatarUrl"
+            class="store__avatar-img"
+            mode="aspectFill"
+            @error="onStoreAvatarError"
+          />
+          <text v-else>{{ firstChar(storeName) }}</text>
+        </view>
         <view class="store__head-main">
           <view class="store__name-row">
             <text class="store__name">{{ storeName }}</text>
@@ -745,6 +761,11 @@ onUnmounted(() => {
   justify-content: center;
   flex-shrink: 0;
   box-shadow: 0 12rpx 24rpx rgba(0, 0, 0, 0.14);
+  overflow: hidden;
+}
+.store__avatar-img {
+  width: 100%;
+  height: 100%;
 }
 .store__header--resting {
   background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);

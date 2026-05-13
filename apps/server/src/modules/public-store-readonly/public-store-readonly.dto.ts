@@ -28,6 +28,8 @@ export class PublicStoreItemVo {
   name!: string;
   @ApiProperty({ required: false })
   avatarFileId?: string | null;
+  @ApiProperty({ required: false })
+  avatarUrl?: string | null;
   @ApiProperty()
   businessScope!: string;
   @ApiProperty()

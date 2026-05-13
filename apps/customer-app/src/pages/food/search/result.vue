@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app';
+import { onLoad, onPullDownRefresh, onReachBottom, onShow } from '@dcloudio/uni-app';
 import { computed, ref } from 'vue';
 
 import { type FoodStoreItem, listFoodStores, type ListStoresQuery } from '@/api/food-stores';
+import SvgIcon from '@/components/common/SvgIcon.vue';
 import { readStoredFoodCity, resolveFoodCityName } from '@/utils/food-city';
 import { formatYuan } from '@/utils/format-price';
 
@@ -27,37 +28,39 @@ const total = ref(0);
 const pageNo = ref(1);
 const loading = ref(false);
 const finished = ref(false);
+const pageReady = ref(false);
+const imageErrors = ref<Record<string, boolean>>({});
 
-const sortOptions: Array<{ label: string; value: StoreSort }> = [
-  { label: '综合', value: 'recent' },
-  { label: '距离', value: 'distance' },
+const topSortOptions: Array<{ label: string; value: StoreSort }> = [
+  { label: '综合推荐', value: 'recent' },
   { label: '销量', value: 'sales' },
-  { label: '评分', value: 'rating' },
 ];
 
 const statusOptions: Array<{ label: string; value: StatusFilter }> = [
   { label: '全部', value: 'all' },
   { label: '营业中', value: 'online' },
-  { label: '含休息', value: 'resting' },
+  { label: '休息中', value: 'resting' },
 ];
 
 const feeOptions: Array<{ label: string; value: FeeFilter }> = [
-  { label: '配送费', value: 'all' },
   { label: '免配送费', value: 'free' },
   { label: '低配送费', value: 'low' },
 ];
 
 const minOrderOptions: Array<{ label: string; value: MinOrderFilter }> = [
-  { label: '起送价', value: 'all' },
-  { label: '20元内', value: 'low' },
-  { label: '20-50元', value: 'mid' },
+  { label: '20元内起送', value: 'low' },
+  { label: '20-50元起送', value: 'mid' },
 ];
+
+const filterActive = computed(
+  () => statusFilter.value !== 'all' || feeFilter.value !== 'all' || minOrderFilter.value !== 'all',
+);
 
 const filteredStores = computed(() => {
   return [...stores.value]
     .filter((store) => {
       if (statusFilter.value === 'online') return !isResting(store);
-      if (statusFilter.value === 'resting') return true;
+      if (statusFilter.value === 'resting') return isResting(store);
       return true;
     })
     .filter((store) => {
@@ -74,9 +77,6 @@ const filteredStores = computed(() => {
     })
     .sort((a, b) => Number(isResting(a)) - Number(isResting(b)));
 });
-
-const leftStores = computed(() => filteredStores.value.filter((_, index) => index % 2 === 0));
-const rightStores = computed(() => filteredStores.value.filter((_, index) => index % 2 === 1));
 
 function amountCents(value: string | number | null | undefined): number {
   const n = Number(value ?? 0);
@@ -95,6 +95,14 @@ function fmtDistance(meters: number | null): string {
 
 function firstChar(name: string): string {
   return name.trim().slice(0, 1) || '店';
+}
+
+function storeHasImage(store: FoodStoreItem): boolean {
+  return Boolean(store.iconUrl && !imageErrors.value[store.storeId]);
+}
+
+function markImageError(storeId: string): void {
+  imageErrors.value = { ...imageErrors.value, [storeId]: true };
 }
 
 function storeCoverStyle(storeId: string): string {
@@ -127,6 +135,7 @@ async function fetchStores(reset = false): Promise<void> {
     pageNo.value = 1;
     finished.value = false;
     stores.value = [];
+    imageErrors.value = {};
   }
 
   loading.value = true;
@@ -150,14 +159,40 @@ async function fetchStores(reset = false): Promise<void> {
   }
 }
 
+function goBack(): void {
+  if (getCurrentPages().length > 1) {
+    uni.navigateBack();
+    return;
+  }
+  uni.switchTab({ url: '/pages/food/home/index' });
+}
+
+function goCity(): void {
+  uni.navigateTo({ url: '/pages/food/city-picker/index' });
+}
+
 function changeSort(value: StoreSort): void {
   if (sort.value === value) return;
   sort.value = value;
   void fetchStores(true);
 }
 
-function applyFilter(): void {
-  void fetchStores(true);
+function setStatus(value: StatusFilter): void {
+  statusFilter.value = value;
+}
+
+function setFee(value: FeeFilter): void {
+  feeFilter.value = feeFilter.value === value ? 'all' : value;
+}
+
+function setMinOrder(value: MinOrderFilter): void {
+  minOrderFilter.value = minOrderFilter.value === value ? 'all' : value;
+}
+
+function resetFilters(): void {
+  statusFilter.value = 'all';
+  feeFilter.value = 'all';
+  minOrderFilter.value = 'all';
 }
 
 function submitSearch(): void {
@@ -181,7 +216,18 @@ onLoad((options) => {
   cityName.value = routeCityCode ? resolveFoodCityName(routeCityCode) : storedCity.name;
   keyword.value = decodeURIComponent((options?.keyword as string | undefined) ?? '');
   if (keyword.value) saveHistory(keyword.value);
+  pageReady.value = true;
   void fetchStores(true);
+});
+
+onShow(() => {
+  if (!pageReady.value) return;
+  const city = readStoredFoodCity();
+  if (city.code !== cityCode.value) {
+    cityCode.value = city.code;
+    cityName.value = city.name;
+    void fetchStores(true);
+  }
 });
 
 onReachBottom(() => {
@@ -196,9 +242,12 @@ onPullDownRefresh(async () => {
 
 <template>
   <view class="result-page">
-    <view class="search-shell">
+    <view class="search-head">
+      <view class="search-head__back" @tap="goBack">
+        <SvgIcon name="chevron-left" :size="42" color="#172033" />
+      </view>
       <view class="search-shell__box">
-        <text class="search-shell__icon">⌕</text>
+        <SvgIcon name="search" :size="30" color="#8a94a6" />
         <input
           v-model="keyword"
           class="search-shell__input"
@@ -215,58 +264,68 @@ onPullDownRefresh(async () => {
         <text class="summary__title">{{ keyword || '搜索结果' }}</text>
         <text class="summary__sub">{{ cityName }} · 共 {{ total }} 个结果</text>
       </view>
-      <text class="summary__tag">休息店铺置底展示</text>
+      <text class="summary__tag">休息店铺置底</text>
     </view>
 
-    <view class="filter-bar">
-      <scroll-view scroll-x class="filter-bar__scroll" show-scrollbar="false">
-        <view class="filter-row">
-          <view
-            v-for="item in sortOptions"
-            :key="item.value"
-            class="filter-chip"
-            :class="{ 'filter-chip--active': sort === item.value }"
-            @tap="changeSort(item.value)"
-          >
-            {{ item.label }}
-          </view>
+    <view class="filter-panel">
+      <view class="filter-panel__top">
+        <view class="filter-panel__city" @tap="goCity">
+          <SvgIcon name="location-pin" :size="31" color="#5a6275" />
+          <text class="filter-panel__city-text">{{ cityName }}</text>
+          <SvgIcon name="chevron-down" :size="22" color="#8a94a6" />
         </view>
-      </scroll-view>
-      <scroll-view scroll-x class="filter-bar__scroll" show-scrollbar="false">
-        <view class="filter-row">
+        <view
+          v-for="item in topSortOptions"
+          :key="item.value"
+          class="filter-panel__sort"
+          :class="{ 'filter-panel__sort--active': sort === item.value }"
+          @tap="changeSort(item.value)"
+        >
+          <text>{{ item.label }}</text>
+          <SvgIcon v-if="item.value === 'recent'" name="chevron-down" :size="20" color="currentColor" />
+        </view>
+        <view class="filter-panel__sort" :class="{ 'filter-panel__sort--active': filterActive }" @tap="resetFilters">
+          <text>筛选</text>
+          <SvgIcon name="sliders-horizontal" :size="28" color="currentColor" />
+        </view>
+      </view>
+
+      <scroll-view scroll-x class="filter-panel__chips" :show-scrollbar="false">
+        <view class="filter-panel__chip-row">
+          <view
+            class="filter-chip"
+            :class="{ 'filter-chip--active': sort === 'distance' }"
+            @tap="changeSort('distance')"
+          >
+            距离优先
+          </view>
+          <view class="filter-chip" :class="{ 'filter-chip--active': sort === 'rating' }" @tap="changeSort('rating')">
+            评分优先
+          </view>
           <view
             v-for="item in statusOptions"
             :key="item.value"
-            class="filter-chip filter-chip--soft"
+            class="filter-chip"
             :class="{ 'filter-chip--active': statusFilter === item.value }"
-            @tap="
-              statusFilter = item.value;
-              applyFilter();
-            "
+            @tap="setStatus(item.value)"
           >
             {{ item.label }}
           </view>
           <view
             v-for="item in feeOptions"
             :key="item.value"
-            class="filter-chip filter-chip--soft"
+            class="filter-chip"
             :class="{ 'filter-chip--active': feeFilter === item.value }"
-            @tap="
-              feeFilter = item.value;
-              applyFilter();
-            "
+            @tap="setFee(item.value)"
           >
             {{ item.label }}
           </view>
           <view
             v-for="item in minOrderOptions"
             :key="item.value"
-            class="filter-chip filter-chip--soft"
+            class="filter-chip"
             :class="{ 'filter-chip--active': minOrderFilter === item.value }"
-            @tap="
-              minOrderFilter = item.value;
-              applyFilter();
-            "
+            @tap="setMinOrder(item.value)"
           >
             {{ item.label }}
           </view>
@@ -275,65 +334,38 @@ onPullDownRefresh(async () => {
     </view>
 
     <view v-if="filteredStores.length" class="waterfall">
-      <view class="waterfall__column">
-        <view
-          v-for="store in leftStores"
-          :key="store.storeId"
-          class="store-card"
-          :class="{ 'store-card--resting': isResting(store) }"
-          @tap="gotoStore(store.storeId)"
-        >
-          <view class="store-card__cover" :style="!store.iconUrl ? storeCoverStyle(store.storeId) : ''">
-            <image v-if="store.iconUrl" :src="store.iconUrl" mode="aspectFill" class="store-card__image" />
-            <text v-else class="store-card__letter">{{ firstChar(store.name) }}</text>
-            <view class="store-card__status" :class="{ 'store-card__status--rest': isResting(store) }">
-              {{ isResting(store) ? '休息中' : '营业中' }}
-            </view>
-          </view>
-          <view class="store-card__body">
-            <text class="store-card__name">{{ store.name }}</text>
-            <text v-if="store.intro" class="store-card__intro">{{ store.intro }}</text>
-            <view class="store-card__meta">
-              <text>评分 {{ store.rating || '5.0' }}</text>
-              <text>月售 {{ store.sales || 0 }}</text>
-            </view>
-            <view class="store-card__meta">
-              <text>{{ fmtDistance(store.distance) }}</text>
-              <text>配送 {{ formatYuan(store.deliveryFee) }} 元</text>
-            </view>
-            <text class="store-card__price">起送 {{ formatYuan(store.minOrderAmount) }} 元</text>
+      <view
+        v-for="store in filteredStores"
+        :key="store.storeId"
+        class="store-card"
+        :class="{ 'store-card--resting': isResting(store) }"
+        @tap="gotoStore(store.storeId)"
+      >
+        <view class="store-card__cover" :style="storeHasImage(store) ? '' : storeCoverStyle(store.storeId)">
+          <image
+            v-if="storeHasImage(store)"
+            :src="store.iconUrl || ''"
+            mode="aspectFill"
+            class="store-card__image"
+            @error="markImageError(store.storeId)"
+          />
+          <text v-else class="store-card__letter">{{ firstChar(store.name) }}</text>
+          <view class="store-card__status" :class="{ 'store-card__status--rest': isResting(store) }">
+            {{ isResting(store) ? '休息中' : '营业中' }}
           </view>
         </view>
-      </view>
-
-      <view class="waterfall__column">
-        <view
-          v-for="store in rightStores"
-          :key="store.storeId"
-          class="store-card"
-          :class="{ 'store-card--resting': isResting(store) }"
-          @tap="gotoStore(store.storeId)"
-        >
-          <view class="store-card__cover" :style="!store.iconUrl ? storeCoverStyle(store.storeId) : ''">
-            <image v-if="store.iconUrl" :src="store.iconUrl" mode="aspectFill" class="store-card__image" />
-            <text v-else class="store-card__letter">{{ firstChar(store.name) }}</text>
-            <view class="store-card__status" :class="{ 'store-card__status--rest': isResting(store) }">
-              {{ isResting(store) ? '休息中' : '营业中' }}
-            </view>
+        <view class="store-card__body">
+          <text class="store-card__name">{{ store.name }}</text>
+          <text v-if="store.intro" class="store-card__intro">{{ store.intro }}</text>
+          <view class="store-card__meta">
+            <text>评分 {{ store.rating || '5.0' }}</text>
+            <text>月售 {{ store.sales || 0 }}</text>
           </view>
-          <view class="store-card__body">
-            <text class="store-card__name">{{ store.name }}</text>
-            <text v-if="store.intro" class="store-card__intro">{{ store.intro }}</text>
-            <view class="store-card__meta">
-              <text>评分 {{ store.rating || '5.0' }}</text>
-              <text>月售 {{ store.sales || 0 }}</text>
-            </view>
-            <view class="store-card__meta">
-              <text>{{ fmtDistance(store.distance) }}</text>
-              <text>配送 {{ formatYuan(store.deliveryFee) }} 元</text>
-            </view>
-            <text class="store-card__price">起送 {{ formatYuan(store.minOrderAmount) }} 元</text>
+          <view class="store-card__meta">
+            <text>{{ fmtDistance(store.distance) }}</text>
+            <text>配送 {{ formatYuan(store.deliveryFee) }} 元</text>
           </view>
+          <text class="store-card__price">起送 {{ formatYuan(store.minOrderAmount) }} 元</text>
         </view>
       </view>
     </view>
@@ -353,10 +385,19 @@ onPullDownRefresh(async () => {
   box-sizing: border-box;
 }
 
-.search-shell {
+.search-head {
   display: flex;
   align-items: center;
   gap: 14rpx;
+}
+
+.search-head__back {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .search-shell__box {
@@ -369,11 +410,7 @@ onPullDownRefresh(async () => {
   border-radius: 999rpx;
   background: #f5f6f8;
   border: 1rpx solid #edf0f5;
-}
-
-.search-shell__icon {
-  color: #8a94a6;
-  font-size: 34rpx;
+  min-width: 0;
 }
 
 .search-shell__input {
@@ -381,10 +418,11 @@ onPullDownRefresh(async () => {
   height: 74rpx;
   color: #172033;
   font-size: 27rpx;
+  min-width: 0;
 }
 
 .search-shell__btn {
-  width: 118rpx;
+  width: 112rpx;
   height: 74rpx;
   line-height: 74rpx;
   border-radius: 999rpx;
@@ -392,6 +430,7 @@ onPullDownRefresh(async () => {
   color: #fff;
   font-size: 27rpx;
   font-weight: 700;
+  flex-shrink: 0;
 }
 
 .search-shell__btn::after {
@@ -432,39 +471,71 @@ onPullDownRefresh(async () => {
   font-size: 22rpx;
 }
 
-.filter-bar {
+.filter-panel {
   position: sticky;
   top: 0;
   z-index: 10;
   margin: 0 -20rpx 18rpx;
-  padding: 14rpx 20rpx;
+  padding: 18rpx 20rpx 16rpx;
   background: #fff;
+  border-top: 1rpx solid #edf0f5;
   border-bottom: 1rpx solid #edf0f5;
+  box-shadow: 0 10rpx 24rpx rgba(31, 41, 55, 0.04);
 }
 
-.filter-bar__scroll {
-  width: 100%;
+.filter-panel__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 0.9fr);
+  align-items: center;
+  gap: 12rpx;
+}
+
+.filter-panel__city,
+.filter-panel__sort {
+  height: 58rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  color: #5a6275;
+  font-size: 27rpx;
+  font-weight: 800;
+  min-width: 0;
+}
+
+.filter-panel__city {
+  justify-content: flex-start;
+}
+
+.filter-panel__city-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.filter-row {
+.filter-panel__sort--active {
+  color: #172033;
+}
+
+.filter-panel__chips {
+  width: 100%;
+  white-space: nowrap;
+  margin-top: 14rpx;
+}
+
+.filter-panel__chip-row {
   display: inline-flex;
-  gap: 12rpx;
-  padding: 4rpx 0;
+  gap: 14rpx;
+  padding: 2rpx 0 4rpx;
 }
 
 .filter-chip {
-  padding: 12rpx 22rpx;
-  border-radius: 999rpx;
+  padding: 14rpx 22rpx;
+  border-radius: 12rpx;
   background: #f5f6f8;
   color: #172033;
-  font-size: 24rpx;
-  font-weight: 700;
-}
-
-.filter-chip--soft {
-  font-weight: 600;
-  color: #6b7280;
+  font-size: 25rpx;
+  font-weight: 800;
 }
 
 .filter-chip--active {
@@ -473,20 +544,16 @@ onPullDownRefresh(async () => {
 }
 
 .waterfall {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 18rpx;
-}
-
-.waterfall__column {
-  display: flex;
-  flex-direction: column;
-  gap: 18rpx;
-  min-width: 0;
+  column-count: 2;
+  column-gap: 18rpx;
 }
 
 .store-card {
   overflow: hidden;
+  break-inside: avoid;
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 18rpx;
   border-radius: 20rpx;
   border: 1rpx solid #edf0f5;
   background: #fff;
@@ -500,7 +567,7 @@ onPullDownRefresh(async () => {
 
 .store-card__cover {
   position: relative;
-  height: 192rpx;
+  height: 202rpx;
   display: flex;
   align-items: center;
   justify-content: center;

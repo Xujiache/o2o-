@@ -2,6 +2,7 @@
 import { onHide, onLoad, onShow, onUnload } from '@dcloudio/uni-app';
 import { computed, ref } from 'vue';
 
+import SvgIcon from '@/components/common/SvgIcon.vue';
 import { readStoredFoodCity, resolveFoodCityName } from '@/utils/food-city';
 
 const HOT_KEYWORDS = ['炸鸡', '奶茶', '盖饭', '米粉', '咖啡', '汉堡', '烧烤', '轻食', '面条', '水果'];
@@ -17,7 +18,7 @@ const hotIndex = ref(0);
 let hotTimer: ReturnType<typeof setInterval> | null = null;
 
 const activeHot = computed(() => HOT_KEYWORDS[hotIndex.value % HOT_KEYWORDS.length] ?? HOT_KEYWORDS[0]!);
-const searchPlaceholder = computed(() => (keyword.value.trim() ? '搜索店铺/菜品' : `大家都在搜：${activeHot.value}`));
+const searchPlaceholder = computed(() => (keyword.value.trim() ? '搜索店铺/菜品' : activeHot.value));
 
 function syncCity(): void {
   if (routeCityCode.value) {
@@ -44,6 +45,18 @@ function saveHistory(value: string): void {
 function clearHistory(): void {
   history.value = [];
   uni.removeStorageSync(HISTORY_KEY);
+}
+
+function goBack(): void {
+  if (getCurrentPages().length > 1) {
+    uni.navigateBack();
+    return;
+  }
+  uni.switchTab({ url: '/pages/food/home/index' });
+}
+
+function goCity(): void {
+  uni.navigateTo({ url: '/pages/food/city-picker/index' });
 }
 
 function submitSearch(value?: string): void {
@@ -91,9 +104,12 @@ onUnload(stopHotTimer);
 
 <template>
   <view class="search-page">
-    <view class="search-bar">
+    <view class="search-head">
+      <view class="search-head__back" @tap="goBack">
+        <SvgIcon name="chevron-left" :size="42" color="#172033" />
+      </view>
       <view class="search-bar__box">
-        <text class="search-bar__icon">⌕</text>
+        <SvgIcon name="search" :size="30" color="#8a94a6" />
         <input
           v-model="keyword"
           class="search-bar__input"
@@ -105,26 +121,15 @@ onUnload(stopHotTimer);
       <button class="search-bar__btn" @tap="submitSearch()">搜索</button>
     </view>
 
-    <view class="city-row">
-      <text class="city-row__name">{{ cityName }}</text>
-      <text class="city-row__code">{{ cityCode }}</text>
-    </view>
-
-    <view class="hot-ticker" @tap="submitSearch(activeHot)">
-      <text class="hot-ticker__label">实时热点</text>
-      <text class="hot-ticker__word">{{ activeHot }}</text>
-    </view>
-
-    <view class="section">
-      <view class="section__head">
-        <text class="section__title">搜索热点</text>
-      </view>
-      <view class="chip-grid">
-        <view v-for="(item, index) in HOT_KEYWORDS" :key="item" class="hot-chip" @tap="submitSearch(item)">
-          <text class="hot-chip__rank">{{ index + 1 }}</text>
-          <text class="hot-chip__text">{{ item }}</text>
+    <view class="city-card" @tap="goCity">
+      <view class="city-card__main">
+        <SvgIcon name="location-pin" :size="34" color="#ff6b35" />
+        <view class="city-card__text">
+          <text class="city-card__label">当前城市</text>
+          <text class="city-card__name">{{ cityName }}</text>
         </view>
       </view>
+      <SvgIcon name="chevron-right" :size="30" color="#8a94a6" />
     </view>
 
     <view class="section">
@@ -150,10 +155,19 @@ onUnload(stopHotTimer);
   box-sizing: border-box;
 }
 
-.search-bar {
+.search-head {
   display: flex;
   align-items: center;
   gap: 14rpx;
+}
+
+.search-head__back {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .search-bar__box {
@@ -166,12 +180,7 @@ onUnload(stopHotTimer);
   border-radius: 999rpx;
   background: #f5f6f8;
   border: 1rpx solid #edf0f5;
-}
-
-.search-bar__icon {
-  color: #8a94a6;
-  font-size: 34rpx;
-  line-height: 1;
+  min-width: 0;
 }
 
 .search-bar__input {
@@ -179,70 +188,62 @@ onUnload(stopHotTimer);
   height: 76rpx;
   font-size: 28rpx;
   color: #172033;
+  min-width: 0;
 }
 
 .search-bar__btn {
-  width: 118rpx;
+  width: 112rpx;
   height: 76rpx;
   line-height: 76rpx;
   border-radius: 999rpx;
   background: #ff6b35;
   color: #fff;
-  font-size: 28rpx;
+  font-size: 27rpx;
   font-weight: 700;
+  flex-shrink: 0;
 }
 
 .search-bar__btn::after {
   border: 0;
 }
 
-.city-row {
+.city-card {
+  margin-top: 24rpx;
+  padding: 24rpx;
+  border-radius: 22rpx;
+  border: 1rpx solid #edf0f5;
+  background: #fff;
+  box-shadow: 0 10rpx 30rpx rgba(31, 41, 55, 0.05);
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  margin: 20rpx 0 18rpx;
+  justify-content: space-between;
+}
+
+.city-card__main {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.city-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.city-card__label {
   color: #8a94a6;
-  font-size: 24rpx;
-}
-
-.city-row__name {
-  color: #172033;
-  font-weight: 700;
-}
-
-.city-row__code {
-  padding: 4rpx 10rpx;
-  border-radius: 999rpx;
-  background: #f5f6f8;
-}
-
-.hot-ticker {
-  display: flex;
-  align-items: center;
-  gap: 14rpx;
-  padding: 22rpx 24rpx;
-  border-radius: 24rpx;
-  background: linear-gradient(135deg, #fff4ed, #fff9f2);
-  border: 1rpx solid #ffe2d3;
-}
-
-.hot-ticker__label {
-  padding: 6rpx 14rpx;
-  border-radius: 999rpx;
-  background: #ff6b35;
-  color: #fff;
   font-size: 22rpx;
-  font-weight: 700;
 }
 
-.hot-ticker__word {
+.city-card__name {
   color: #172033;
-  font-size: 30rpx;
+  font-size: 31rpx;
   font-weight: 800;
 }
 
 .section {
-  margin-top: 34rpx;
+  margin-top: 36rpx;
 }
 
 .section__head {
@@ -261,40 +262,7 @@ onUnload(stopHotTimer);
 .section__action {
   color: #8a94a6;
   font-size: 24rpx;
-}
-
-.chip-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16rpx;
-}
-
-.hot-chip {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  padding: 20rpx;
-  border: 1rpx solid #edf0f5;
-  border-radius: 18rpx;
-  background: #fff;
-}
-
-.hot-chip__rank {
-  width: 34rpx;
-  height: 34rpx;
-  line-height: 34rpx;
-  text-align: center;
-  border-radius: 10rpx;
-  background: #ffefe8;
-  color: #ff6b35;
-  font-size: 22rpx;
-  font-weight: 800;
-}
-
-.hot-chip__text {
-  color: #172033;
-  font-size: 27rpx;
-  font-weight: 700;
+  padding: 8rpx 0 8rpx 24rpx;
 }
 
 .history-list {
@@ -305,7 +273,7 @@ onUnload(stopHotTimer);
 
 .history-chip {
   max-width: 100%;
-  padding: 14rpx 20rpx;
+  padding: 16rpx 22rpx;
   border-radius: 999rpx;
   background: #f5f6f8;
   color: #172033;
@@ -316,7 +284,7 @@ onUnload(stopHotTimer);
 }
 
 .empty-history {
-  padding: 32rpx 0;
+  padding: 42rpx 0;
   color: #a1a8b5;
   font-size: 25rpx;
 }

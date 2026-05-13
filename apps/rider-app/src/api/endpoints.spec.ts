@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Endpoints } from './index';
 
 describe('rider-app Endpoints 常量', () => {
-  it('rider 端 stage 3 接口前缀全部 /api/v1/r/*', () => {
+  it('rider 端接口前缀全部 /api/v1/r/*', () => {
     expect(Endpoints.SmsCode).toBe('/api/v1/r/auth/sms-code');
     expect(Endpoints.Login).toBe('/api/v1/r/auth/login');
     expect(Endpoints.Refresh).toBe('/api/v1/r/auth/refresh');
@@ -16,7 +16,7 @@ describe('rider-app Endpoints 常量', () => {
     expect(Endpoints.TasksAvailable).toBe('/api/v1/r/tasks/available');
   });
 
-  it('stage 0 公共接口保留', () => {
+  it('公共接口路径正确', () => {
     expect(Endpoints.Dictionaries).toBe('/api/v1/pub/dictionaries');
     expect(Endpoints.FilesUpload).toBe('/api/v1/pub/files/upload');
   });

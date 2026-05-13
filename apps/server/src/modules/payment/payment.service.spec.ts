@@ -176,6 +176,10 @@ function buildService(w: World): PaymentService {
     consumeCoupons: jest.fn(async () => 0),
   } as unknown as never;
 
+  const adminRefundService = {
+    createFromArbitration: jest.fn(async () => ({ refundOrderId: 'r1' })),
+  } as unknown as never;
+
   return new PaymentService(
     orderRepo,
     payRepo,
@@ -185,6 +189,7 @@ function buildService(w: World): PaymentService {
     eventBus,
     w.redis as unknown as never,
     couponService,
+    adminRefundService,
   );
 }
 

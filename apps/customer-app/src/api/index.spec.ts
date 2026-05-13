@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Endpoints } from './index';
 
 describe('customer-app endpoints', () => {
-  it('Stage 1 接口路径与后端契约一致', () => {
+  it('接口路径与后端契约一致', () => {
     expect(Endpoints.SmsCode).toBe('/api/v1/c/auth/sms-code');
     expect(Endpoints.Login).toBe('/api/v1/c/auth/login');
     expect(Endpoints.WechatLogin).toBe('/api/v1/c/auth/wechat-login');
@@ -13,7 +13,7 @@ describe('customer-app endpoints', () => {
     expect(Endpoints.Addresses).toBe('/api/v1/c/addresses');
   });
 
-  it('Stage 0 endpoint 保留', () => {
+  it('公共 endpoint 正确', () => {
     expect(Endpoints.Dictionaries).toBe('/api/v1/pub/dictionaries');
     expect(Endpoints.Cities).toBe('/api/v1/pub/cities');
     expect(Endpoints.FilesUpload).toBe('/api/v1/pub/files/upload');

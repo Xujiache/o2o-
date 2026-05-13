@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { MerchantAccount, Product, Store, StoreBusinessHour } from '../../database/entities';
+import { FileService } from '../file/file.service';
 
 import {
   ListPublicProductsQueryDto,
@@ -19,6 +20,7 @@ export class PublicStoreReadonlyService {
     @InjectRepository(StoreBusinessHour) private readonly hourRepo: Repository<StoreBusinessHour>,
     @InjectRepository(Product) private readonly productRepo: Repository<Product>,
     @InjectRepository(MerchantAccount) private readonly merchantRepo: Repository<MerchantAccount>,
+    private readonly fileService: FileService,
   ) {}
 
   async listStores(query: ListPublicStoresQueryDto): Promise<PublicStorePageVo> {
@@ -34,6 +36,7 @@ export class PublicStoreReadonlyService {
       .skip((pageNo - 1) * pageSize)
       .take(pageSize);
     const [rows, total] = await qb.getManyAndCount();
+    const urlMap = await this.fileService.resolveUrls(rows.map((s) => s.avatarFileId));
     return {
       pageNo,
       pageSize,
@@ -42,6 +45,7 @@ export class PublicStoreReadonlyService {
         storeId: s.storeId,
         name: s.name,
         avatarFileId: s.avatarFileId,
+        avatarUrl: s.avatarFileId ? (urlMap[s.avatarFileId] ?? null) : null,
         businessScope: s.businessScope,
         minOrderAmount: s.minOrderAmount,
         deliveryFee: s.deliveryFee,
@@ -61,10 +65,12 @@ export class PublicStoreReadonlyService {
       throw new NotFoundException('store not available');
     }
     const hours = await this.hourRepo.find({ where: { storeId } });
+    const avatarUrl = await this.fileService.resolveUrl(store.avatarFileId);
     return {
       storeId: store.storeId,
       name: store.name,
       avatarFileId: store.avatarFileId,
+      avatarUrl,
       businessScope: store.businessScope,
       minOrderAmount: store.minOrderAmount,
       deliveryFee: store.deliveryFee,

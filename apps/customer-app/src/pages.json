@@ -85,6 +85,7 @@
     { "path": "pages/profile/realname", "style": { "navigationBarTitleText": "实名认证" } }
   ],
   "globalStyle": {
+    "navigationStyle": "custom",
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "O2O 用户端",
     "navigationBarBackgroundColor": "#FFFFFF",
