@@ -98,3 +98,17 @@ export * from './risk-exception-log.entity';
 export * from './push-device.entity';
 // 优惠券领取链路 1 张新表
 export * from './user-coupon.entity';
+// GR-1 — 平台自营生鲜自提点
+export * from './pickup-point.entity';
+// GR-2 — 平台自营生鲜分类 + 按斤计价商品
+export * from './grocery-category.entity';
+export * from './grocery-product.entity';
+// GR-6 — 生鲜商品规格 SKU(详情页 V2 扩展)
+export * from './grocery-product-sku.entity';
+// GR-3 — 生鲜订单 + 订单项
+export * from './grocery-order.entity';
+export * from './grocery-order-item.entity';
+// GR-5 — 一鸡一码溯源:档案 + 二维码 + 批次
+export * from './traceability-archive.entity';
+export * from './traceability-qrcode.entity';
+export * from './qrcode-batch.entity';

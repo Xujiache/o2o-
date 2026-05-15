@@ -15,6 +15,7 @@ import {
   ErrandOrder,
   ErrandTimeline,
   FoodOrder,
+  GroceryOrder,
   OrderTimeline,
   PaymentOrder,
   ProductSku,
@@ -44,6 +45,7 @@ export class PaymentService {
     @InjectRepository(FoodOrder) private readonly orderRepo: Repository<FoodOrder>,
     @InjectRepository(PaymentOrder) private readonly payRepo: Repository<PaymentOrder>,
     @InjectRepository(ErrandOrder) private readonly errandOrderRepo: Repository<ErrandOrder>,
+    @InjectRepository(GroceryOrder) private readonly groceryOrderRepo: Repository<GroceryOrder>,
     private readonly gateway: IntegrationGatewayService,
     private readonly dataSource: DataSource,
     private readonly eventBus: DomainEventBus,
@@ -57,15 +59,19 @@ export class PaymentService {
     if (!p) {
       throw new NotFoundException({ code: ErrorCode.DATA_NOT_FOUND, message: 'pay order not found' });
     }
-    // 越权检查:校验该 bizId 订单归属本 customer
     if (p.bizType === 'FOOD') {
       const o = await this.orderRepo.findOne({ where: { foodOrderId: p.bizId } });
       if (!o || o.customerId !== customerId) {
         throw new ForbiddenException({ code: ErrorCode.FORBIDDEN, message: 'not your payment' });
       }
-    } else {
+    } else if (p.bizType === 'ERRAND') {
       const e = await this.errandOrderRepo.findOne({ where: { errandOrderId: p.bizId } });
       if (!e || e.customerId !== customerId) {
+        throw new ForbiddenException({ code: ErrorCode.FORBIDDEN, message: 'not your payment' });
+      }
+    } else {
+      const g = await this.groceryOrderRepo.findOne({ where: { orderId: p.bizId } });
+      if (!g || g.customerId !== customerId) {
         throw new ForbiddenException({ code: ErrorCode.FORBIDDEN, message: 'not your payment' });
       }
     }
@@ -161,30 +167,51 @@ export class PaymentService {
       }
       return { payableAmount: order.payableAmount, expireAt: order.expireAt };
     }
-    // ERRAND
-    const errand = await this.errandOrderRepo.findOne({ where: { errandOrderId: orderId } });
-    if (!errand || errand.customerId !== customerId) {
+    if (bizType === 'ERRAND') {
+      const errand = await this.errandOrderRepo.findOne({ where: { errandOrderId: orderId } });
+      if (!errand || errand.customerId !== customerId) {
+        throw new NotFoundException({
+          code: ErrorCode.DATA_NOT_FOUND,
+          detail: 'ORDER_NOT_FOUND',
+          message: '订单不存在',
+        });
+      }
+      if (errand.status !== 'WAIT_PAY') {
+        throw new UnprocessableEntityException({
+          code: ErrorCode.STATUS_INVALID,
+          detail: 'ORDER_NOT_PAYABLE',
+          message: '当前订单状态无法支付',
+        });
+      }
+      if (Number(errand.expireAt) < Date.now()) {
+        throw new UnprocessableEntityException({
+          code: ErrorCode.STATUS_INVALID,
+          detail: 'ORDER_EXPIRED',
+          message: '订单已超时',
+        });
+      }
+      return { payableAmount: errand.payableAmount, expireAt: errand.expireAt };
+    }
+    // GROCERY — 估价单(wait_pay → paid)。生鲜无超时关单,expireAt 用 24h 兜底
+    const grocery = await this.groceryOrderRepo.findOne({ where: { orderId } });
+    if (!grocery || grocery.customerId !== customerId) {
       throw new NotFoundException({
         code: ErrorCode.DATA_NOT_FOUND,
         detail: 'ORDER_NOT_FOUND',
         message: '订单不存在',
       });
     }
-    if (errand.status !== 'WAIT_PAY') {
+    if (grocery.status !== 'wait_pay') {
       throw new UnprocessableEntityException({
         code: ErrorCode.STATUS_INVALID,
         detail: 'ORDER_NOT_PAYABLE',
         message: '当前订单状态无法支付',
       });
     }
-    if (Number(errand.expireAt) < Date.now()) {
-      throw new UnprocessableEntityException({
-        code: ErrorCode.STATUS_INVALID,
-        detail: 'ORDER_EXPIRED',
-        message: '订单已超时',
-      });
-    }
-    return { payableAmount: errand.payableAmount, expireAt: errand.expireAt };
+    return {
+      payableAmount: grocery.estimatedAmountCents,
+      expireAt: String(Number(grocery.createdAt) + 24 * 3600 * 1000),
+    };
   }
 
   private async callAdapter(
@@ -281,8 +308,10 @@ export class PaymentService {
 
       if (payment.bizType === 'FOOD') {
         await this.applyFoodPaid(em, payment, parsed.paidAmountCents, now, channel);
-      } else {
+      } else if (payment.bizType === 'ERRAND') {
         await this.applyErrandPaid(em, payment, parsed.paidAmountCents, now);
+      } else {
+        await this.applyGroceryPaid(em, payment, parsed.paidAmountCents, now);
       }
     });
 
@@ -316,7 +345,7 @@ export class PaymentService {
           { bizType: 'food-order', bizId: payment.bizId },
         );
       }
-    } else {
+    } else if (payment.bizType === 'ERRAND') {
       const errand = await this.errandOrderRepo.findOne({ where: { errandOrderId: payment.bizId } });
       if (errand && errand.status === 'PAID') {
         await this.eventBus.publish(
@@ -331,6 +360,7 @@ export class PaymentService {
         );
       }
     }
+    // GROCERY 不发独立事件,商家拣货池靠 status=paid 查询即可
 
     return { ok: true };
   }
@@ -421,6 +451,47 @@ export class PaymentService {
       reason: `${channel} callback`,
       createdAt: String(now),
     });
+  }
+
+  /** GR-7 生鲜估价单 wait_pay → paid */
+  private async applyGroceryPaid(
+    em: EntityManager,
+    payment: PaymentOrder,
+    paidAmountCents: number,
+    now: number,
+  ): Promise<void> {
+    const grocery = await em.getRepository(GroceryOrder).findOne({ where: { orderId: payment.bizId } });
+    if (!grocery) {
+      throw new NotFoundException({
+        code: ErrorCode.DATA_NOT_FOUND,
+        detail: 'GROCERY_ORDER_NOT_FOUND',
+        message: '生鲜订单不存在',
+      });
+    }
+    if (grocery.status !== 'wait_pay') {
+      // 已取消 — 通道已收钱,自动退款
+      setImmediate(() => {
+        void this.adminRefundService
+          .createFromArbitration({
+            bizType: 'GROCERY',
+            bizOrderId: payment.bizId,
+            paymentOrderId: payment.paymentOrderId,
+            amount: String(paidAmountCents),
+            provider: payment.payChannel,
+          })
+          .catch(() => undefined);
+      });
+      return;
+    }
+    await em.getRepository(GroceryOrder).update(
+      { orderId: payment.bizId },
+      {
+        status: 'paid',
+        paidAt: String(now),
+        estimatePaymentOrderId: payment.paymentOrderId,
+        updatedAt: String(now),
+      },
+    );
   }
 
   private async applyErrandPaid(

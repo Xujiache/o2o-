@@ -3,7 +3,7 @@ import type { ApiResponse } from '@o2o/contracts';
 import { request } from '@/utils/request';
 
 export interface PrepayReq {
-  bizType: 'FOOD' | 'ERRAND';
+  bizType: 'FOOD' | 'ERRAND' | 'GROCERY';
   orderId: string;
   payChannel: 'wxpay' | 'alipay';
 }

@@ -65,6 +65,8 @@ import { FinanceModule } from './modules/finance/finance.module';
 import { FoodHomeModule } from './modules/food-home/food-home.module';
 import { FoodOrderModule } from './modules/food-order/food-order.module';
 import { GatewayModule } from './modules/gateway/gateway.module';
+import { GroceryOrderModule } from './modules/grocery-order/grocery-order.module';
+import { GroceryProductModule } from './modules/grocery-product/grocery-product.module';
 import { IntegrationGatewayModule } from './modules/integration-gateway/integration-gateway.module';
 import { MarketingModule } from './modules/marketing/marketing.module';
 import { MerchantAfterSaleModule } from './modules/merchant-after-sale/merchant-after-sale.module';
@@ -78,6 +80,7 @@ import { MerchantStatisticsModule } from './modules/merchant-statistics/merchant
 import { MerchantWithdrawalModule } from './modules/merchant-withdrawal/merchant-withdrawal.module';
 import { MessageSettingModule } from './modules/message-setting/message-setting.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { PickupPointModule } from './modules/pickup-point/pickup-point.module';
 import { PointsModule } from './modules/points/points.module';
 import { ProductModule } from './modules/product/product.module';
 import { ProductQueryModule } from './modules/product-query/product-query.module';
@@ -100,6 +103,7 @@ import { StockModule } from './modules/stock/stock.module';
 import { StoreModule } from './modules/store/store.module';
 import { StoreQueryModule } from './modules/store-query/store-query.module';
 import { SystemModule } from './modules/system/system.module';
+import { TraceabilityModule } from './modules/traceability/traceability.module';
 import { TrackModule } from './modules/track/track.module';
 import { TrackQueryModule } from './modules/track-query/track-query.module';
 import { UserProfileModule } from './modules/user-profile/user-profile.module';
@@ -221,6 +225,14 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     AdminPaymentModule,
     PushDeviceModule,
     PointsModule,
+    // GR-1 — 平台自营生鲜自提点
+    PickupPointModule,
+    // GR-2 — 平台自营生鲜按斤计价商品 + 分类
+    GroceryProductModule,
+    // GR-3 — 生鲜订单(下单 + 取消 + 列表 + 详情)
+    GroceryOrderModule,
+    // GR-5 — 一鸡一码溯源(档案 + 二维码批次 + 扫码绑)
+    TraceabilityModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

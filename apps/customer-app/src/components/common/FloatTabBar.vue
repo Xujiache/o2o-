@@ -14,12 +14,12 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  { key: 'home', icon: 'home', label: '首页', path: '/pages/food/home/index' },
-  { key: 'orders', icon: 'clipboard', label: '订单', path: '/pages/food/order/list' },
+  { key: 'home', icon: 'home', label: '商城', path: '/pages/grocery/home/index' },
+  { key: 'orders', icon: 'clipboard', label: '订单', path: '/pages/grocery/order/list' },
   { key: 'me', icon: 'user', label: '我的', path: '/pages/me/index' },
 ];
 
-const ACTIVE_COLOR = '#ff6b35';
+const ACTIVE_COLOR = '#2e9c5d';
 const INACTIVE_COLOR = '#8a94a6';
 
 function onTap(t: Tab): void {
@@ -80,14 +80,14 @@ function onTap(t: Tab): void {
   transition: background 200ms ease;
 }
 .ftb__item--active {
-  background: rgba(255, 107, 53, 0.12);
+  background: rgba(46, 156, 93, 0.12);
 }
 .ftb__label {
   font-size: 22rpx;
   color: #8a94a6;
 }
 .ftb__label--active {
-  color: #ff6b35;
+  color: #2e9c5d;
   font-weight: 700;
 }
 </style>

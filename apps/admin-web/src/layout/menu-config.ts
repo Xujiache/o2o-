@@ -84,6 +84,21 @@ export const MENU_GROUPS: MenuGroup[] = [
     children: [{ path: '/admin/customers', title: '用户管理', icon: 'User', permission: 'admin:customers:view' }],
   },
   {
+    key: 'grocery',
+    title: '自营生鲜',
+    icon: 'Cherry',
+    children: [
+      {
+        path: '/admin/pickup-points',
+        title: '自提点管理',
+        icon: 'MapLocation',
+        permission: 'admin:menu:pickup-points',
+      },
+      { path: '/admin/grocery-products', title: '生鲜商品', icon: 'Cherry', permission: 'admin:menu:grocery-products' },
+      { path: '/admin/traceability', title: '溯源中心', icon: 'Promotion', permission: 'admin:menu:traceability' },
+    ],
+  },
+  {
     key: 'finance',
     title: '财务',
     icon: 'Money',

@@ -6,7 +6,7 @@ import { useDictStore } from '@/stores/dict';
 
 onLoad(() => {
   void useDictStore().load(['order_takeaway_status', 'order_errand_status']);
-  const target = useAuthStore().isLoggedIn ? '/pages/food/home/index' : '/pages/login/index';
+  const target = useAuthStore().isLoggedIn ? '/pages/grocery/home/index' : '/pages/login/index';
   uni.reLaunch({ url: target });
 });
 </script>

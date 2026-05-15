@@ -22,6 +22,8 @@ export const FileBizType = {
   GOODS_IMAGE: 'goods-image',
   AFTER_SALE_PROOF: 'after-sale-proof',
   ERRAND_PHOTO: 'errand-photo',
+  /** GR-6 — 生鲜商品主图 / 详情图,仅平台运营可上传 */
+  GROCERY_IMAGE: 'grocery-image',
 } as const;
 export type FileBizTypeValue = (typeof FileBizType)[keyof typeof FileBizType];
 
@@ -39,6 +41,7 @@ export const FileBizScopeMap: Record<FileBizTypeValue, OperatorTypeValue[]> = {
   [FileBizType.GOODS_IMAGE]: [OperatorType.MERCHANT],
   [FileBizType.AFTER_SALE_PROOF]: [OperatorType.CUSTOMER, OperatorType.MERCHANT, OperatorType.RIDER],
   [FileBizType.ERRAND_PHOTO]: [OperatorType.CUSTOMER, OperatorType.RIDER],
+  [FileBizType.GROCERY_IMAGE]: [OperatorType.ADMIN],
 };
 
 /** 第三方提供商 */

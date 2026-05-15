@@ -29,6 +29,7 @@ interface PermRow {
 const ROLES: RoleRow[] = [
   { code: 'SUPER_ADMIN', name: '超级管理员', scope: 'admin' },
   { code: 'AUDITOR', name: '审核员', scope: 'admin' },
+  { code: 'OPERATOR', name: '自营运营员', scope: 'admin' },
   { code: 'CUSTOMER', name: '普通用户', scope: 'customer' },
   { code: 'MERCHANT', name: '商家', scope: 'merchant' },
   { code: 'RIDER', name: '骑手', scope: 'rider' },
@@ -339,6 +340,94 @@ const PERMISSIONS: PermRow[] = [
     parentCode: 'admin:menu:settlements',
     sort: 901,
   },
+  // GR-1 — 平台自营自提点管理
+  { code: 'admin:menu:pickup-points', name: '自提点菜单', scope: 'admin', type: 'menu', sort: 1000 },
+  {
+    code: 'admin:pickup-point:read',
+    name: '自提点查看',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:pickup-points',
+    sort: 1,
+  },
+  {
+    code: 'admin:pickup-point:write',
+    name: '自提点 CRUD',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:pickup-points',
+    sort: 2,
+  },
+  // GR-1 — 运营员账号管理
+  { code: 'admin:menu:operators', name: '运营员菜单', scope: 'admin', type: 'menu', sort: 1010 },
+  {
+    code: 'admin:operator:manage',
+    name: '运营员账号 CRUD(创建/重置密码/启停)',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:operators',
+    sort: 1,
+  },
+  // GR-2 — 平台自营生鲜商品管理
+  { code: 'admin:menu:grocery-products', name: '生鲜商品菜单', scope: 'admin', type: 'menu', sort: 1100 },
+  {
+    code: 'admin:grocery:product:read',
+    name: '生鲜商品查看',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:grocery-products',
+    sort: 1,
+  },
+  {
+    code: 'admin:grocery:product:write',
+    name: '生鲜商品 CRUD(分类+商品+上下架+库存)',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:grocery-products',
+    sort: 2,
+  },
+  // GR-5 — 一鸡一码溯源
+  { code: 'admin:menu:traceability', name: '溯源中心菜单', scope: 'admin', type: 'menu', sort: 1200 },
+  {
+    code: 'admin:trace:archive:read',
+    name: '溯源档案查看',
+    scope: 'admin',
+    type: 'data',
+    parentCode: 'admin:menu:traceability',
+    sort: 1,
+  },
+  {
+    code: 'admin:trace:archive:write',
+    name: '溯源档案 CRUD',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:traceability',
+    sort: 2,
+  },
+  {
+    code: 'admin:trace:qrcode:generate',
+    name: '二维码批量生成',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:traceability',
+    sort: 3,
+  },
+  {
+    code: 'admin:trace:qrcode:export',
+    name: '二维码导出',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:traceability',
+    sort: 4,
+  },
+  {
+    code: 'admin:trace:qrcode:bind',
+    name: '扫码绑定档案',
+    scope: 'admin',
+    type: 'button',
+    parentCode: 'admin:menu:traceability',
+    sort: 5,
+  },
 ];
 
 export async function seedRolesAndPermissions(
@@ -442,6 +531,30 @@ export async function seedRolesAndPermissions(
     // Stage 10 — AUDITOR 可见订单时间线 + 支付单(只读)
     ['AUDITOR', 'admin:order:timeline:view'],
     ['AUDITOR', 'admin:payment:view'],
+    // GR-1 — OPERATOR 自营运营员核心权限(自提点 CRUD + 后续阶段商品/订单/拣货/溯源)
+    ['OPERATOR', 'admin:menu:pickup-points'],
+    ['OPERATOR', 'admin:pickup-point:read'],
+    ['OPERATOR', 'admin:pickup-point:write'],
+    // AUDITOR 可见自提点(只读)
+    ['AUDITOR', 'admin:menu:pickup-points'],
+    ['AUDITOR', 'admin:pickup-point:read'],
+    // GR-2 — OPERATOR 生鲜商品 CRUD
+    ['OPERATOR', 'admin:menu:grocery-products'],
+    ['OPERATOR', 'admin:grocery:product:read'],
+    ['OPERATOR', 'admin:grocery:product:write'],
+    // AUDITOR 可见生鲜商品(只读)
+    ['AUDITOR', 'admin:menu:grocery-products'],
+    ['AUDITOR', 'admin:grocery:product:read'],
+    // GR-5 — OPERATOR 溯源中心全权限
+    ['OPERATOR', 'admin:menu:traceability'],
+    ['OPERATOR', 'admin:trace:archive:read'],
+    ['OPERATOR', 'admin:trace:archive:write'],
+    ['OPERATOR', 'admin:trace:qrcode:generate'],
+    ['OPERATOR', 'admin:trace:qrcode:export'],
+    ['OPERATOR', 'admin:trace:qrcode:bind'],
+    // AUDITOR 可见溯源(只读)
+    ['AUDITOR', 'admin:menu:traceability'],
+    ['AUDITOR', 'admin:trace:archive:read'],
     // SUPER_ADMIN 全量已通过 ...PERMISSIONS.map 覆盖
   ];
 

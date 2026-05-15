@@ -129,6 +129,24 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/views/cities/index.vue'),
         meta: { title: '城市站点', menu: true, icon: 'Position', permission: 'admin:menu:cities' },
       },
+      // GR-1 自营自提点
+      {
+        path: 'admin/pickup-points',
+        component: () => import('@/views/pickup-points/index.vue'),
+        meta: { title: '自提点管理', menu: true, icon: 'MapLocation', permission: 'admin:menu:pickup-points' },
+      },
+      // GR-2 自营生鲜商品
+      {
+        path: 'admin/grocery-products',
+        component: () => import('@/views/grocery-products/index.vue'),
+        meta: { title: '生鲜商品', menu: true, icon: 'Cherry', permission: 'admin:menu:grocery-products' },
+      },
+      // GR-5 溯源中心
+      {
+        path: 'admin/traceability',
+        component: () => import('@/views/traceability/index.vue'),
+        meta: { title: '溯源中心', menu: true, icon: 'Promotion', permission: 'admin:menu:traceability' },
+      },
       {
         path: 'admin/categories/takeaway',
         component: () => import('@/views/categories/takeaway.vue'),

@@ -69,7 +69,7 @@ function editProfile(): void {
 
 function navigateByKey(key: EntryKey): void {
   if (key === 'orders') {
-    uni.switchTab({ url: '/pages/food/order/list' });
+    uni.switchTab({ url: '/pages/grocery/order/list' });
     return;
   }
   if (key === 'coupons') {

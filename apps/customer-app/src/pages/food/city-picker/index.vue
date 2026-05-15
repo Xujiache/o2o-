@@ -32,7 +32,7 @@ function goBack(): void {
     uni.navigateBack();
     return;
   }
-  uni.switchTab({ url: '/pages/food/home/index' });
+  uni.switchTab({ url: '/pages/grocery/home/index' });
 }
 
 function pick(city: FoodCity): void {
@@ -42,7 +42,7 @@ function pick(city: FoodCity): void {
     uni.navigateBack();
     return;
   }
-  uni.switchTab({ url: '/pages/food/home/index' });
+  uni.switchTab({ url: '/pages/grocery/home/index' });
 }
 </script>
 

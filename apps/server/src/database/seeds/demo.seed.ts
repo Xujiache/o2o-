@@ -1,145 +1,72 @@
 /**
- * 演示数据种子(stage 11 真上线前删除或改为环境开关).
+ * 演示数据种子(GR-7 重写)— 平台自营生鲜版本
  *
- * 用途:客户预览时一键塞入可用数据,免得 4 端打开后看到一片空白.
- * 幂等:每条按业务唯一字段(mobile / name)反查,存在则跳过,不修改已有数据.
+ * 用途:演示环境一键塞入"自营生鲜商城"的可视数据
+ *
+ * 幂等:每条按业务唯一字段(mobile / batchNo / name)反查,存在则跳过
  *
  * 包含:
  *   1 测试用户(13900000001,已实名,默认地址=北京天安门附近)
- *   2 商家:
- *     - 13900020001 老王炸鸡: 4 分类(招牌/套餐/小食/饮料) × 8 商品
- *     - 13900020002 美味食堂: 4 分类(热菜/凉菜/主食/汤) × 8 商品
- *   1 骑手(13900030001),状态 active,在线,位置=北京中心
+ *   1 测试骑手(13900030001) — 跑腿业务保留所需
+ *   3 个自提点(天安门 / 王府井 / 国贸)
+ *   2 个生鲜分类(禽类 / 蔬菜)
+ *   8 个生鲜 SKU
+ *   2 个溯源档案(土鸡批次)+ 1 个二维码批次 + 100 个 blank 二维码
  */
 import type { DataSource } from 'typeorm';
 
+import { encodeQrcode } from '../../modules/traceability/qrcode-encoder.util';
 import {
   CustomerAddress,
   CustomerProfile,
   CustomerUser,
-  MerchantAccount,
+  GroceryCategory,
+  GroceryProduct,
   MessageSetting,
-  Product,
-  ProductCategory,
-  ProductSku,
+  PickupPoint,
+  QrcodeBatch,
   RiderAccount,
   RiderApplication,
   RiderServiceArea,
   RiderStatus,
-  Store,
+  TraceabilityArchive,
+  TraceabilityQrcode,
 } from '../entities';
 
 const NOW = Date.now().toString();
 
 interface DemoStat {
   customers: number;
-  merchants: number;
-  stores: number;
-  products: number;
   riders: number;
+  pickupPoints: number;
+  groceryCategories: number;
+  groceryProducts: number;
+  archives: number;
+  qrcodes: number;
 }
-
-interface MerchantSeedInput {
-  mobile: string;
-  storeName: string;
-  intro: string;
-  categories: Array<{
-    name: string;
-    displayOrder: number;
-    products: Array<{ name: string; priceCents: number; originalCents: number | null; desc: string }>;
-  }>;
-}
-
-const MERCHANT_LAOWANG: MerchantSeedInput = {
-  mobile: '13900020001',
-  storeName: '老王炸鸡(演示)',
-  intro: '正宗炸鸡 30 分钟送达',
-  categories: [
-    {
-      name: '招牌',
-      displayOrder: 1,
-      products: [
-        { name: '香酥大鸡腿', priceCents: 1980, originalCents: 2580, desc: '外酥里嫩,招牌爆款' },
-        { name: '黑椒鸡块汉堡', priceCents: 2680, originalCents: 2980, desc: '现做现卖' },
-      ],
-    },
-    {
-      name: '套餐',
-      displayOrder: 2,
-      products: [{ name: '鸡腿双拼套餐', priceCents: 3980, originalCents: 4580, desc: '鸡腿+鸡块+薯条+饮料' }],
-    },
-    {
-      name: '小食',
-      displayOrder: 3,
-      products: [
-        { name: '黄金薯条', priceCents: 980, originalCents: null, desc: '现炸金黄' },
-        { name: '香脆鸡块(8 块)', priceCents: 1880, originalCents: 2080, desc: '蘸番茄酱更好吃' },
-        { name: '玉米浓汤', priceCents: 580, originalCents: null, desc: '香甜暖胃' },
-      ],
-    },
-    {
-      name: '饮料',
-      displayOrder: 4,
-      products: [
-        { name: '可乐(中)', priceCents: 600, originalCents: null, desc: '冰镇' },
-        { name: '柠檬冰红茶', priceCents: 780, originalCents: null, desc: '解腻提神' },
-      ],
-    },
-  ],
-};
-
-const MERCHANT_MEIWEI: MerchantSeedInput = {
-  mobile: '13900020002',
-  storeName: '美味食堂(演示)',
-  intro: '家常菜 现炒现做',
-  categories: [
-    {
-      name: '热菜',
-      displayOrder: 1,
-      products: [
-        { name: '宫保鸡丁', priceCents: 2580, originalCents: 2880, desc: '微辣下饭' },
-        { name: '番茄炒蛋', priceCents: 1680, originalCents: null, desc: '酸甜开胃' },
-      ],
-    },
-    {
-      name: '凉菜',
-      displayOrder: 2,
-      products: [
-        { name: '拍黄瓜', priceCents: 880, originalCents: null, desc: '蒜香爽脆' },
-        { name: '凉拌木耳', priceCents: 1080, originalCents: null, desc: '醋香开胃' },
-      ],
-    },
-    {
-      name: '主食',
-      displayOrder: 3,
-      products: [
-        { name: '米饭(碗)', priceCents: 200, originalCents: null, desc: '东北珍珠米' },
-        { name: '番茄盖饭', priceCents: 1880, originalCents: null, desc: '汤汁拌饭' },
-      ],
-    },
-    {
-      name: '汤',
-      displayOrder: 4,
-      products: [
-        { name: '紫菜蛋花汤', priceCents: 480, originalCents: null, desc: '暖胃' },
-        { name: '西红柿鸡蛋汤', priceCents: 580, originalCents: null, desc: '酸甜开胃' },
-      ],
-    },
-  ],
-};
 
 export async function seedDemoData(ds: DataSource): Promise<DemoStat> {
-  const stat: DemoStat = { customers: 0, merchants: 0, stores: 0, products: 0, riders: 0 };
+  const stat: DemoStat = {
+    customers: 0,
+    riders: 0,
+    pickupPoints: 0,
+    groceryCategories: 0,
+    groceryProducts: 0,
+    archives: 0,
+    qrcodes: 0,
+  };
 
   await seedCustomer(ds, stat);
-  await seedMerchantWithStoreAndProducts(ds, MERCHANT_LAOWANG, stat);
-  await seedMerchantWithStoreAndProducts(ds, MERCHANT_MEIWEI, stat);
   await seedRider(ds, stat);
+  await seedPickupPoints(ds, stat);
+  const categoryMap = await seedGroceryCategories(ds, stat);
+  await seedGroceryProducts(ds, categoryMap, stat);
+  await seedTraceability(ds, stat);
 
   return stat;
 }
 
-// ---------- customer ----------
+/* ============ 1. 客户 ============ */
 async function seedCustomer(ds: DataSource, stat: DemoStat): Promise<void> {
   const userRepo = ds.getRepository(CustomerUser);
   const profRepo = ds.getRepository(CustomerProfile);
@@ -180,7 +107,6 @@ async function seedCustomer(ds: DataSource, stat: DemoStat): Promise<void> {
     stat.customers += 1;
   }
 
-  // 默认地址(天安门附近)
   const existingAddr = await addrRepo.findOne({ where: { userId: user.userId, isDefault: 1 } });
   if (!existingAddr) {
     await addrRepo.insert({
@@ -198,112 +124,7 @@ async function seedCustomer(ds: DataSource, stat: DemoStat): Promise<void> {
   }
 }
 
-// ---------- merchant + store + categories + products ----------
-async function seedMerchantWithStoreAndProducts(
-  ds: DataSource,
-  input: MerchantSeedInput,
-  stat: DemoStat,
-): Promise<void> {
-  const acctRepo = ds.getRepository(MerchantAccount);
-  const storeRepo = ds.getRepository(Store);
-  const catRepo = ds.getRepository(ProductCategory);
-  const productRepo = ds.getRepository(Product);
-  const skuRepo = ds.getRepository(ProductSku);
-
-  let acct = await acctRepo.findOne({ where: { mobile: input.mobile } });
-  if (!acct) {
-    acct = await acctRepo.save(
-      acctRepo.create({
-        mobile: input.mobile,
-        accountStatus: 'active',
-        latestApplicationId: null,
-        approvedStoreId: null,
-        createdAt: NOW,
-        updatedAt: NOW,
-      }),
-    );
-    stat.merchants += 1;
-  }
-
-  let store = await storeRepo.findOne({ where: { merchantId: acct.merchantId } });
-  if (!store) {
-    store = await storeRepo.save(
-      storeRepo.create({
-        merchantId: acct.merchantId,
-        name: input.storeName,
-        avatarFileId: null,
-        intro: input.intro,
-        businessScope: '中式快餐',
-        businessStatus: 'online',
-        minOrderAmount: '1000', // ¥10
-        deliveryFee: '300', // ¥3
-        commissionRate: '0.0500',
-        notice: '欢迎光临,30 分钟必达',
-        cityCode: 'BJ',
-        createdAt: NOW,
-        updatedAt: NOW,
-      }),
-    );
-    // 写回 merchant_account.approved_store_id
-    await acctRepo.update(acct.merchantId, { approvedStoreId: store.storeId, updatedAt: NOW });
-    stat.stores += 1;
-  }
-
-  for (const catInput of input.categories) {
-    let cat = await catRepo.findOne({ where: { storeId: store.storeId, name: catInput.name } });
-    if (!cat) {
-      cat = await catRepo.save(
-        catRepo.create({
-          storeId: store.storeId,
-          name: catInput.name,
-          displayOrder: catInput.displayOrder,
-          createdAt: NOW,
-          updatedAt: NOW,
-        }),
-      );
-    }
-
-    for (const p of catInput.products) {
-      let product = await productRepo.findOne({ where: { storeId: store.storeId, name: p.name } });
-      if (!product) {
-        product = await productRepo.save(
-          productRepo.create({
-            storeId: store.storeId,
-            categoryId: cat.categoryId,
-            name: p.name,
-            description: p.desc,
-            coverImageFileId: null,
-            images: null,
-            price: String(p.priceCents),
-            originalPrice: p.originalCents !== null ? String(p.originalCents) : null,
-            stock: 100,
-            stockAlertThreshold: 5,
-            hasSku: 0,
-            saleStatus: 'on_shelf',
-            createdAt: NOW,
-            updatedAt: NOW,
-          }),
-        );
-        stat.products += 1;
-      }
-      // 给每个商品补 1 个默认 SKU,让客户端能加购(cart.service 必须 skuId)
-      const existingSku = await skuRepo.findOne({ where: { productId: product.productId } });
-      if (!existingSku) {
-        await skuRepo.insert({
-          productId: product.productId,
-          specValue: '默认',
-          price: String(p.priceCents),
-          stock: 100,
-          stockLocked: 0,
-          createdAt: NOW,
-          updatedAt: NOW,
-        });
-      }
-    }
-  }
-}
-
-// ---------- rider ----------
+/* ============ 2. 骑手(跑腿业务保留) ============ */
 async function seedRider(ds: DataSource, stat: DemoStat): Promise<void> {
   const acctRepo = ds.getRepository(RiderAccount);
   const appRepo = ds.getRepository(RiderApplication);
@@ -330,7 +151,6 @@ async function seedRider(ds: DataSource, stat: DemoStat): Promise<void> {
     stat.riders += 1;
   }
 
-  // 补一条已 approved 的 application,让 hasApplication=true,登录后 progress 页能识别为已审核
   const existingApp = await appRepo.findOne({ where: { mobile, auditStatus: 'approved' } });
   if (!existingApp) {
     const app = await appRepo.save(
@@ -350,7 +170,6 @@ async function seedRider(ds: DataSource, stat: DemoStat): Promise<void> {
         updatedAt: NOW,
       }),
     );
-    // 回写 rider_account.approved_application_id
     await acctRepo.update(acct.riderId, { approvedApplicationId: app.applicationId, updatedAt: NOW });
   }
 
@@ -370,7 +189,6 @@ async function seedRider(ds: DataSource, stat: DemoStat): Promise<void> {
     });
   }
 
-  // 服务区(北京天安门附近 ~5km 矩形,覆盖 demo 商家与客户地址)
   const areaRepo = ds.getRepository(RiderServiceArea);
   const existingArea = await areaRepo.findOne({ where: { riderId: acct.riderId } });
   if (!existingArea) {
@@ -392,5 +210,187 @@ async function seedRider(ds: DataSource, stat: DemoStat): Promise<void> {
       createdAt: NOW,
       updatedAt: NOW,
     });
+  }
+}
+
+/* ============ 3. 自提点 ============ */
+async function seedPickupPoints(ds: DataSource, stat: DemoStat): Promise<void> {
+  const repo = ds.getRepository(PickupPoint);
+  const points = [
+    {
+      name: '天安门自提点',
+      address: '北京市东城区东长安街 1 号',
+      lng: '116.397428',
+      lat: '39.90923',
+      phone: '010-65235678',
+    },
+    {
+      name: '王府井自提点',
+      address: '北京市东城区王府井大街 88 号',
+      lng: '116.418',
+      lat: '39.914',
+      phone: '010-65124323',
+    },
+    {
+      name: '国贸自提点',
+      address: '北京市朝阳区建国门外大街 1 号',
+      lng: '116.46',
+      lat: '39.91',
+      phone: '010-65052345',
+    },
+  ];
+  for (const p of points) {
+    const existing = await repo.findOne({ where: { name: p.name } });
+    if (existing) continue;
+    await repo.insert({
+      name: p.name,
+      address: p.address,
+      cityCode: 'BJ',
+      lng: p.lng,
+      lat: p.lat,
+      businessHourStart: '09:00',
+      businessHourEnd: '21:00',
+      contactPhone: p.phone,
+      status: 'active',
+      notice: null,
+      createdAt: NOW,
+      updatedAt: NOW,
+    });
+    stat.pickupPoints += 1;
+  }
+}
+
+/* ============ 4. 生鲜分类 ============ */
+async function seedGroceryCategories(ds: DataSource, stat: DemoStat): Promise<Record<string, string>> {
+  const repo = ds.getRepository(GroceryCategory);
+  const cats = [
+    { name: '禽类', order: 1 },
+    { name: '蔬菜', order: 2 },
+  ];
+  const map: Record<string, string> = {};
+  for (const c of cats) {
+    const existing = await repo.findOne({ where: { name: c.name } });
+    if (existing) {
+      map[c.name] = existing.categoryId;
+      continue;
+    }
+    const saved = await repo.save(
+      repo.create({
+        name: c.name,
+        iconFileId: null,
+        displayOrder: c.order,
+        status: 'active',
+        createdAt: NOW,
+        updatedAt: NOW,
+      }),
+    );
+    map[c.name] = saved.categoryId;
+    stat.groceryCategories += 1;
+  }
+  return map;
+}
+
+/* ============ 5. 生鲜商品 ============ */
+async function seedGroceryProducts(ds: DataSource, catMap: Record<string, string>, stat: DemoStat): Promise<void> {
+  const repo = ds.getRepository(GroceryProduct);
+  const products = [
+    {
+      cat: '禽类',
+      name: '散养土鸡',
+      priceFen: 3500,
+      perJin: 1500,
+      stockJin: 50,
+      desc: '180 天散养,可溯源',
+      trace: true,
+    },
+    { cat: '禽类', name: '鸭子', priceFen: 2800, perJin: 1800, stockJin: 30, desc: '麻鸭,适合炖汤', trace: true },
+    { cat: '禽类', name: '老母鸡', priceFen: 4200, perJin: 2000, stockJin: 20, desc: '2年龄,煲汤上佳', trace: true },
+    { cat: '蔬菜', name: '有机青菜', priceFen: 600, perJin: 500, stockJin: 100, desc: '当日采摘', trace: false },
+    { cat: '蔬菜', name: '土豆', priceFen: 300, perJin: 500, stockJin: 200, desc: '内蒙古黄土豆', trace: false },
+    { cat: '蔬菜', name: '番茄', priceFen: 800, perJin: 500, stockJin: 80, desc: '沙瓤番茄,生吃绝佳', trace: false },
+    { cat: '蔬菜', name: '萝卜', priceFen: 250, perJin: 500, stockJin: 150, desc: '冬储萝卜', trace: false },
+    { cat: '蔬菜', name: '黄瓜', priceFen: 500, perJin: 300, stockJin: 90, desc: '密植黄瓜,口感脆嫩', trace: false },
+  ];
+  for (const p of products) {
+    const existing = await repo.findOne({ where: { name: p.name } });
+    if (existing) continue;
+    await repo.insert({
+      categoryId: catMap[p.cat]!,
+      name: p.name,
+      coverImageFileId: null,
+      description: p.desc,
+      isWeighted: 1,
+      unitPriceCentsPerJin: String(p.priceFen),
+      estimatedWeightGrams: p.perJin,
+      stockJin: p.stockJin.toFixed(2),
+      saleStatus: 'on_shelf',
+      hasTraceability: p.trace ? 1 : 0,
+      createdAt: NOW,
+      updatedAt: NOW,
+    });
+    stat.groceryProducts += 1;
+  }
+}
+
+/* ============ 6. 溯源档案 + 二维码 ============ */
+async function seedTraceability(ds: DataSource, stat: DemoStat): Promise<void> {
+  const archRepo = ds.getRepository(TraceabilityArchive);
+  const qrRepo = ds.getRepository(TraceabilityQrcode);
+  const batchRepo = ds.getRepository(QrcodeBatch);
+
+  // 档案 1
+  let arch1 = await archRepo.findOne({ where: { batchNo: 'DEMO-2026-A001' } });
+  if (!arch1) {
+    arch1 = await archRepo.save(
+      archRepo.create({
+        productId: null,
+        batchNo: 'DEMO-2026-A001',
+        farmName: '北京顺义有机散养基地',
+        farmAddress: '北京市顺义区李桥镇 X 路',
+        breedDate: String(Date.now() - 180 * 86400 * 1000),
+        slaughterDate: String(Date.now() - 86400 * 1000),
+        weightGrams: 1500,
+        quarantineCertNo: 'BJ-QC-2026-A001',
+        veterinarian: '王医生',
+        feedType: '玉米+豆粕,无激素',
+        vaccineRecords: [
+          { name: '禽流感疫苗', date: '2026-01-15' },
+          { name: '新城疫疫苗', date: '2026-02-15' },
+        ],
+        status: 'active',
+        remark: '180 天散养土鸡',
+        createdAt: NOW,
+        updatedAt: NOW,
+      }),
+    );
+    stat.archives += 1;
+  }
+
+  // 二维码批次 1(100 个 blank,前 2 个绑到 arch1)
+  let batch1 = await batchRepo.findOne({ where: { name: 'DEMO-BATCH-001' } });
+  if (!batch1) {
+    batch1 = await batchRepo.save(
+      batchRepo.create({
+        name: 'DEMO-BATCH-001',
+        totalCount: 10,
+        generatedBy: null,
+        createdAt: NOW,
+      }),
+    );
+    const batchSeq = Number(batch1.batchId) % 46656;
+    const rows: Partial<TraceabilityQrcode>[] = [];
+    for (let i = 0; i < 10; i++) {
+      const code = encodeQrcode(batchSeq, i);
+      rows.push({
+        code,
+        archiveId: i < 2 ? arch1.archiveId : null,
+        status: i < 2 ? 'bound' : 'blank',
+        generatedBatchId: batch1.batchId,
+        generatedAt: NOW,
+        boundAt: i < 2 ? NOW : null,
+      });
+    }
+    await qrRepo.insert(rows);
+    stat.qrcodes += rows.length;
   }
 }

@@ -78,6 +78,17 @@
     { "path": "pages/address/edit", "style": { "navigationBarTitleText": "编辑地址" } },
     { "path": "pages/address/city", "style": { "navigationBarTitleText": "选择城市" } },
     { "path": "pages/address/map", "style": { "navigationBarTitleText": "地图选点" } },
+    {
+      "path": "pages/grocery/home/index",
+      "style": { "navigationStyle": "custom", "navigationBarTitleText": "生鲜商城" }
+    },
+    { "path": "pages/grocery/product/detail", "style": { "navigationBarTitleText": "商品详情" } },
+    { "path": "pages/grocery/pickup-point/picker", "style": { "navigationBarTitleText": "选择自提点" } },
+    { "path": "pages/grocery/order/confirm", "style": { "navigationBarTitleText": "确认订单" } },
+    { "path": "pages/grocery/order/list", "style": { "navigationBarTitleText": "我的订单" } },
+    { "path": "pages/grocery/order/detail", "style": { "navigationBarTitleText": "订单详情" } },
+    { "path": "pages/grocery/trace/scan", "style": { "navigationBarTitleText": "扫码溯源" } },
+    { "path": "pages/grocery/trace/detail", "style": { "navigationBarTitleText": "溯源档案" } },
     { "path": "pages/me/index", "style": { "navigationBarTitleText": "我的" } },
     { "path": "pages/me/profile-edit", "style": { "navigationBarTitleText": "编辑资料" } },
     { "path": "pages/me/notification", "style": { "navigationBarTitleText": "消息设置" } },
@@ -93,12 +104,12 @@
   },
   "tabBar": {
     "color": "#8A94A6",
-    "selectedColor": "#FF6B35",
+    "selectedColor": "#2E9C5D",
     "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [
-      { "pagePath": "pages/food/home/index", "text": "首页" },
-      { "pagePath": "pages/food/order/list", "text": "订单" },
+      { "pagePath": "pages/grocery/home/index", "text": "商城" },
+      { "pagePath": "pages/grocery/order/list", "text": "订单" },
       { "pagePath": "pages/me/index", "text": "我的" }
     ]
   }

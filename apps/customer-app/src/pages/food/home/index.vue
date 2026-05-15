@@ -162,7 +162,7 @@ function gotoQuickEntry(e: QuickEntry): void {
       uni.navigateTo({ url: '/pages/address/list' });
       return;
     case 'orders':
-      uni.switchTab({ url: '/pages/food/order/list' });
+      uni.switchTab({ url: '/pages/grocery/order/list' });
       return;
   }
 }
@@ -172,7 +172,7 @@ function gotoErrandForm(typeCode: string): void {
 }
 function gotoErrandOrders(): void {
   uni.setStorageSync('order-list-default-mode', 'errand');
-  uni.switchTab({ url: '/pages/food/order/list' });
+  uni.switchTab({ url: '/pages/grocery/order/list' });
 }
 
 function firstChar(name: string): string {

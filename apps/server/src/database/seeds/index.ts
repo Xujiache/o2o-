@@ -66,11 +66,13 @@ export async function runSeeds(ds: DataSource): Promise<void> {
   const stage8CfgCount = await seedStage8SysConfig(ds);
   console.info(`[seed] sys_config (stage 8): ${stage8CfgCount}`);
 
-  // 演示数据(仅在 SEED_DEMO=1 时执行;客户预览用,stage 11 真上线前删除)
-  if (process.env.SEED_DEMO === '1') {
+  // 演示数据(GR-7 重写为生鲜版本,默认开启;若不想塞数据,设 SEED_DEMO=0)
+  if (process.env.SEED_DEMO !== '0') {
     const demo = await seedDemoData(ds);
     console.info(
-      `[seed] DEMO: customers=${demo.customers} merchants=${demo.merchants} stores=${demo.stores} products=${demo.products} riders=${demo.riders}`,
+      `[seed] DEMO (grocery): customers=${demo.customers} riders=${demo.riders} pickupPoints=${demo.pickupPoints} ` +
+        `groceryCategories=${demo.groceryCategories} groceryProducts=${demo.groceryProducts} ` +
+        `archives=${demo.archives} qrcodes=${demo.qrcodes}`,
     );
   }
 

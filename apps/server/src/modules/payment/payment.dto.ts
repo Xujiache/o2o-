@@ -3,9 +3,12 @@ import { Expose } from 'class-transformer';
 import { IsIn, IsString, Length } from 'class-validator';
 
 export class PrepayDto {
-  @ApiProperty({ enum: ['FOOD', 'ERRAND'], description: '业务类型(stage 5 FOOD;stage 6 +ERRAND)' })
-  @IsIn(['FOOD', 'ERRAND'])
-  bizType!: 'FOOD' | 'ERRAND';
+  @ApiProperty({
+    enum: ['FOOD', 'ERRAND', 'GROCERY'],
+    description: '业务类型(stage 5 FOOD; stage 6 +ERRAND; GR-7 +GROCERY 自营生鲜估价单)',
+  })
+  @IsIn(['FOOD', 'ERRAND', 'GROCERY'])
+  bizType!: 'FOOD' | 'ERRAND' | 'GROCERY';
 
   @ApiProperty()
   @IsString()
