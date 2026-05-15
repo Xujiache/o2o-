@@ -17,6 +17,8 @@ interface OrderRow {
   unitPriceCentsPerJin: number;
   estimatedPerPortionGrams: number;
   portions: number;
+  pricedBy: 'weight' | 'piece' | 'sku';
+  skuId?: string;
 }
 
 const row = ref<OrderRow | null>(null);
@@ -27,11 +29,15 @@ const submitting = ref(false);
 
 const totalGrams = computed<number>(() => {
   if (!row.value) return 0;
+  if (row.value.pricedBy === 'piece') return 0;
   return row.value.portions * row.value.estimatedPerPortionGrams;
 });
 
 const totalCents = computed<number>(() => {
   if (!row.value) return 0;
+  if (row.value.pricedBy === 'sku' || row.value.pricedBy === 'piece') {
+    return row.value.unitPriceCentsPerJin * row.value.portions;
+  }
   return Math.round((row.value.unitPriceCentsPerJin * totalGrams.value) / 500);
 });
 
@@ -70,7 +76,13 @@ async function submit(): Promise<void> {
   try {
     const res = await submitGroceryOrder({
       pickupPointId: pickupPoint.value.pickupPointId,
-      items: [{ productId: row.value.productId, portions: row.value.portions }],
+      items: [
+        {
+          productId: row.value.productId,
+          portions: row.value.portions,
+          ...(row.value.skuId ? { skuId: row.value.skuId } : {}),
+        },
+      ],
       remark: remark.value || undefined,
     });
     if (res.code === '0' && res.data) {
@@ -95,6 +107,8 @@ onLoad((q: Record<string, string | undefined>) => {
   const unitPriceCentsPerJin = Number(q.unitPriceCentsPerJin ?? 0);
   const estimatedPerPortionGrams = Number(q.estimatedPerPortionGrams ?? 500);
   const portions = Number(q.portions ?? 1);
+  const pricedBy = (q.pricedBy ?? 'weight') as 'weight' | 'piece' | 'sku';
+  const skuId = q.skuId || undefined;
   if (!productId) {
     uni.showToast({ title: '参数缺失', icon: 'none' });
     return;
@@ -105,6 +119,8 @@ onLoad((q: Record<string, string | undefined>) => {
     unitPriceCentsPerJin,
     estimatedPerPortionGrams,
     portions,
+    pricedBy,
+    skuId,
   };
 });
 
@@ -145,10 +161,16 @@ onMounted(() => {
       <view class="confirm__item">
         <text class="confirm__item-name">{{ row.productName }}</text>
         <view class="confirm__item-row">
-          <text class="confirm__item-info">{{ row.portions }} 份 × 约 {{ row.estimatedPerPortionGrams }} g</text>
+          <text v-if="row.pricedBy === 'weight'" class="confirm__item-info">
+            {{ row.portions }} 份 × 约 {{ row.estimatedPerPortionGrams }} g
+          </text>
+          <text v-else-if="row.pricedBy === 'piece'" class="confirm__item-info">{{ row.portions }} 件</text>
+          <text v-else class="confirm__item-info">{{ row.portions }} 份</text>
           <text class="confirm__item-price">¥ {{ totalYuan }}</text>
         </view>
-        <text class="confirm__item-tip">预估 {{ (totalGrams / 500).toFixed(2) }} 斤 ({{ totalGrams }} g)</text>
+        <text v-if="row.pricedBy === 'weight'" class="confirm__item-tip">
+          预估 {{ (totalGrams / 500).toFixed(2) }} 斤 ({{ totalGrams }} g)
+        </text>
       </view>
     </view>
 

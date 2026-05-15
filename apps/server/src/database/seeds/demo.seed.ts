@@ -22,6 +22,7 @@ import {
   CustomerUser,
   GroceryCategory,
   GroceryProduct,
+  GroceryProductSku,
   MessageSetting,
   PickupPoint,
   QrcodeBatch,
@@ -41,6 +42,7 @@ interface DemoStat {
   pickupPoints: number;
   groceryCategories: number;
   groceryProducts: number;
+  grocerySkus: number;
   archives: number;
   qrcodes: number;
 }
@@ -52,6 +54,7 @@ export async function seedDemoData(ds: DataSource): Promise<DemoStat> {
     pickupPoints: 0,
     groceryCategories: 0,
     groceryProducts: 0,
+    grocerySkus: 0,
     archives: 0,
     qrcodes: 0,
   };
@@ -290,45 +293,150 @@ async function seedGroceryCategories(ds: DataSource, stat: DemoStat): Promise<Re
   return map;
 }
 
-/* ============ 5. 生鲜商品 ============ */
+/* ============ 5. 生鲜商品 + SKU 规格 ============ */
 async function seedGroceryProducts(ds: DataSource, catMap: Record<string, string>, stat: DemoStat): Promise<void> {
   const repo = ds.getRepository(GroceryProduct);
-  const products = [
+  const skuRepo = ds.getRepository(GroceryProductSku);
+  // 散养土鸡 = SKU 模式(3 规格);黄瓜 = piece 模式(按件);其余按斤
+  const products: Array<{
+    cat: string;
+    name: string;
+    pricedBy: 'weight' | 'piece' | 'sku';
+    priceFen: number;
+    perJin: number;
+    stockJin: number;
+    desc: string;
+    trace: boolean;
+    skus?: Array<{ specValue: string; priceCents: number; stockJin: number; weightGrams: number }>;
+  }> = [
     {
       cat: '禽类',
       name: '散养土鸡',
-      priceFen: 3500,
+      pricedBy: 'sku',
+      priceFen: 0,
       perJin: 1500,
-      stockJin: 50,
-      desc: '180 天散养,可溯源',
+      stockJin: 0,
+      desc: '180 天散养,可溯源 · 三种规格随心选',
+      trace: true,
+      skus: [
+        { specValue: '整鸡(约 3 斤)', priceCents: 10500, stockJin: 20, weightGrams: 1500 },
+        { specValue: '切块(约 3 斤,真空装)', priceCents: 11500, stockJin: 15, weightGrams: 1500 },
+        { specValue: '鸡腿 4 只装(约 1 斤)', priceCents: 4500, stockJin: 30, weightGrams: 500 },
+      ],
+    },
+    {
+      cat: '禽类',
+      name: '鸭子',
+      pricedBy: 'weight',
+      priceFen: 2800,
+      perJin: 1800,
+      stockJin: 30,
+      desc: '麻鸭,适合炖汤',
       trace: true,
     },
-    { cat: '禽类', name: '鸭子', priceFen: 2800, perJin: 1800, stockJin: 30, desc: '麻鸭,适合炖汤', trace: true },
-    { cat: '禽类', name: '老母鸡', priceFen: 4200, perJin: 2000, stockJin: 20, desc: '2年龄,煲汤上佳', trace: true },
-    { cat: '蔬菜', name: '有机青菜', priceFen: 600, perJin: 500, stockJin: 100, desc: '当日采摘', trace: false },
-    { cat: '蔬菜', name: '土豆', priceFen: 300, perJin: 500, stockJin: 200, desc: '内蒙古黄土豆', trace: false },
-    { cat: '蔬菜', name: '番茄', priceFen: 800, perJin: 500, stockJin: 80, desc: '沙瓤番茄,生吃绝佳', trace: false },
-    { cat: '蔬菜', name: '萝卜', priceFen: 250, perJin: 500, stockJin: 150, desc: '冬储萝卜', trace: false },
-    { cat: '蔬菜', name: '黄瓜', priceFen: 500, perJin: 300, stockJin: 90, desc: '密植黄瓜,口感脆嫩', trace: false },
+    {
+      cat: '禽类',
+      name: '老母鸡',
+      pricedBy: 'weight',
+      priceFen: 4200,
+      perJin: 2000,
+      stockJin: 20,
+      desc: '2年龄,煲汤上佳',
+      trace: true,
+    },
+    {
+      cat: '蔬菜',
+      name: '有机青菜',
+      pricedBy: 'weight',
+      priceFen: 600,
+      perJin: 500,
+      stockJin: 100,
+      desc: '当日采摘',
+      trace: false,
+    },
+    {
+      cat: '蔬菜',
+      name: '土豆',
+      pricedBy: 'weight',
+      priceFen: 300,
+      perJin: 500,
+      stockJin: 200,
+      desc: '内蒙古黄土豆',
+      trace: false,
+    },
+    {
+      cat: '蔬菜',
+      name: '番茄',
+      pricedBy: 'weight',
+      priceFen: 800,
+      perJin: 500,
+      stockJin: 80,
+      desc: '沙瓤番茄,生吃绝佳',
+      trace: false,
+    },
+    {
+      cat: '蔬菜',
+      name: '萝卜',
+      pricedBy: 'weight',
+      priceFen: 250,
+      perJin: 500,
+      stockJin: 150,
+      desc: '冬储萝卜',
+      trace: false,
+    },
+    {
+      cat: '蔬菜',
+      name: '黄瓜',
+      pricedBy: 'piece',
+      priceFen: 500,
+      perJin: 300,
+      stockJin: 90,
+      desc: '密植黄瓜 · 整根装 · 按件计价',
+      trace: false,
+    },
   ];
   for (const p of products) {
-    const existing = await repo.findOne({ where: { name: p.name } });
-    if (existing) continue;
-    await repo.insert({
-      categoryId: catMap[p.cat]!,
-      name: p.name,
-      coverImageFileId: null,
-      description: p.desc,
-      isWeighted: 1,
-      unitPriceCentsPerJin: String(p.priceFen),
-      estimatedWeightGrams: p.perJin,
-      stockJin: p.stockJin.toFixed(2),
-      saleStatus: 'on_shelf',
-      hasTraceability: p.trace ? 1 : 0,
-      createdAt: NOW,
-      updatedAt: NOW,
-    });
-    stat.groceryProducts += 1;
+    let prod = await repo.findOne({ where: { name: p.name } });
+    if (!prod) {
+      prod = await repo.save(
+        repo.create({
+          categoryId: catMap[p.cat]!,
+          name: p.name,
+          coverImageFileId: null,
+          description: p.desc,
+          isWeighted: p.pricedBy === 'weight' ? 1 : 0,
+          pricedBy: p.pricedBy,
+          unitPriceCentsPerJin: String(p.priceFen),
+          estimatedWeightGrams: p.perJin,
+          stockJin: p.stockJin.toFixed(2),
+          saleStatus: 'on_shelf',
+          hasTraceability: p.trace ? 1 : 0,
+          deliveryMethods: ['self_pickup', 'pickup_point'],
+          priceDisplayRule: p.pricedBy === 'sku' ? 'range' : 'starting',
+          createdAt: NOW,
+          updatedAt: NOW,
+        }),
+      );
+      stat.groceryProducts += 1;
+    }
+    if (p.skus && p.skus.length > 0) {
+      for (let i = 0; i < p.skus.length; i++) {
+        const s = p.skus[i]!;
+        const existingSku = await skuRepo.findOne({ where: { productId: prod.productId, specValue: s.specValue } });
+        if (existingSku) continue;
+        await skuRepo.insert({
+          productId: prod.productId,
+          specValue: s.specValue,
+          priceCents: String(s.priceCents),
+          stockJin: s.stockJin.toFixed(2),
+          weightGrams: s.weightGrams,
+          displayOrder: i,
+          createdAt: NOW,
+          updatedAt: NOW,
+        });
+        stat.grocerySkus += 1;
+      }
+    }
   }
 }
 

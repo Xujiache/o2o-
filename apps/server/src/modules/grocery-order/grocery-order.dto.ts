@@ -31,12 +31,17 @@ export class SubmitOrderItemDto {
   @IsString()
   productId!: string;
 
-  @ApiProperty({ description: '份数', example: 1 })
+  @ApiProperty({ description: '份数(weight=份数/piece=件数/sku=数量)', example: 1 })
   @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(99)
   portions!: number;
+
+  @ApiProperty({ required: false, description: '规格 SKU ID(仅当商品 priced_by=sku 时必填)' })
+  @IsOptional()
+  @IsString()
+  skuId?: string;
 }
 
 export class SubmitGroceryOrderDto {
@@ -93,6 +98,15 @@ export class GroceryOrderItemVo {
   @ApiProperty() @Expose() itemId!: string;
   @ApiProperty() @Expose() productId!: string;
   @ApiProperty() @Expose() productNameSnapshot!: string;
+  @ApiProperty({ required: false, description: '规格 SKU ID(仅 sku 商品非空)' })
+  @Expose()
+  skuId?: string | null;
+  @ApiProperty({ required: false, description: '规格名快照' })
+  @Expose()
+  skuSpecSnapshot?: string | null;
+  @ApiProperty({ description: '1=按斤(需拣货称重) 0=按件/SKU(下单即定价)' })
+  @Expose()
+  isWeighted!: number;
   @ApiProperty() @Expose() unitPriceCentsPerJin!: string;
   @ApiProperty() @Expose() estimatedPerPortionGrams!: number;
   @ApiProperty() @Expose() portions!: number;

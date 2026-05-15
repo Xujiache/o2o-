@@ -69,22 +69,19 @@ async function onCancel(): Promise<void> {
   });
 }
 
-async function onPay(): Promise<void> {
+async function payWithAmount(amountCents: number, label: string): Promise<void> {
   if (!order.value) return;
-  const amountCents = Number(order.value.estimatedAmountCents);
-  uni.showLoading({ title: '调起收银台...', mask: true });
+  uni.showLoading({ title: `调起${label}收银台...`, mask: true });
   try {
-    // 1. 创建支付单 (mock 通道,直接返回 outTradeNo)
     const pre = await prepay({ bizType: 'GROCERY', orderId: order.value.orderId, payChannel: 'wxpay' });
     if (pre.code !== '0' || !pre.data) {
       uni.hideLoading();
       uni.showToast({ title: pre.message ?? '创建支付单失败', icon: 'none' });
       return;
     }
-    // 2. mock 模式下立即模拟支付成功回调
     await simulatePayCallback('wxpay', pre.data.payOrderNo, amountCents);
     uni.hideLoading();
-    uni.showToast({ title: '支付成功', icon: 'success' });
+    uni.showToast({ title: `${label}支付成功`, icon: 'success' });
     void loadDetail();
   } catch (e) {
     uni.hideLoading();
@@ -92,6 +89,24 @@ async function onPay(): Promise<void> {
     uni.showToast({ title: msg, icon: 'none' });
   }
 }
+
+async function onPay(): Promise<void> {
+  if (!order.value) return;
+  await payWithAmount(Number(order.value.estimatedAmountCents), '估价');
+}
+
+async function onPayDelta(): Promise<void> {
+  if (!order.value || !order.value.weightDeltaCents) return;
+  const delta = Number(order.value.weightDeltaCents);
+  if (delta <= 0) return;
+  await payWithAmount(delta, '差额');
+}
+
+const needPayDelta = computed<boolean>(() => {
+  if (!order.value) return false;
+  if (order.value.status !== 'weigh_settled') return false;
+  return !!order.value.weightDeltaCents && Number(order.value.weightDeltaCents) > 0;
+});
 
 onLoad((q: Record<string, string | undefined>) => {
   orderId.value = q.orderId ?? '';
@@ -129,17 +144,21 @@ onShow(() => void loadDetail());
         <text class="detail__card-label">商品</text>
         <view v-for="it in order.items" :key="it.itemId" class="detail__item">
           <view class="detail__item-row">
-            <text class="detail__item-name">{{ it.productNameSnapshot }}</text>
+            <text class="detail__item-name">
+              {{ it.productNameSnapshot
+              }}<text v-if="it.skuSpecSnapshot" class="detail__item-spec"> · {{ it.skuSpecSnapshot }}</text>
+            </text>
             <text v-if="it.hasTraceability === 1" class="detail__item-badge">可溯源</text>
           </view>
           <view class="detail__item-row">
-            <text class="detail__item-info"
+            <text v-if="it.isWeighted === 1" class="detail__item-info"
               >{{ it.portions }} 份 (预估 {{ (it.estimatedWeightGrams / 500).toFixed(2) }} 斤)</text
             >
+            <text v-else class="detail__item-info">{{ it.portions }} {{ it.skuId ? '份' : '件' }}</text>
             <text class="detail__item-price">¥ {{ yuan(it.estimatedLineCents) }}</text>
           </view>
           <view
-            v-if="it.finalWeightGrams !== null && it.finalWeightGrams !== undefined"
+            v-if="it.isWeighted === 1 && it.finalWeightGrams !== null && it.finalWeightGrams !== undefined"
             class="detail__item-row detail__item-row--final"
           >
             <text class="detail__item-info">实重 {{ (it.finalWeightGrams / 500).toFixed(2) }} 斤</text>
@@ -168,6 +187,9 @@ onShow(() => void loadDetail());
       <view v-if="order.status === 'wait_pay'" class="detail__bar">
         <button class="detail__cta detail__cta--ghost" @click="onCancel">取消订单</button>
         <button class="detail__cta" @click="onPay">去支付 ¥ {{ yuan(order.estimatedAmountCents) }}</button>
+      </view>
+      <view v-else-if="needPayDelta" class="detail__bar">
+        <button class="detail__cta" @click="onPayDelta">补付差额 ¥ {{ yuan(order.weightDeltaCents) }}</button>
       </view>
       <view v-else-if="canCancel" class="detail__bar">
         <button class="detail__cta detail__cta--ghost" @click="onCancel">取消订单</button>
@@ -286,6 +308,11 @@ onShow(() => void loadDetail());
   font-size: 28rpx;
   font-weight: 700;
   color: #172033;
+}
+.detail__item-spec {
+  font-size: 24rpx;
+  color: #92400e;
+  font-weight: 600;
 }
 .detail__item-badge {
   padding: 4rpx 12rpx;

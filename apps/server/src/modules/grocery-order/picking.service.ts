@@ -3,26 +3,26 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ErrorCode } from '@o2o/contracts';
 import { Repository } from 'typeorm';
 
-import { GroceryOrder, GroceryOrderItem, GroceryProduct } from '../../database/entities';
+import { GroceryOrder, GroceryOrderItem, GroceryProduct, PaymentOrder } from '../../database/entities';
+import { AdminRefundService } from '../admin-refund/admin-refund.service';
 
 /**
- * 拣货 + 称重 + 多退少补服务(GR-4 核心)
+ * 拣货 + 称重 + 多退少补服务(GR-4 核心,GR-7+ 接通真金流)
  *
  * 状态流:
- *   paid → picking (startPicking)
- *   picking → picking (weighItem 逐项录入)
- *   picking → weigh_settled (settle 全部称完,计算差额)
- *   weigh_settled → pickup_ready (markReady 生成自提码)
+ *   paid → picking (startPicking,SKU/piece 商品自动 finalize)
+ *   picking → picking (weighItem 逐项录入,仅 is_weighted=1 的项需要)
+ *   picking → weigh_settled (settle 全部称完,计算差额并自动创建补付/退款单)
+ *   weigh_settled → pickup_ready (markReady 校验补付完成,生成自提码)
  *   pickup_ready → picked_up (verifyPickup 扫码核销)
  *   picking → refunded (cancelForOOS 缺货全退)
  *
- * 差额计算:
- *   final_line_cents = unit_price_cents_per_jin × final_weight_grams / 500 (BigInt 精度)
- *   weight_delta_cents = final_total - estimated_total
- *   |delta| ≤ estimated × 0.30 (默认 30% 上限,超出抛 WEIGHT_DELTA_EXCEEDED)
- *
- * 当前 GR-4 简化:差额直接落 weight_delta_cents 字段,但不接 payment 模块自动生成补付/退款单
- * (payment 模块依赖复杂,在 GR-5/7 阶段对接);customer detail 页可看到差额。
+ * 多退少补真金流(GR-7+ 闭环):
+ *   - delta > 0(补付):settle 时创建 pending PaymentOrder 写入 order.deltaPaymentOrderId;
+ *                     customer 端走 /c/payments/prepay {bizType:GROCERY,orderId} 复用该 pending 单;
+ *                     callback 时通过 payment.service.applyGroceryPaid 识别为补付单(不改 status)。
+ *   - delta < 0(退款):settle 时通过 AdminRefundService 立即创建并 mock 执行 SUCCESS,写入 order.deltaRefundOrderId。
+ *   - markReady 拒绝条件:delta > 0 且补付单 status != 'success'。
  */
 @Injectable()
 export class PickingService {
@@ -35,6 +35,8 @@ export class PickingService {
     @InjectRepository(GroceryOrder) private readonly orderRepo: Repository<GroceryOrder>,
     @InjectRepository(GroceryOrderItem) private readonly itemRepo: Repository<GroceryOrderItem>,
     @InjectRepository(GroceryProduct) private readonly prodRepo: Repository<GroceryProduct>,
+    @InjectRepository(PaymentOrder) private readonly paymentRepo: Repository<PaymentOrder>,
+    private readonly adminRefund: AdminRefundService,
   ) {}
 
   async startPicking(orderId: string): Promise<{ orderId: string; status: string; updatedAt: string }> {
@@ -47,6 +49,18 @@ export class PickingService {
       });
     }
     const now = String(Date.now());
+
+    // SKU/piece 商品下单即定价,startPicking 时自动 finalize 这些 items(运营员只需称 weight 商品)
+    const items = await this.itemRepo.find({ where: { orderId } });
+    for (const it of items) {
+      if (it.isWeighted === 0 && (it.finalWeightGrams === null || it.finalWeightGrams === undefined)) {
+        it.finalWeightGrams = it.estimatedWeightGrams;
+        it.finalLineCents = it.estimatedLineCents;
+        it.updatedAt = now;
+        await this.itemRepo.save(it);
+      }
+    }
+
     order.status = 'picking';
     order.pickingStartedAt = now;
     order.updatedAt = now;
@@ -76,6 +90,12 @@ export class PickingService {
     }
     const item = await this.itemRepo.findOne({ where: { itemId, orderId } });
     if (!item) throw new NotFoundException('item not found');
+    if (item.isWeighted === 0) {
+      throw new UnprocessableEntityException({
+        code: ErrorCode.STATUS_INVALID,
+        message: '该项为 SKU/按件商品,无需称重(已自动结算)',
+      });
+    }
 
     const finalLineCents = (BigInt(item.unitPriceCentsPerJin) * BigInt(finalWeightGrams)) / 500n;
     const now = String(Date.now());
@@ -139,16 +159,14 @@ export class PickingService {
     order.weightDeltaCents = delta.toString();
     order.status = 'weigh_settled';
     order.weighSettledAt = now;
-    order.updatedAt = now;
-    await this.orderRepo.save(order);
 
-    // 库存调整:实际重量 vs 预估重量的差额回滚/扣减
+    // 库存调整:仅对 is_weighted=1 的项做实重 vs 预估差额回补/扣减
     for (const it of items) {
+      if (it.isWeighted === 0) continue;
       const p = await this.prodRepo.findOne({ where: { productId: it.productId } });
       if (!p) continue;
       const estJin = it.estimatedWeightGrams / 500;
       const finalJin = (it.finalWeightGrams ?? 0) / 500;
-      // 之前 submit 时已扣 estimated,这里调整为 final:回补 (est - final) 斤
       const adjust = estJin - finalJin;
       if (adjust !== 0) {
         const next = Number(p.stockJin) + adjust;
@@ -158,6 +176,52 @@ export class PickingService {
       }
     }
 
+    // ============ 多退少补真金流 ============
+    if (delta > 0n) {
+      // 补付:创建 pending PaymentOrder 等用户支付
+      const expireAt = String(Date.now() + 24 * 3600 * 1000);
+      const payOrderNo = this.generatePayOrderNo();
+      const ins = await this.paymentRepo.insert({
+        payOrderNo,
+        bizType: 'GROCERY',
+        bizId: order.orderId,
+        payChannel: 'wxpay',
+        payableAmount: delta.toString(),
+        status: 'pending',
+        retryCount: 0,
+        expireAt,
+        createdAt: now,
+        updatedAt: now,
+      });
+      const payId = String(ins.identifiers[0]?.paymentOrderId ?? '');
+      order.deltaPaymentOrderId = payId;
+      this.logger.log(`[settle] order=${orderId} delta=+${delta} 创建补付单 payId=${payId}`);
+    } else if (delta < 0n) {
+      // 退款:立即调 admin-refund 创建并 mock 执行 SUCCESS
+      const absAmount = (-delta).toString();
+      try {
+        const refund = await this.adminRefund.createFromArbitration({
+          bizType: 'GROCERY',
+          bizOrderId: order.orderId,
+          paymentOrderId: order.estimatePaymentOrderId,
+          amount: absAmount,
+          provider: 'wxpay',
+        });
+        order.deltaRefundOrderId = refund.refundOrderId;
+        this.logger.log(
+          `[settle] order=${orderId} delta=${delta} 退款 ${absAmount} 已执行 refundId=${refund.refundOrderId}`,
+        );
+      } catch (err) {
+        this.logger.error(`[settle] order=${orderId} 退款创建失败: ${(err as Error).message}`);
+        throw err;
+      }
+    } else {
+      this.logger.log(`[settle] order=${orderId} delta=0,无补付/退款`);
+    }
+
+    order.updatedAt = String(Date.now());
+    await this.orderRepo.save(order);
+
     return {
       orderId: order.orderId,
       estimatedAmountCents: order.estimatedAmountCents,
@@ -165,6 +229,13 @@ export class PickingService {
       weightDeltaCents: order.weightDeltaCents,
       status: order.status,
     };
+  }
+
+  private generatePayOrderNo(): string {
+    const d = new Date();
+    const ts = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}${String(d.getSeconds()).padStart(2, '0')}`;
+    const rand = String(Math.floor(Math.random() * 1_000_000)).padStart(6, '0');
+    return `P${ts}${rand}`;
   }
 
   async markReady(orderId: string): Promise<{ orderId: string; status: string; pickupCode: string }> {
@@ -176,7 +247,16 @@ export class PickingService {
         message: `cannot mark ready in status=${order.status}`,
       });
     }
-    // GR-4 简化:不阻塞补付完成(payment 模块对接在 GR-7);直接生成自提码
+    // GR-7+: 阻塞补付未完成的订单
+    if (order.deltaPaymentOrderId) {
+      const delta = await this.paymentRepo.findOne({ where: { paymentOrderId: order.deltaPaymentOrderId } });
+      if (!delta || delta.status !== 'success') {
+        throw new UnprocessableEntityException({
+          code: 'DELTA_NOT_PAID',
+          message: `差额补付未完成 (payOrderId=${order.deltaPaymentOrderId}),无法装箱`,
+        });
+      }
+    }
     const pickupCode = String(Math.floor(100000 + Math.random() * 900000));
     const now = String(Date.now());
     order.status = 'pickup_ready';

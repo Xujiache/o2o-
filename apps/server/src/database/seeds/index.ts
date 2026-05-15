@@ -71,7 +71,7 @@ export async function runSeeds(ds: DataSource): Promise<void> {
     const demo = await seedDemoData(ds);
     console.info(
       `[seed] DEMO (grocery): customers=${demo.customers} riders=${demo.riders} pickupPoints=${demo.pickupPoints} ` +
-        `groceryCategories=${demo.groceryCategories} groceryProducts=${demo.groceryProducts} ` +
+        `groceryCategories=${demo.groceryCategories} groceryProducts=${demo.groceryProducts} grocerySkus=${demo.grocerySkus} ` +
         `archives=${demo.archives} qrcodes=${demo.qrcodes}`,
     );
   }

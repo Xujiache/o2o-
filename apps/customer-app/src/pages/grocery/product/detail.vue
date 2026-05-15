@@ -167,21 +167,29 @@ function goConfirm(): void {
   if (!product.value || ctaDisabled.value) return;
   const p = product.value;
 
+  let unitPriceCentsPerJin = p.unitPriceCentsPerJin;
+  let perPortionGrams = p.pricedBy === 'piece' ? 0 : p.estimatedWeightGrams;
+  let skuId = '';
+  let displayName = p.name;
   if (p.pricedBy === 'sku') {
-    uni.showToast({
-      title: '规格商品下单暂未开放,即将上线',
-      icon: 'none',
-      duration: 2400,
-    });
-    return;
+    if (!selectedSku.value) {
+      uni.showToast({ title: '请选择规格', icon: 'none' });
+      return;
+    }
+    unitPriceCentsPerJin = String(selectedSku.value.priceCents);
+    perPortionGrams = selectedSku.value.weightGrams ?? 0;
+    skuId = selectedSku.value.skuId;
+    displayName = `${p.name} · ${selectedSku.value.specValue}`;
   }
 
   const params = new URLSearchParams({
     productId: p.productId,
-    productName: encodeURIComponent(p.name),
-    unitPriceCentsPerJin: p.unitPriceCentsPerJin,
-    estimatedPerPortionGrams: String(p.pricedBy === 'piece' ? 500 : p.estimatedWeightGrams),
+    productName: encodeURIComponent(displayName),
+    unitPriceCentsPerJin,
+    estimatedPerPortionGrams: String(perPortionGrams),
     portions: String(portions.value),
+    pricedBy: p.pricedBy,
+    skuId,
   });
   uni.navigateTo({ url: `/pages/grocery/order/confirm?${params.toString()}` });
 }

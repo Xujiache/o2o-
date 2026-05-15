@@ -17,6 +17,12 @@ export interface GroceryOrderItemVo {
   itemId: string;
   productId: string;
   productNameSnapshot: string;
+  /** SKU ID(仅 sku 商品非空) */
+  skuId?: string | null;
+  /** 规格名快照(如「整鸡」) */
+  skuSpecSnapshot?: string | null;
+  /** 1=按斤(需称重) 0=按件/SKU(下单即定价) */
+  isWeighted: number;
   unitPriceCentsPerJin: string;
   estimatedPerPortionGrams: number;
   portions: number;
@@ -74,7 +80,7 @@ export interface GroceryOrderMutationVo {
 
 export interface SubmitGroceryOrderReq {
   pickupPointId: string;
-  items: Array<{ productId: string; portions: number }>;
+  items: Array<{ productId: string; portions: number; skuId?: string }>;
   remark?: string;
 }
 

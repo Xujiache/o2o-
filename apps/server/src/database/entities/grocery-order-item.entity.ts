@@ -25,7 +25,15 @@ export class GroceryOrderItem {
   @Column({ name: 'product_name_snapshot', type: 'varchar', length: 128 })
   productNameSnapshot!: string;
 
-  /** 1=按斤;0=按件(保留) */
+  /** GR-7+: 选中的 SKU ID(仅 priced_by='sku' 时非空) */
+  @Column({ name: 'sku_id', type: 'bigint', nullable: true })
+  skuId!: string | null;
+
+  /** GR-7+: 下单时 SKU 规格名快照(如「整鸡」「切块」),非 sku 商品为 null */
+  @Column({ name: 'sku_spec_snapshot', type: 'varchar', length: 255, nullable: true })
+  skuSpecSnapshot!: string | null;
+
+  /** 1=按斤;0=按件/SKU(下单后无须再称重) */
   @Column({ name: 'is_weighted', type: 'tinyint', default: 1 })
   isWeighted!: number;
 

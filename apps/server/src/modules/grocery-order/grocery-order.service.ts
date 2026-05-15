@@ -4,7 +4,13 @@ import { ErrorCode } from '@o2o/contracts';
 import { plainToInstance } from 'class-transformer';
 import { Repository } from 'typeorm';
 
-import { GroceryOrder, GroceryOrderItem, GroceryProduct, PickupPoint } from '../../database/entities';
+import {
+  GroceryOrder,
+  GroceryOrderItem,
+  GroceryProduct,
+  GroceryProductSku,
+  PickupPoint,
+} from '../../database/entities';
 
 import {
   CancelGroceryOrderDto,
@@ -22,6 +28,7 @@ export class GroceryOrderService {
     @InjectRepository(GroceryOrder) private readonly orderRepo: Repository<GroceryOrder>,
     @InjectRepository(GroceryOrderItem) private readonly itemRepo: Repository<GroceryOrderItem>,
     @InjectRepository(GroceryProduct) private readonly prodRepo: Repository<GroceryProduct>,
+    @InjectRepository(GroceryProductSku) private readonly skuRepo: Repository<GroceryProductSku>,
     @InjectRepository(PickupPoint) private readonly pickupRepo: Repository<PickupPoint>,
   ) {}
 
@@ -42,6 +49,14 @@ export class GroceryOrderService {
       .getMany();
     const prodMap = new Map(products.map((p) => [p.productId, p]));
 
+    // 拉 SKU 商品的 SKU 表
+    const skuIds = dto.items.map((i) => i.skuId).filter((id): id is string => !!id);
+    const skuMap = new Map<string, GroceryProductSku>();
+    if (skuIds.length > 0) {
+      const skus = await this.skuRepo.createQueryBuilder('s').where('s.sku_id IN (:...ids)', { ids: skuIds }).getMany();
+      for (const s of skus) skuMap.set(s.skuId, s);
+    }
+
     for (const it of dto.items) {
       const p = prodMap.get(it.productId);
       if (!p) {
@@ -56,12 +71,42 @@ export class GroceryOrderService {
           message: `product ${p.name} not on shelf`,
         });
       }
-      const reqJin = (it.portions * p.estimatedWeightGrams) / 500;
-      if (Number(p.stockJin) < reqJin) {
-        throw new UnprocessableEntityException({
-          code: 'GROCERY_OUT_OF_STOCK',
-          message: `${p.name} stock not enough`,
-        });
+      if (p.pricedBy === 'sku') {
+        if (!it.skuId) {
+          throw new UnprocessableEntityException({
+            code: ErrorCode.INVALID_PARAM,
+            message: `${p.name} 是规格商品,必须传 skuId`,
+          });
+        }
+        const sku = skuMap.get(it.skuId);
+        if (!sku || sku.productId !== p.productId) {
+          throw new UnprocessableEntityException({
+            code: ErrorCode.INVALID_PARAM,
+            message: `skuId ${it.skuId} 不属于商品 ${p.name}`,
+          });
+        }
+        if (Number(sku.stockJin) < it.portions) {
+          throw new UnprocessableEntityException({
+            code: 'GROCERY_OUT_OF_STOCK',
+            message: `${p.name} · ${sku.specValue} 库存不足`,
+          });
+        }
+      } else if (p.pricedBy === 'piece') {
+        if (Number(p.stockJin) < it.portions) {
+          throw new UnprocessableEntityException({
+            code: 'GROCERY_OUT_OF_STOCK',
+            message: `${p.name} 库存不足`,
+          });
+        }
+      } else {
+        // weight
+        const reqJin = (it.portions * p.estimatedWeightGrams) / 500;
+        if (Number(p.stockJin) < reqJin) {
+          throw new UnprocessableEntityException({
+            code: 'GROCERY_OUT_OF_STOCK',
+            message: `${p.name} stock not enough`,
+          });
+        }
       }
     }
 
@@ -72,16 +117,44 @@ export class GroceryOrderService {
 
     for (const it of dto.items) {
       const p = prodMap.get(it.productId)!;
-      const estGrams = it.portions * p.estimatedWeightGrams;
-      const lineCents = (BigInt(p.unitPriceCentsPerJin) * BigInt(estGrams)) / 500n;
+      let estGrams: number;
+      let lineCents: bigint;
+      let unitPriceCentsPerJin: string;
+      let isWeighted: number;
+      let skuId: string | null = null;
+      let skuSpecSnapshot: string | null = null;
+
+      if (p.pricedBy === 'sku') {
+        const sku = skuMap.get(it.skuId!)!;
+        estGrams = (sku.weightGrams ?? 0) * it.portions;
+        lineCents = BigInt(sku.priceCents) * BigInt(it.portions);
+        unitPriceCentsPerJin = sku.priceCents;
+        isWeighted = 0;
+        skuId = sku.skuId;
+        skuSpecSnapshot = sku.specValue;
+      } else if (p.pricedBy === 'piece') {
+        estGrams = 0;
+        lineCents = BigInt(p.unitPriceCentsPerJin) * BigInt(it.portions);
+        unitPriceCentsPerJin = p.unitPriceCentsPerJin;
+        isWeighted = 0;
+      } else {
+        // weight
+        estGrams = it.portions * p.estimatedWeightGrams;
+        lineCents = (BigInt(p.unitPriceCentsPerJin) * BigInt(estGrams)) / 500n;
+        unitPriceCentsPerJin = p.unitPriceCentsPerJin;
+        isWeighted = 1;
+      }
       estimatedTotal += lineCents;
 
       const item = this.itemRepo.create({
         productId: p.productId,
         productNameSnapshot: p.name,
-        isWeighted: p.isWeighted,
-        unitPriceCentsPerJin: p.unitPriceCentsPerJin,
-        estimatedPerPortionGrams: p.estimatedWeightGrams,
+        skuId,
+        skuSpecSnapshot,
+        isWeighted,
+        unitPriceCentsPerJin,
+        estimatedPerPortionGrams:
+          p.pricedBy === 'sku' ? (skuMap.get(it.skuId!)?.weightGrams ?? 0) : p.estimatedWeightGrams,
         portions: it.portions,
         estimatedWeightGrams: estGrams,
         estimatedLineCents: lineCents.toString(),
@@ -113,16 +186,29 @@ export class GroceryOrderService {
     }
     await this.itemRepo.save(itemRecords);
 
-    // 库存锁定:扣预估库存
+    // 库存锁定
     for (const it of dto.items) {
       const p = prodMap.get(it.productId)!;
-      const reqJin = (it.portions * p.estimatedWeightGrams) / 500;
-      const next = Number(p.stockJin) - reqJin;
-      const saleStatus = next === 0 ? 'sold_out' : p.saleStatus;
-      await this.prodRepo.update(
-        { productId: p.productId },
-        { stockJin: next.toFixed(2), saleStatus, updatedAt: nowStr },
-      );
+      if (p.pricedBy === 'sku') {
+        const sku = skuMap.get(it.skuId!)!;
+        const next = Number(sku.stockJin) - it.portions;
+        await this.skuRepo.update({ skuId: sku.skuId }, { stockJin: next.toFixed(2), updatedAt: nowStr });
+      } else if (p.pricedBy === 'piece') {
+        const next = Number(p.stockJin) - it.portions;
+        const saleStatus = next === 0 ? 'sold_out' : p.saleStatus;
+        await this.prodRepo.update(
+          { productId: p.productId },
+          { stockJin: next.toFixed(2), saleStatus, updatedAt: nowStr },
+        );
+      } else {
+        const reqJin = (it.portions * p.estimatedWeightGrams) / 500;
+        const next = Number(p.stockJin) - reqJin;
+        const saleStatus = next === 0 ? 'sold_out' : p.saleStatus;
+        await this.prodRepo.update(
+          { productId: p.productId },
+          { stockJin: next.toFixed(2), saleStatus, updatedAt: nowStr },
+        );
+      }
     }
 
     return { orderId: savedOrder.orderId, status: savedOrder.status, updatedAt: savedOrder.updatedAt };
@@ -188,13 +274,20 @@ export class GroceryOrderService {
     return this.toVo(order, items);
   }
 
-  /** 内部 — 释放预估库存(取消时调用) */
+  /** 内部 — 释放预估库存(取消时调用),按定价模式分别回补 */
   async releaseStock(orderId: string, now: string): Promise<void> {
     const items = await this.itemRepo.find({ where: { orderId } });
     for (const it of items) {
+      if (it.skuId) {
+        const sku = await this.skuRepo.findOne({ where: { skuId: it.skuId } });
+        if (!sku) continue;
+        const next = Number(sku.stockJin) + it.portions;
+        await this.skuRepo.update({ skuId: sku.skuId }, { stockJin: next.toFixed(2), updatedAt: now });
+        continue;
+      }
       const p = await this.prodRepo.findOne({ where: { productId: it.productId } });
       if (!p) continue;
-      const back = it.estimatedWeightGrams / 500;
+      const back = p.pricedBy === 'piece' ? it.portions : it.estimatedWeightGrams / 500;
       const next = Number(p.stockJin) + back;
       const saleStatus = p.saleStatus === 'sold_out' && next > 0 ? 'on_shelf' : p.saleStatus;
       await this.prodRepo.update({ productId: p.productId }, { stockJin: next.toFixed(2), saleStatus, updatedAt: now });
@@ -247,6 +340,9 @@ export class GroceryOrderService {
               itemId: it.itemId,
               productId: it.productId,
               productNameSnapshot: it.productNameSnapshot,
+              skuId: it.skuId,
+              skuSpecSnapshot: it.skuSpecSnapshot,
+              isWeighted: it.isWeighted,
               unitPriceCentsPerJin: it.unitPriceCentsPerJin,
               estimatedPerPortionGrams: it.estimatedPerPortionGrams,
               portions: it.portions,

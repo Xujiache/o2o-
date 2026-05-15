@@ -192,7 +192,7 @@ export class PaymentService {
       }
       return { payableAmount: errand.payableAmount, expireAt: errand.expireAt };
     }
-    // GROCERY — 估价单(wait_pay → paid)。生鲜无超时关单,expireAt 用 24h 兜底
+    // GROCERY — 估价单(wait_pay → paid)或补付单(weigh_settled + delta>0)
     const grocery = await this.groceryOrderRepo.findOne({ where: { orderId } });
     if (!grocery || grocery.customerId !== customerId) {
       throw new NotFoundException({
@@ -201,17 +201,23 @@ export class PaymentService {
         message: '订单不存在',
       });
     }
-    if (grocery.status !== 'wait_pay') {
-      throw new UnprocessableEntityException({
-        code: ErrorCode.STATUS_INVALID,
-        detail: 'ORDER_NOT_PAYABLE',
-        message: '当前订单状态无法支付',
-      });
+    if (grocery.status === 'wait_pay') {
+      return {
+        payableAmount: grocery.estimatedAmountCents,
+        expireAt: String(Number(grocery.createdAt) + 24 * 3600 * 1000),
+      };
     }
-    return {
-      payableAmount: grocery.estimatedAmountCents,
-      expireAt: String(Number(grocery.createdAt) + 24 * 3600 * 1000),
-    };
+    if (grocery.status === 'weigh_settled' && grocery.weightDeltaCents && BigInt(grocery.weightDeltaCents) > 0n) {
+      return {
+        payableAmount: grocery.weightDeltaCents,
+        expireAt: String(Date.now() + 24 * 3600 * 1000),
+      };
+    }
+    throw new UnprocessableEntityException({
+      code: ErrorCode.STATUS_INVALID,
+      detail: 'ORDER_NOT_PAYABLE',
+      message: '当前订单状态无法支付',
+    });
   }
 
   private async callAdapter(
@@ -453,7 +459,12 @@ export class PaymentService {
     });
   }
 
-  /** GR-7 生鲜估价单 wait_pay → paid */
+  /**
+   * GR-7+ 生鲜支付回调:
+   *   - 估价单(grocery.status='wait_pay'):wait_pay → paid + 写 estimatePaymentOrderId
+   *   - 补付单(grocery.status='weigh_settled' 且 payment.id === deltaPaymentOrderId):仅标记 PaymentOrder 已支付,grocery 状态不变(等运营员 markReady)
+   *   - 其它状态(已取消等):自动退款
+   */
   private async applyGroceryPaid(
     em: EntityManager,
     payment: PaymentOrder,
@@ -468,30 +479,40 @@ export class PaymentService {
         message: '生鲜订单不存在',
       });
     }
-    if (grocery.status !== 'wait_pay') {
-      // 已取消 — 通道已收钱,自动退款
-      setImmediate(() => {
-        void this.adminRefundService
-          .createFromArbitration({
-            bizType: 'GROCERY',
-            bizOrderId: payment.bizId,
-            paymentOrderId: payment.paymentOrderId,
-            amount: String(paidAmountCents),
-            provider: payment.payChannel,
-          })
-          .catch(() => undefined);
-      });
+
+    // 补付单识别(weigh_settled 状态且本次支付单 ID 匹配 deltaPaymentOrderId)
+    if (grocery.status === 'weigh_settled' && grocery.deltaPaymentOrderId === payment.paymentOrderId) {
+      // 仅记录补付完成时间,grocery 状态不变(由运营员 markReady 推进)
+      await em.getRepository(GroceryOrder).update({ orderId: payment.bizId }, { updatedAt: String(now) });
       return;
     }
-    await em.getRepository(GroceryOrder).update(
-      { orderId: payment.bizId },
-      {
-        status: 'paid',
-        paidAt: String(now),
-        estimatePaymentOrderId: payment.paymentOrderId,
-        updatedAt: String(now),
-      },
-    );
+
+    // 估价单:wait_pay → paid
+    if (grocery.status === 'wait_pay') {
+      await em.getRepository(GroceryOrder).update(
+        { orderId: payment.bizId },
+        {
+          status: 'paid',
+          paidAt: String(now),
+          estimatePaymentOrderId: payment.paymentOrderId,
+          updatedAt: String(now),
+        },
+      );
+      return;
+    }
+
+    // 其它状态(已取消/已完成等)— 通道已收钱,自动退款
+    setImmediate(() => {
+      void this.adminRefundService
+        .createFromArbitration({
+          bizType: 'GROCERY',
+          bizOrderId: payment.bizId,
+          paymentOrderId: payment.paymentOrderId,
+          amount: String(paidAmountCents),
+          provider: payment.payChannel,
+        })
+        .catch(() => undefined);
+    });
   }
 
   private async applyErrandPaid(
