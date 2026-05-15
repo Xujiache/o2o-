@@ -10,6 +10,7 @@ import { onLoad } from '@dcloudio/uni-app';
 
 import { listPickupPoints, type PickupPointVo } from '@/api/pickup-points';
 import { submitGroceryOrder } from '@/api/grocery-orders';
+import { useAuthStore } from '@/stores/auth';
 
 interface OrderRow {
   productId: string;
@@ -70,6 +71,17 @@ async function submit(): Promise<void> {
   if (!row.value) return;
   if (!pickupPoint.value) {
     uni.showToast({ title: '请先选择自提点', icon: 'none' });
+    return;
+  }
+  if (!useAuthStore().isLoggedIn) {
+    uni.showModal({
+      title: '请先登录',
+      content: '提交订单需要登录,即刻前往登录?',
+      confirmText: '去登录',
+      success: (m) => {
+        if (m.confirm) uni.reLaunch({ url: '/pages/login/index' });
+      },
+    });
     return;
   }
   submitting.value = true;

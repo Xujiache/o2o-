@@ -27,6 +27,7 @@ import {
   type GroceryProductVo,
   type GrocerySkuVo,
 } from '@/api/grocery-products';
+import { useAuthStore } from '@/stores/auth';
 
 const loading = ref(true);
 const product = ref<GroceryProductVo | null>(null);
@@ -167,19 +168,34 @@ function goConfirm(): void {
   if (!product.value || ctaDisabled.value) return;
   const p = product.value;
 
+  if (p.pricedBy === 'sku' && !selectedSku.value) {
+    uni.showToast({ title: '请选择规格', icon: 'none' });
+    return;
+  }
+
+  // 未登录拦截:跳登录页(订单提交需要 Customer-Token)
+  if (!useAuthStore().isLoggedIn) {
+    uni.showModal({
+      title: '请先登录',
+      content: '下单前需要先用手机号登录,即刻前往登录?',
+      confirmText: '去登录',
+      success: (m) => {
+        if (m.confirm) uni.reLaunch({ url: '/pages/login/index' });
+      },
+    });
+    return;
+  }
+
   let unitPriceCentsPerJin = p.unitPriceCentsPerJin;
   let perPortionGrams = p.pricedBy === 'piece' ? 0 : p.estimatedWeightGrams;
   let skuId = '';
   let displayName = p.name;
   if (p.pricedBy === 'sku') {
-    if (!selectedSku.value) {
-      uni.showToast({ title: '请选择规格', icon: 'none' });
-      return;
-    }
-    unitPriceCentsPerJin = String(selectedSku.value.priceCents);
-    perPortionGrams = selectedSku.value.weightGrams ?? 0;
-    skuId = selectedSku.value.skuId;
-    displayName = `${p.name} · ${selectedSku.value.specValue}`;
+    const sku = selectedSku.value!;
+    unitPriceCentsPerJin = String(sku.priceCents);
+    perPortionGrams = sku.weightGrams ?? 0;
+    skuId = sku.skuId;
+    displayName = `${p.name} · ${sku.specValue}`;
   }
 
   const params = new URLSearchParams({
