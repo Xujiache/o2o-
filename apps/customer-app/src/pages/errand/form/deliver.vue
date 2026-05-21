@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 
 import { useErrandFormStore } from '@/stores/errand-form';
+import NavBar from '@/components/common/NavBar.vue';
 
 const store = useErrandFormStore();
 const pickup = ref('');
@@ -38,6 +39,7 @@ function submit(): void {
 
 <template>
   <view class="form">
+    <NavBar title="代送" />
     <view class="form__hero">
       <text class="form__eyebrow">代送跑腿</text>
       <text class="form__title">从一个地点送到另一个地点</text>
@@ -88,7 +90,7 @@ function submit(): void {
   position: relative;
   z-index: 1;
   padding: 40rpx 32rpx 56rpx;
-  background: linear-gradient(135deg, #5b5ff8 0%, #00b8d9 100%);
+  background: var(--brand-gradient);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -132,11 +134,11 @@ function submit(): void {
   display: flex;
   align-items: center;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   margin-bottom: 12rpx;
 }
 .form__required {
-  color: #ff4d4f;
+  color: var(--price-color);
   margin-left: 4rpx;
 }
 .form__input,
@@ -147,7 +149,7 @@ function submit(): void {
   background: #fff;
   border-radius: 16rpx;
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
   box-sizing: border-box;
 }
 .form__textarea {
@@ -162,7 +164,7 @@ function submit(): void {
   background: #fff;
   border-radius: 16rpx;
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
   box-sizing: border-box;
 }
 .form__picker-arrow {
@@ -180,13 +182,13 @@ function submit(): void {
   z-index: 50;
 }
 .form__cta {
-  background: linear-gradient(135deg, #5b5ff8, #00b8d9);
+  background: var(--brand-gradient);
   color: #fff;
   font-size: 30rpx;
   font-weight: 700;
   border-radius: 999rpx;
   padding: 24rpx 0;
-  box-shadow: 0 16rpx 40rpx rgba(91, 95, 248, 0.32);
+  box-shadow: 0 16rpx 40rpx rgba(46, 156, 93, 0.32);
 }
 .form__cta[disabled] {
   opacity: 0.5;

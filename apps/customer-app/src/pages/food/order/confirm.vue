@@ -8,6 +8,7 @@ import { previewOrder, type PreviewVo, submitOrder } from '@/api/food-orders';
 import { useFoodCartStore } from '@/stores/food-cart';
 import { useFoodOrderStore } from '@/stores/food-order';
 import { formatYuan } from '@/utils/format-price';
+import NavBar from '@/components/common/NavBar.vue';
 
 const cart = useFoodCartStore();
 const orderStore = useFoodOrderStore();
@@ -145,6 +146,7 @@ onShow(async () => {
 
 <template>
   <view class="confirm">
+    <NavBar title="确认订单" />
     <!-- 地址卡 -->
     <view class="confirm__addr" @tap="gotoPickAddress">
       <view v-if="addressLoading" class="confirm__addr-loading">加载地址中…</view>
@@ -273,12 +275,12 @@ onShow(async () => {
 
 .confirm__addr {
   position: relative;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   border-radius: 24rpx;
   padding: 32rpx 56rpx 32rpx 32rpx;
   color: #fff;
   margin-bottom: 16rpx;
-  box-shadow: 0 18rpx 40rpx rgba(255, 107, 53, 0.24);
+  box-shadow: 0 18rpx 40rpx rgba(46, 156, 93, 0.24);
 }
 .confirm__addr-loading,
 .confirm__addr-empty {
@@ -332,7 +334,7 @@ onShow(async () => {
 .confirm__card-h {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
   margin-bottom: 16rpx;
 }
 .confirm__line {
@@ -348,19 +350,19 @@ onShow(async () => {
 }
 .confirm__line-name {
   flex: 1;
-  color: #172033;
+  color: var(--text-primary);
 }
 .confirm__line-spec {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 22rpx;
   margin-left: 8rpx;
 }
 .confirm__line-qty {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 24rpx;
 }
 .confirm__line-sub {
-  color: #ff4d4f;
+  color: var(--price-color);
   font-size: 26rpx;
   font-weight: 600;
 }
@@ -376,17 +378,17 @@ onShow(async () => {
 }
 .confirm__row-label {
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .confirm__row-value {
   font-size: 26rpx;
-  color: #172033;
+  color: var(--text-primary);
 }
 .confirm__row--mute .confirm__row-value {
   color: #c5c9d2;
 }
 .confirm__row-value--accent {
-  color: #ff7a45;
+  color: var(--brand-primary);
   font-weight: 600;
   max-width: 60%;
   text-align: right;
@@ -399,7 +401,7 @@ onShow(async () => {
   display: flex;
   justify-content: space-between;
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   padding: 8rpx 0;
 }
 .confirm__amt--total {
@@ -408,20 +410,20 @@ onShow(async () => {
   border-top: 1rpx solid rgba(31, 41, 55, 0.06);
   font-size: 30rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .confirm__amt-pay {
-  color: #ff4d4f;
+  color: var(--price-color);
   font-size: 36rpx;
 }
 .confirm__hint {
   text-align: center;
   padding: 24rpx 0;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 26rpx;
 }
 .confirm__hint--err {
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 
 .confirm__channels {
@@ -439,16 +441,16 @@ onShow(async () => {
   border-radius: 16rpx;
   background: #fff;
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   border: 2rpx solid transparent;
 }
 .confirm__channel-icon {
   font-size: 30rpx;
 }
 .confirm__channel--active {
-  border-color: #ff7a45;
-  background: rgba(255, 122, 69, 0.08);
-  color: #ff6b35;
+  border-color: var(--brand-primary);
+  background: rgba(46, 156, 93, 0.08);
+  color: var(--brand-primary);
   font-weight: 600;
 }
 
@@ -471,15 +473,15 @@ onShow(async () => {
 }
 .confirm__bottom-label {
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .confirm__bottom-pay {
   font-size: 38rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-weight: 700;
 }
 .confirm__bottom-btn {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   border-radius: 999rpx;
   padding: 0 56rpx;

@@ -114,9 +114,9 @@ function renderMap(): void {
     const isFirst = i === 0;
     const m = L.circleMarker([lat, lng], {
       radius: 6,
-      color: isFirst ? '#22c55e' : '#3b82f6',
+      color: isFirst ? '#22c55e' : '#2e9c5d',
       weight: 2,
-      fillColor: isFirst ? '#22c55e' : '#3b82f6',
+      fillColor: isFirst ? '#22c55e' : '#2e9c5d',
       fillOpacity: 0.6,
     })
       .bindTooltip(`#${i + 1} (${lng.toFixed(5)}, ${lat.toFixed(5)})`, { permanent: false })
@@ -128,17 +128,17 @@ function renderMap(): void {
   if (latlngs.value.length >= 3) {
     const closed = [...latlngs.value.map(([lng, lat]) => [lat, lng] as L.LatLngTuple)];
     polygonLayer = L.polygon(closed, {
-      color: '#3b82f6',
+      color: '#2e9c5d',
       weight: 3,
       opacity: 0.9,
-      fillColor: '#3b82f6',
+      fillColor: '#2e9c5d',
       fillOpacity: 0.18,
     }).addTo(map);
     map.fitBounds(polygonLayer.getBounds(), { padding: [40, 40], maxZoom: 14 });
   } else if (latlngs.value.length === 2) {
     previewLine = L.polyline(
       latlngs.value.map(([lng, lat]) => [lat, lng] as L.LatLngTuple),
-      { color: '#3b82f6', weight: 2, dashArray: '6 6' },
+      { color: '#2e9c5d', weight: 2, dashArray: '6 6' },
     ).addTo(map);
   }
 }

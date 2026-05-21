@@ -88,7 +88,7 @@ const accent = computed<string>(() => `var(--accent-${props.tone ?? 'brand'})`);
   color: var(--fg-muted);
 }
 .stat-card[data-tone='brand'] {
-  --accent-brand: #3b82f6;
+  --accent-brand: #2e9c5d;
 }
 .stat-card[data-tone='success'] {
   --accent-success: #22c55e;

@@ -91,11 +91,11 @@ onShow(() => void loadData());
 .list__tab {
   padding: 12rpx 32rpx;
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   border-radius: 999rpx;
 }
 .list__tab--active {
-  background: #2e9c5d;
+  background: var(--brand-primary);
   color: #fff;
   font-weight: 700;
 }
@@ -130,13 +130,13 @@ onShow(() => void loadData());
   font-weight: 700;
 }
 .list__card-status--warn {
-  color: #ff8a00;
+  color: var(--brand-primary);
 }
 .list__card-status--ok {
-  color: #2e9c5d;
+  color: var(--brand-primary);
 }
 .list__card-status--err {
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 .list__card-status--info {
   color: #2563eb;
@@ -148,12 +148,12 @@ onShow(() => void loadData());
 }
 .list__card-item-name {
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-weight: 700;
 }
 .list__card-item-portion {
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .list__card-foot {
   margin-top: 16rpx;
@@ -170,13 +170,13 @@ onShow(() => void loadData());
 .list__card-foot-val {
   font-size: 32rpx;
   font-weight: 800;
-  color: #ff4d4f;
+  color: var(--price-color);
   margin-left: 8rpx;
 }
 .list__card-pickup {
   padding: 6rpx 16rpx;
   background: #ecfdf5;
-  color: #2e9c5d;
+  color: var(--brand-primary);
   font-size: 24rpx;
   font-weight: 700;
   border-radius: 999rpx;

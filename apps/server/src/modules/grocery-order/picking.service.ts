@@ -71,15 +71,9 @@ export class PickingService {
   async weighItem(
     orderId: string,
     itemId: string,
-    finalWeightGrams: number,
+    finalWeightGrams: number | undefined,
     boundQrcodeIds?: string[],
   ): Promise<{ itemId: string; finalLineCents: string; allWeighed: boolean }> {
-    if (!Number.isInteger(finalWeightGrams) || finalWeightGrams <= 0) {
-      throw new UnprocessableEntityException({
-        code: ErrorCode.INVALID_PARAM,
-        message: 'finalWeightGrams must be positive integer',
-      });
-    }
     const order = await this.orderRepo.findOne({ where: { orderId } });
     if (!order) throw new NotFoundException('order not found');
     if (order.status !== 'picking') {
@@ -90,17 +84,21 @@ export class PickingService {
     }
     const item = await this.itemRepo.findOne({ where: { itemId, orderId } });
     if (!item) throw new NotFoundException('item not found');
-    if (item.isWeighted === 0) {
-      throw new UnprocessableEntityException({
-        code: ErrorCode.STATUS_INVALID,
-        message: '该项为 SKU/按件商品,无需称重(已自动结算)',
-      });
-    }
 
-    const finalLineCents = (BigInt(item.unitPriceCentsPerJin) * BigInt(finalWeightGrams)) / 500n;
     const now = String(Date.now());
-    item.finalWeightGrams = finalWeightGrams;
-    item.finalLineCents = finalLineCents.toString();
+    if (item.isWeighted === 1) {
+      if (!Number.isInteger(finalWeightGrams) || (finalWeightGrams as number) <= 0) {
+        throw new UnprocessableEntityException({
+          code: ErrorCode.INVALID_PARAM,
+          message: 'finalWeightGrams must be positive integer for weighted item',
+        });
+      }
+      const w = finalWeightGrams as number;
+      const finalLineCents = (BigInt(item.unitPriceCentsPerJin) * BigInt(w)) / 500n;
+      item.finalWeightGrams = w;
+      item.finalLineCents = finalLineCents.toString();
+    }
+    // SKU/按件 商品的 finalLineCents 已在 startPicking 自动结算,此处仅维护 boundQrcodeIds。
     if (boundQrcodeIds && boundQrcodeIds.length > 0) {
       item.boundQrcodeIds = boundQrcodeIds;
     }
@@ -110,7 +108,7 @@ export class PickingService {
     const allItems = await this.itemRepo.find({ where: { orderId } });
     const allWeighed = allItems.every((it) => it.finalWeightGrams !== null && it.finalWeightGrams !== undefined);
 
-    return { itemId: item.itemId, finalLineCents: item.finalLineCents, allWeighed };
+    return { itemId: item.itemId, finalLineCents: item.finalLineCents ?? '0', allWeighed };
   }
 
   async settle(orderId: string): Promise<{

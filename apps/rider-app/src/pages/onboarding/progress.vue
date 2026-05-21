@@ -74,8 +74,8 @@ function gotoWorkbench(): void {
   padding: 34rpx;
   border-radius: 34rpx;
   color: #fff;
-  background: linear-gradient(135deg, #0f766e, #14b8a6);
-  box-shadow: 0 24rpx 64rpx rgba(20, 184, 166, 0.26);
+  background: var(--brand-gradient-reverse);
+  box-shadow: 0 24rpx 64rpx rgba(46, 156, 93, 0.26);
 }
 .progress__title {
   display: block;
@@ -116,21 +116,21 @@ function gotoWorkbench(): void {
   color: #52c41a;
 }
 .progress__status--rejected {
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 .progress__status--pending {
   color: #faad14;
 }
 .progress__alert {
   background: #fff1f0;
-  color: #ff4d4f;
+  color: var(--price-color);
   padding: 16rpx;
   border-radius: 8rpx;
   font-size: 24rpx;
 }
 .progress__btn {
   margin-top: 32rpx;
-  background: linear-gradient(135deg, #14b8a6, #0f766e);
+  background: var(--brand-gradient);
   color: #fff;
   border-radius: 999rpx;
   font-weight: 700;

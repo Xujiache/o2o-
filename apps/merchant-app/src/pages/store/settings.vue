@@ -1,7 +1,8 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 
 import { getStore, setBusinessStatus, updateStoreSettings, uploadFile, type StoreVo } from '@/api';
+import NavBar from '@/components/common/NavBar.vue';
 import SvgIcon from '@/components/common/SvgIcon.vue';
 
 const store = ref<StoreVo | null>(null);
@@ -145,6 +146,7 @@ function gotoDelivery(): void {
 
 <template>
   <view class="settings">
+    <NavBar title="店铺设置" />
     <view v-if="loading" class="settings__loading">加载中...</view>
 
     <template v-else-if="store">
@@ -211,7 +213,7 @@ function gotoDelivery(): void {
           </view>
         </view>
         <view class="settings__row" @tap="gotoDelivery">
-          <view class="settings__row-icon"><SvgIcon name="motorcycle" :size="32" color="#b7791f" /></view>
+          <view class="settings__row-icon"><SvgIcon name="motorcycle" :size="32" color="#2e9c5d" /></view>
           <view class="settings__row-main">
             <text class="settings__row-label">配送范围</text>
             <text class="settings__row-desc">设置外送区域多边形</text>
@@ -254,7 +256,7 @@ function gotoDelivery(): void {
 .settings__loading {
   text-align: center;
   padding: 160rpx 0;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 26rpx;
 }
 
@@ -277,7 +279,7 @@ function gotoDelivery(): void {
 .settings__hero-fallback {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #1f2937, #b7791f);
+  background: var(--brand-gradient);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -370,7 +372,7 @@ function gotoDelivery(): void {
   display: block;
   padding: 0 8rpx 14rpx;
   font-size: 24rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-weight: 600;
   letter-spacing: 1rpx;
 }
@@ -391,11 +393,11 @@ function gotoDelivery(): void {
   display: flex;
   align-items: center;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   margin-bottom: 12rpx;
 }
 .settings__req {
-  color: #ff4d4f;
+  color: var(--price-color);
   margin-left: 4rpx;
 }
 .settings__hint {
@@ -411,7 +413,7 @@ function gotoDelivery(): void {
   background: #f7f8fa;
   border-radius: 16rpx;
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
   box-sizing: border-box;
 }
 .settings__textarea {
@@ -433,7 +435,7 @@ function gotoDelivery(): void {
   width: 64rpx;
   height: 64rpx;
   border-radius: 16rpx;
-  background: linear-gradient(135deg, rgba(91, 95, 248, 0.12), rgba(0, 184, 217, 0.12));
+  background: var(--brand-gradient-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -448,11 +450,11 @@ function gotoDelivery(): void {
 .settings__row-label {
   font-size: 28rpx;
   font-weight: 600;
-  color: #172033;
+  color: var(--text-primary);
 }
 .settings__row-desc {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .settings__row-arrow {
   color: #c5c9d2;
@@ -472,7 +474,7 @@ function gotoDelivery(): void {
 }
 .settings__msg--err {
   background: rgba(255, 77, 79, 0.1);
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 
 /* 底部固定保存按钮 */
@@ -487,13 +489,13 @@ function gotoDelivery(): void {
   z-index: 50;
 }
 .settings__cta {
-  background: linear-gradient(135deg, #1f2937, #b7791f);
+  background: var(--brand-gradient);
   color: #fff;
   font-size: 30rpx;
   font-weight: 700;
   border-radius: 999rpx;
   padding: 24rpx 0;
-  box-shadow: 0 16rpx 36rpx rgba(183, 121, 31, 0.32);
+  box-shadow: 0 16rpx 36rpx rgba(46, 156, 93, 0.32);
 }
 .settings__cta[disabled] {
   opacity: 0.6;

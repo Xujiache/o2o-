@@ -86,7 +86,7 @@ onLoad((options) => {
   border-radius: 8rpx;
 }
 .e__seg text.on {
-  background: #ff4d4f;
+  background: var(--price-color);
   color: #fff;
 }
 .e textarea {
@@ -99,12 +99,12 @@ onLoad((options) => {
 }
 .e__error {
   display: block;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-size: 24rpx;
   margin-bottom: 16rpx;
 }
 .e__warn {
-  background: #ff4d4f;
+  background: var(--price-color);
   color: #fff;
 }
 </style>

@@ -3,6 +3,7 @@ import { onShow } from '@dcloudio/uni-app';
 import { computed, onMounted, ref } from 'vue';
 
 import { getAddresses, upsertAddress, type AddressItemVo } from '@/api';
+import NavBar from '@/components/common/NavBar.vue';
 
 const addressId = ref<string | undefined>(undefined);
 const receiverName = ref('');
@@ -148,6 +149,7 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <view class="addr-edit">
+    <NavBar title="编辑地址" />
     <view class="addr-edit__title">{{ addressId ? '编辑地址' : '新增地址' }}</view>
 
     <text class="addr-edit__label">收件人</text>
@@ -231,7 +233,7 @@ async function onSubmit(): Promise<void> {
   background: #c5d4ff;
 }
 .addr-edit__error {
-  color: #ff4d4f;
+  color: var(--price-color);
   font-size: 26rpx;
 }
 </style>

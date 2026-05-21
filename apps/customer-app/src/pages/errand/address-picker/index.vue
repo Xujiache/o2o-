@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 
 import SvgIcon from '@/components/common/SvgIcon.vue';
+import NavBar from '@/components/common/NavBar.vue';
 
 const address = ref('');
 
@@ -23,6 +24,7 @@ function confirm(): void {
 
 <template>
   <view class="picker">
+    <NavBar title="选择地址" />
     <view class="picker__hero">
       <text class="picker__eyebrow">选择地址</text>
       <text class="picker__title">输入详细地址</text>
@@ -56,7 +58,7 @@ function confirm(): void {
   position: relative;
   z-index: 1;
   padding: 40rpx 32rpx 56rpx;
-  background: linear-gradient(135deg, #5b5ff8 0%, #00b8d9 100%);
+  background: var(--brand-gradient);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -92,11 +94,11 @@ function confirm(): void {
   display: flex;
   align-items: center;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   margin-bottom: 12rpx;
 }
 .picker__required {
-  color: #ff4d4f;
+  color: var(--price-color);
   margin-left: 4rpx;
 }
 .picker__input {
@@ -106,14 +108,14 @@ function confirm(): void {
   background: #fff;
   border-radius: 16rpx;
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
   box-sizing: border-box;
 }
 
 .picker__hint {
   margin: 24rpx;
   padding: 20rpx 24rpx;
-  background: rgba(91, 95, 248, 0.06);
+  background: rgba(46, 156, 93, 0.06);
   border-radius: 16rpx;
   display: flex;
   align-items: center;
@@ -124,7 +126,7 @@ function confirm(): void {
 }
 .picker__hint-text {
   font-size: 22rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   flex: 1;
   line-height: 1.5;
 }
@@ -140,12 +142,12 @@ function confirm(): void {
   z-index: 50;
 }
 .picker__cta {
-  background: linear-gradient(135deg, #5b5ff8, #00b8d9);
+  background: var(--brand-gradient);
   color: #fff;
   font-size: 30rpx;
   font-weight: 700;
   border-radius: 999rpx;
   padding: 24rpx 0;
-  box-shadow: 0 16rpx 40rpx rgba(91, 95, 248, 0.32);
+  box-shadow: 0 16rpx 40rpx rgba(46, 156, 93, 0.32);
 }
 </style>

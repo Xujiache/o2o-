@@ -44,7 +44,7 @@ function close(): void {
       <view class="modal__row">订单 {{ bizOrderId }}</view>
       <view class="modal__btns">
         <button @tap="close">忽略</button>
-        <button type="primary" :loading="submitting" @tap="snatch(dispatchTaskId)">抢单</button>
+        <button class="modal__btn--primary" :loading="submitting" @tap="snatch(dispatchTaskId)">抢单</button>
       </view>
     </view>
   </view>
@@ -80,5 +80,9 @@ function close(): void {
 }
 .modal__btns button {
   flex: 1;
+}
+.modal__btn--primary {
+  background: var(--brand-primary);
+  color: #fff;
 }
 </style>

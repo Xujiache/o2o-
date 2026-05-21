@@ -24,12 +24,17 @@ describe('WxLoginMockAdapter', () => {
 });
 
 describe('WxLoginRealAdapter', () => {
-  it('凭证缺失时构造抛错', () => {
-    expect(() => new WxLoginRealAdapter({ appId: '', appSecret: '' })).toThrow(/credentials missing/);
+  it('凭证缺失 → MISCONFIGURED: WECHAT_MP_APP_ID', () => {
+    expect(() => new WxLoginRealAdapter({ appId: '', appSecret: '' })).toThrow(/MISCONFIGURED: WECHAT_MP_APP_ID/);
   });
 
-  it('真实凭证占位时调 jscode2session 抛 not configured', async () => {
-    const adapter = new WxLoginRealAdapter({ appId: 'wx-app', appSecret: 'wx-secret' });
-    await expect(adapter.jscode2session('any-js-code')).rejects.toThrow(/not configured/);
+  it('缺 secret → MISCONFIGURED: WECHAT_MP_APP_SECRET', () => {
+    expect(() => new WxLoginRealAdapter({ appId: 'wx-app', appSecret: '' })).toThrow(
+      /MISCONFIGURED: WECHAT_MP_APP_SECRET/,
+    );
+  });
+
+  it('凭证齐全可以构造(HTTP 调用不在单测范围)', () => {
+    expect(() => new WxLoginRealAdapter({ appId: 'wx-app', appSecret: 'wx-secret' })).not.toThrow();
   });
 });

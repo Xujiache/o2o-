@@ -11,6 +11,7 @@ import {
   PaymentOrder,
   Product,
   ProductSku,
+  RefundOrder,
   StockLock,
   Store,
 } from '../../database/entities';
@@ -34,6 +35,7 @@ import { FoodOrderService } from './food-order.service';
       OrderTimeline,
       OrderReview,
       PaymentOrder,
+      RefundOrder,
     ]),
     EventsModule,
     CouponModule,

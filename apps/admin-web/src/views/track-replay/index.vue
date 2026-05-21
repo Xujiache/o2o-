@@ -153,7 +153,7 @@ function renderPolyline(): void {
   if (!latlngs.length) return;
 
   polyline = L.polyline(latlngs, {
-    color: '#2563eb',
+    color: '#2e9c5d',
     weight: 4,
     opacity: 0.9,
     lineCap: 'round',

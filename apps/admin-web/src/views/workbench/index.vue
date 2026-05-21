@@ -463,7 +463,7 @@ onMounted(load);
   position: absolute;
   width: 380px;
   height: 380px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.18), transparent 65%);
+  background: radial-gradient(circle, rgba(46, 156, 93, 0.18), transparent 65%);
   top: -120px;
   right: -80px;
   filter: blur(20px);
@@ -569,7 +569,7 @@ onMounted(load);
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(46, 156, 93, 0.12);
   color: var(--brand-500);
   display: grid;
   place-items: center;
@@ -675,7 +675,7 @@ onMounted(load);
   font-size: 16px;
 }
 .shortcut[data-tone='brand'] .shortcut__icon {
-  background: rgba(59, 130, 246, 0.16);
+  background: rgba(46, 156, 93, 0.16);
   color: var(--brand-500);
 }
 .shortcut[data-tone='info'] .shortcut__icon {

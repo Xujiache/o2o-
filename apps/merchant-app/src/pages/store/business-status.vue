@@ -1,7 +1,8 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { onMounted, ref } from 'vue';
 
 import { getStore, setBusinessStatus, type StoreVo } from '@/api';
+import NavBar from '@/components/common/NavBar.vue';
 
 const store = ref<StoreVo | null>(null);
 const submitting = ref(false);
@@ -34,6 +35,7 @@ async function toggle(target: 'online' | 'offline'): Promise<void> {
 
 <template>
   <view class="bs">
+    <NavBar title="营业开关" />
     <view class="bs__title">营业开关</view>
     <view v-if="store" class="bs__panel">
       <text class="bs__current">当前状态:{{ store.businessStatus }}</text>
@@ -77,10 +79,10 @@ async function toggle(target: 'online' | 'offline'): Promise<void> {
 .bs__alert {
   display: block;
   margin-top: 32rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-size: 24rpx;
 }
 .bs__error {
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 </style>

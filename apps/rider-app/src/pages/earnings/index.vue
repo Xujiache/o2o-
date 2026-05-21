@@ -55,8 +55,8 @@ onShow(() => uni.hideTabBar({ animation: false }));
   padding: 34rpx;
   border-radius: 34rpx;
   color: #fff;
-  background: linear-gradient(135deg, #0f766e, #14b8a6);
-  box-shadow: 0 24rpx 64rpx rgba(20, 184, 166, 0.26);
+  background: var(--brand-gradient-reverse);
+  box-shadow: 0 24rpx 64rpx rgba(46, 156, 93, 0.26);
 }
 .ec__title {
   display: block;

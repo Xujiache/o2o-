@@ -37,7 +37,7 @@ function retry(): void {
 }
 .page__btn {
   width: 60%;
-  background: #4c84ff;
+  background: var(--brand-primary);
   color: #fff;
   border-radius: 12rpx;
 }

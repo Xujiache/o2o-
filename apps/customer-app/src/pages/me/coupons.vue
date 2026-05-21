@@ -11,6 +11,7 @@ import {
   listMyCoupons,
 } from '@/api/coupons';
 import { formatYuan } from '@/utils/format-price';
+import NavBar from '@/components/common/NavBar.vue';
 
 type Mode = 'my' | 'available';
 type MyTab = 'all' | UserCouponStatus;
@@ -115,6 +116,7 @@ onMounted(() => {
 
 <template>
   <view class="cp">
+    <NavBar title="我的优惠券" />
     <!-- 顶部 segment -->
     <view class="cp__segment">
       <view class="cp__segment-item" :class="{ 'cp__segment-item--active': mode === 'my' }" @tap="setMode('my')">
@@ -142,7 +144,9 @@ onMounted(() => {
           @tap="setMyTab(t.key)"
         >
           <text class="cp__chip-label">{{ t.label }}</text>
-          <text v-if="myTab === t.key && t.key !== 'all'" class="cp__chip-x" @tap.stop="setMyTab('all')">✕</text>
+          <view v-if="myTab === t.key && t.key !== 'all'" class="cp__chip-x" @tap.stop="setMyTab('all')">
+            <SvgIcon name="x" :size="24" />
+          </view>
         </view>
       </view>
 
@@ -239,7 +243,7 @@ onMounted(() => {
 .cp__segment-label {
   font-size: 34rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
 }
 .cp__segment-indicator {
   position: absolute;
@@ -249,8 +253,8 @@ onMounted(() => {
   width: 48rpx;
   height: 6rpx;
   border-radius: 999rpx;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
-  box-shadow: 0 4rpx 10rpx rgba(255, 122, 69, 0.36);
+  background: var(--brand-gradient);
+  box-shadow: 0 4rpx 10rpx rgba(46, 156, 93, 0.36);
 }
 
 /* chips */
@@ -270,7 +274,7 @@ onMounted(() => {
   border-radius: 999rpx;
   background: #fff;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   box-shadow: 0 4rpx 12rpx rgba(31, 41, 55, 0.04);
 }
 .cp__chip-label {
@@ -284,8 +288,8 @@ onMounted(() => {
 }
 .cp__chip--active {
   color: #fff;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
-  box-shadow: 0 8rpx 18rpx rgba(255, 122, 69, 0.3);
+  background: var(--brand-gradient);
+  box-shadow: 0 8rpx 18rpx rgba(46, 156, 93, 0.3);
 }
 .cp__chip--active .cp__chip-label {
   font-weight: 700;
@@ -295,7 +299,7 @@ onMounted(() => {
 .cp__msg {
   padding: 120rpx 24rpx;
   text-align: center;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 26rpx;
   display: flex;
   flex-direction: column;
@@ -304,11 +308,11 @@ onMounted(() => {
 }
 .cp__msg-text {
   font-size: 28rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .cp__msg-hint {
   font-size: 24rpx;
-  color: #ff7a45;
+  color: var(--brand-primary);
   margin-top: 8rpx;
 }
 
@@ -339,7 +343,7 @@ onMounted(() => {
   gap: 8rpx;
   padding: 24rpx 12rpx;
   color: #fff;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   position: relative;
 }
 .cp__card-l::after {
@@ -378,7 +382,7 @@ onMounted(() => {
 }
 .cp__card-tag {
   font-size: 20rpx;
-  color: #ff7a45;
+  color: var(--brand-primary);
   background: #fff1e6;
   padding: 2rpx 12rpx;
   border-radius: 6rpx;
@@ -388,14 +392,14 @@ onMounted(() => {
 .cp__card-name {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .cp__card-period {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .cp__card-stock {
   font-size: 22rpx;
@@ -410,11 +414,11 @@ onMounted(() => {
   border-radius: 6rpx;
 }
 .cp__card-badge--ok {
-  color: #ff7a45;
+  color: var(--brand-primary);
   background: #fff1e6;
 }
 .cp__card-badge--mute {
-  color: #8a94a6;
+  color: var(--text-muted);
   background: #f0f3f6;
 }
 
@@ -424,11 +428,11 @@ onMounted(() => {
   margin-right: 24rpx;
   padding: 14rpx 28rpx;
   border-radius: 999rpx;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   font-size: 24rpx;
   font-weight: 700;
-  box-shadow: 0 8rpx 18rpx rgba(255, 122, 69, 0.28);
+  box-shadow: 0 8rpx 18rpx rgba(46, 156, 93, 0.28);
   flex-shrink: 0;
 }
 .cp__claim--disabled {

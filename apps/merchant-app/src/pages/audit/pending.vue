@@ -1,5 +1,7 @@
 <script setup lang="ts">
 /** 商家端审核中页面。 */
+import NavBar from '@/components/common/NavBar.vue';
+
 function back(): void {
   uni.reLaunch({ url: '/pages/launch/index' });
 }
@@ -7,6 +9,7 @@ function back(): void {
 
 <template>
   <view class="page">
+    <NavBar title="审核中" />
     <view class="page__icon">⏳</view>
     <view class="page__title">资质审核中</view>
     <text class="page__desc">您的入驻资料已提交,平台将在 1-2 个工作日完成审核。</text>

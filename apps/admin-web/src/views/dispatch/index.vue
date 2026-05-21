@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// TODO(WS): 订阅 admin:dispatch 替换轮询。W3 已建 ws-gateway
 import { onMounted, reactive, ref } from 'vue';
 
 import { type AdminDispatchItemVo, listDispatchTasks } from '@/api/admin-dispatch';

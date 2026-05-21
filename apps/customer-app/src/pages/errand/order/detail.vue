@@ -7,6 +7,7 @@ import { getErrandTrack, type ErrandTrackVo } from '@/api/errand-track';
 import { useErrandOrderStore } from '@/stores/errand-order';
 import { eventLabel, statusLabel, typeLabel } from '@/utils/errand-status';
 import { formatYuan } from '@/utils/format-price';
+import NavBar from '@/components/common/NavBar.vue';
 
 const store = useErrandOrderStore();
 const detail = ref(store.detail);
@@ -32,9 +33,11 @@ const deliveryPoint = computed(() => {
   const addr = detail.value?.deliveryAddressDetail as { lng?: number; lat?: number } | null | undefined;
   return addr?.lng != null && addr?.lat != null ? { lng: Number(addr.lng), lat: Number(addr.lat) } : null;
 });
-const mapCenter = computed(
-  () => track.value?.riderLocation ?? deliveryPoint.value ?? pickupPoint.value ?? { lng: 116.4, lat: 39.9 },
+/** 优先骑手实时位置 → 收货点 → 取货点;全部缺失则返回 null 以隐藏地图,避免硬编码北京坐标 */
+const mapCenter = computed<{ lng: number; lat: number } | null>(
+  () => track.value?.riderLocation ?? deliveryPoint.value ?? pickupPoint.value ?? null,
 );
+const hasMapCenter = computed<boolean>(() => mapCenter.value != null);
 const mapMarkers = computed(() => {
   const markers = [];
   if (pickupPoint.value) {
@@ -43,7 +46,7 @@ const mapMarkers = computed(() => {
       latitude: pickupPoint.value.lat,
       longitude: pickupPoint.value.lng,
       title: '取货位置',
-      callout: { content: '取货', display: 'ALWAYS', color: '#172033', fontSize: 12 },
+      callout: { content: '取货', display: 'ALWAYS', color: 'var(--text-primary)', fontSize: 12 },
     });
   }
   if (deliveryPoint.value) {
@@ -52,7 +55,7 @@ const mapMarkers = computed(() => {
       latitude: deliveryPoint.value.lat,
       longitude: deliveryPoint.value.lng,
       title: '收货位置',
-      callout: { content: '收货', display: 'ALWAYS', color: '#172033', fontSize: 12 },
+      callout: { content: '收货', display: 'ALWAYS', color: 'var(--text-primary)', fontSize: 12 },
     });
   }
   if (track.value?.riderLocation) {
@@ -61,7 +64,7 @@ const mapMarkers = computed(() => {
       latitude: track.value.riderLocation.lat,
       longitude: track.value.riderLocation.lng,
       title: '骑手实时位置',
-      callout: { content: '骑手', display: 'ALWAYS', color: '#172033', fontSize: 12 },
+      callout: { content: '骑手', display: 'ALWAYS', color: 'var(--text-primary)', fontSize: 12 },
     });
   }
   return markers;
@@ -72,7 +75,7 @@ const mapPolyline = computed(() => {
   return [
     {
       points: points.map((p) => ({ latitude: p.lat, longitude: p.lng })),
-      color: '#5b5ff8',
+      color: 'var(--brand-primary)',
       width: 4,
     },
   ];
@@ -181,6 +184,7 @@ onUnmounted(() => {
 
 <template>
   <view class="detail">
+    <NavBar mode="float" color="#ffffff" />
     <view v-if="!detail" class="detail__loading">加载中...</view>
 
     <template v-else>
@@ -194,6 +198,7 @@ onUnmounted(() => {
       <view class="map-card">
         <view class="card-title">配送地图</view>
         <map
+          v-if="hasMapCenter && mapCenter"
           class="map"
           :latitude="mapCenter.lat"
           :longitude="mapCenter.lng"
@@ -201,6 +206,7 @@ onUnmounted(() => {
           :polyline="mapPolyline"
           :scale="14"
         />
+        <view v-else class="map-card__empty">暂无骑手位置</view>
         <view class="map-card__legend">
           <text>取货位置</text>
           <text>收货位置</text>
@@ -300,7 +306,7 @@ onUnmounted(() => {
 .detail__loading {
   padding: 160rpx 0;
   text-align: center;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .hero {
   display: flex;
@@ -308,9 +314,9 @@ onUnmounted(() => {
   gap: 10rpx;
   padding: 34rpx 30rpx;
   border-radius: 24rpx;
-  background: linear-gradient(135deg, #5b5ff8, #00b8d9);
+  background: var(--brand-gradient);
   color: #fff;
-  box-shadow: 0 18rpx 42rpx rgba(91, 95, 248, 0.22);
+  box-shadow: 0 18rpx 42rpx rgba(46, 156, 93, 0.22);
 }
 .hero__type,
 .hero__order,
@@ -333,7 +339,7 @@ onUnmounted(() => {
 }
 .card-title {
   margin-bottom: 16rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 28rpx;
   font-weight: 800;
 }
@@ -342,6 +348,17 @@ onUnmounted(() => {
   height: 360rpx;
   border-radius: 18rpx;
   overflow: hidden;
+}
+.map-card__empty {
+  width: 100%;
+  height: 360rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18rpx;
+  background: #f5f6f8;
+  color: var(--text-muted);
+  font-size: 26rpx;
 }
 .map-card__legend {
   display: flex;
@@ -353,7 +370,7 @@ onUnmounted(() => {
   padding: 6rpx 14rpx;
   border-radius: 999rpx;
   background: #f5f6f8;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-size: 22rpx;
 }
 .info-row,
@@ -362,20 +379,20 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 22rpx;
   padding: 12rpx 0;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-size: 26rpx;
 }
 .info-row text:last-child,
 .amount-row text:last-child {
   flex: 1;
-  color: #172033;
+  color: var(--text-primary);
   text-align: right;
 }
 .amount-row--total {
   margin-top: 10rpx;
   padding-top: 18rpx;
   border-top: 1rpx solid rgba(31, 41, 55, 0.08);
-  color: #172033;
+  color: var(--text-primary);
   font-size: 32rpx;
   font-weight: 800;
 }
@@ -390,11 +407,11 @@ onUnmounted(() => {
   gap: 8rpx;
 }
 .code-card__label {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 22rpx;
 }
 .code-card__value {
-  color: #172033;
+  color: var(--text-primary);
   font-family: Menlo, Consolas, monospace;
   font-size: 48rpx;
   font-weight: 800;
@@ -414,8 +431,8 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 .timeline__dot--active {
-  background: #5b5ff8;
-  box-shadow: 0 0 0 8rpx rgba(91, 95, 248, 0.14);
+  background: var(--brand-primary);
+  box-shadow: 0 0 0 8rpx rgba(46, 156, 93, 0.14);
 }
 .timeline__main {
   display: flex;
@@ -423,12 +440,12 @@ onUnmounted(() => {
   gap: 4rpx;
 }
 .timeline__title {
-  color: #172033;
+  color: var(--text-primary);
   font-size: 26rpx;
   font-weight: 700;
 }
 .timeline__time {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 22rpx;
 }
 .actions {
@@ -451,10 +468,10 @@ onUnmounted(() => {
 }
 .actions__btn--ghost {
   background: #f5f6f8;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .actions__btn--primary {
-  background: #5b5ff8;
+  background: var(--brand-primary);
   color: #fff;
 }
 </style>

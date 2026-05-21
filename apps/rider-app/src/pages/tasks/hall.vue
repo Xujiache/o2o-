@@ -66,6 +66,7 @@ let pollTimer: ReturnType<typeof setInterval> | null = null;
 
 function startPolling(): void {
   stopPolling();
+  // TODO(WS): 订阅 rider:hall:${cityCode}，替换轮询。W3 已建 ws-gateway，详见 docs/ARCHITECTURE.md
   pollTimer = setInterval(() => {
     if (!loading.value && !accepting.value) void refresh();
   }, POLL_INTERVAL_MS);
@@ -188,8 +189,8 @@ onUnmounted(stopPolling);
   padding: 32rpx 28rpx;
   border-radius: 28rpx;
   color: #fff;
-  background: linear-gradient(135deg, #0f766e, #14b8a6);
-  box-shadow: 0 18rpx 40rpx rgba(20, 184, 166, 0.22);
+  background: var(--brand-gradient-reverse);
+  box-shadow: 0 18rpx 40rpx rgba(46, 156, 93, 0.22);
   margin-bottom: 16rpx;
 }
 .hall__head-main {
@@ -216,7 +217,7 @@ onUnmounted(stopPolling);
 .hall__msg {
   text-align: center;
   padding: 100rpx 0;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 26rpx;
   display: flex;
   flex-direction: column;
@@ -272,7 +273,7 @@ onUnmounted(stopPolling);
   display: block;
   margin-top: 2rpx;
   font-size: 20rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-weight: 600;
 }
 .hall__card-head {
@@ -292,7 +293,7 @@ onUnmounted(stopPolling);
   background: linear-gradient(135deg, #ff7a45, #ffb020);
 }
 .hall__badge--errand {
-  background: linear-gradient(135deg, #4776e6, #8e54e9);
+  background: var(--brand-gradient-reverse);
 }
 .hall__amount {
   flex: 1;
@@ -302,7 +303,7 @@ onUnmounted(stopPolling);
 }
 .hall__distance {
   font-size: 24rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   background: #f5f6f8;
   padding: 4rpx 14rpx;
   border-radius: 999rpx;
@@ -327,11 +328,11 @@ onUnmounted(stopPolling);
   flex-shrink: 0;
 }
 .hall__dot--pickup {
-  background: #14b8a6;
-  box-shadow: 0 0 0 1rpx #14b8a6;
+  background: var(--brand-primary-light);
+  box-shadow: 0 0 0 1rpx #5fbe7d;
 }
 .hall__dot--delivery {
-  background: #ff4d4f;
+  background: var(--price-color);
   box-shadow: 0 0 0 1rpx #ff4d4f;
 }
 .hall__route-line {
@@ -349,11 +350,11 @@ onUnmounted(stopPolling);
 }
 .hall__route-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .hall__route-text {
   font-size: 26rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -372,13 +373,13 @@ onUnmounted(stopPolling);
   color: #ff6b35;
 }
 .hall__accept {
-  background: linear-gradient(135deg, #14b8a6, #0f766e);
+  background: var(--brand-gradient);
   color: #fff;
   padding: 14rpx 36rpx;
   border-radius: 999rpx;
   font-size: 26rpx;
   font-weight: 700;
-  box-shadow: 0 12rpx 24rpx rgba(20, 184, 166, 0.32);
+  box-shadow: 0 12rpx 24rpx rgba(46, 156, 93, 0.32);
 }
 .hall__accept--loading {
   opacity: 0.7;

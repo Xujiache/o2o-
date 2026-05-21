@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, ref } from 'vue';
 
 import { createPromotion } from '@/api';
@@ -148,6 +148,6 @@ async function onSubmit(): Promise<void> {
   color: #52c41a;
 }
 .pe__error {
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 </style>

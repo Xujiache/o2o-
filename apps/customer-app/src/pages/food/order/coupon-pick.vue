@@ -6,6 +6,7 @@ import SvgIcon from '@/components/common/SvgIcon.vue';
 import { listMyCoupons, type MyCouponItem } from '@/api/coupons';
 import { useFoodOrderStore } from '@/stores/food-order';
 import { formatYuan } from '@/utils/format-price';
+import NavBar from '@/components/common/NavBar.vue';
 
 interface DecoratedCoupon extends MyCouponItem {
   usable: boolean;
@@ -101,10 +102,13 @@ onLoad((options) => {
 
 <template>
   <view class="cp">
+    <NavBar title="选择优惠券" />
     <!-- 不使用券选项 -->
     <view class="cp__none" @tap="dontUse">
       <text>不使用优惠券</text>
-      <text v-if="!currentCouponId" class="cp__none-mark">✓</text>
+      <view v-if="!currentCouponId" class="cp__none-mark">
+        <SvgIcon name="check" :size="28" />
+      </view>
     </view>
 
     <view v-if="loading" class="cp__msg">加载中…</view>
@@ -181,11 +185,11 @@ onLoad((options) => {
   border-radius: 20rpx;
   margin-bottom: 16rpx;
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
   box-shadow: 0 6rpx 18rpx rgba(31, 41, 55, 0.04);
 }
 .cp__none-mark {
-  color: #ff7a45;
+  color: var(--brand-primary);
   font-size: 32rpx;
   font-weight: 700;
 }
@@ -193,7 +197,7 @@ onLoad((options) => {
 .cp__msg {
   padding: 120rpx 24rpx;
   text-align: center;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 26rpx;
   display: flex;
   flex-direction: column;
@@ -202,17 +206,17 @@ onLoad((options) => {
 }
 .cp__msg-text {
   font-size: 28rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .cp__msg-btn {
   padding: 16rpx 36rpx;
   border-radius: 999rpx;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   font-size: 26rpx;
   font-weight: 700;
   margin-top: 8rpx;
-  box-shadow: 0 10rpx 20rpx rgba(255, 122, 69, 0.28);
+  box-shadow: 0 10rpx 20rpx rgba(46, 156, 93, 0.28);
 }
 
 .cp__section {
@@ -221,7 +225,7 @@ onLoad((options) => {
 .cp__section-h {
   display: block;
   font-size: 24rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   padding: 12rpx 4rpx;
 }
 
@@ -236,7 +240,7 @@ onLoad((options) => {
   position: relative;
 }
 .cp__card--current {
-  outline: 2rpx solid #ff7a45;
+  outline: 2rpx solid var(--brand-primary);
   outline-offset: -2rpx;
 }
 .cp__card--mute {
@@ -253,7 +257,7 @@ onLoad((options) => {
   gap: 8rpx;
   padding: 22rpx 12rpx;
   color: #fff;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   position: relative;
 }
 .cp__card-l::after {
@@ -268,7 +272,7 @@ onLoad((options) => {
   background-repeat: repeat-y;
 }
 .cp__card--mute .cp__card-l {
-  background: linear-gradient(135deg, #b0b6bf, #8a94a6);
+  background: linear-gradient(135deg, #b0b6bf, var(--text-muted));
 }
 .cp__card-amt {
   font-size: 44rpx;
@@ -294,7 +298,7 @@ onLoad((options) => {
 }
 .cp__card-tag {
   font-size: 20rpx;
-  color: #ff7a45;
+  color: var(--brand-primary);
   background: #fff1e6;
   padding: 2rpx 12rpx;
   border-radius: 6rpx;
@@ -302,20 +306,20 @@ onLoad((options) => {
   flex-shrink: 0;
 }
 .cp__card--mute .cp__card-tag {
-  color: #8a94a6;
+  color: var(--text-muted);
   background: #eef0f3;
 }
 .cp__card-name {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .cp__card-period {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .cp__card-reason {
   font-size: 22rpx;
@@ -326,7 +330,7 @@ onLoad((options) => {
   top: 14rpx;
   right: 20rpx;
   font-size: 20rpx;
-  color: #ff7a45;
+  color: var(--brand-primary);
   background: #fff1e6;
   padding: 4rpx 12rpx;
   border-radius: 6rpx;

@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 
 import SvgIcon from '@/components/common/SvgIcon.vue';
+import NavBar from '@/components/common/NavBar.vue';
 
 const status = ref<'idle' | 'requesting' | 'granted' | 'denied'>('idle');
 
@@ -23,7 +24,8 @@ async function request(): Promise<void> {
 
 <template>
   <view class="page">
-    <view class="page__icon"><SvgIcon name="location-pin" :size="80" color="#ff6b35" /></view>
+    <NavBar title="定位授权" />
+    <view class="page__icon"><SvgIcon name="location-pin" :size="80" color="var(--brand-primary)" /></view>
     <view class="page__title">开启同城定位</view>
     <text class="page__desc">用于显示附近的商家与配送范围。本端不保存原始坐标,仅用于业务展示。</text>
     <button class="page__btn" :loading="status === 'requesting'" @click="request">允许定位</button>
@@ -61,7 +63,7 @@ async function request(): Promise<void> {
 }
 .page__btn {
   width: 80%;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   border-radius: 999rpx;
   font-weight: 700;

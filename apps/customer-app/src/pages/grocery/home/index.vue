@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SvgIcon from '@/components/common/SvgIcon.vue';
 /**
  * GR-2 生鲜商城首页(平台自营 · 按斤计价 · 全自提 · 一鸡一码可溯源)
  */
@@ -19,31 +20,31 @@ const products = ref<GroceryProductVo[]>([]);
 const selectedCat = ref<string>('');
 
 const categoryIcon = (name: string): string => {
-  if (name.includes('禽') || name.includes('肉') || name.includes('蛋')) return '🐔';
-  if (name.includes('菜') || name.includes('蔬')) return '🥬';
-  if (name.includes('果')) return '🍎';
-  if (name.includes('海') || name.includes('鱼') || name.includes('虾')) return '🐟';
-  if (name.includes('米') || name.includes('粮') || name.includes('面')) return '🌾';
-  return '🛒';
+  if (name.includes('禽') || name.includes('肉') || name.includes('蛋')) return 'drumstick';
+  if (name.includes('菜') || name.includes('蔬')) return 'salad';
+  if (name.includes('果')) return 'apple';
+  if (name.includes('海') || name.includes('鱼') || name.includes('虾')) return 'soup';
+  if (name.includes('米') || name.includes('粮') || name.includes('面')) return 'croissant';
+  return 'shopping-cart';
 };
 
 const productEmoji = (name: string): string => {
-  if (name.includes('鸡')) return '🐔';
-  if (name.includes('鸭')) return '🦆';
-  if (name.includes('鱼') || name.includes('海') || name.includes('虾')) return '🐟';
-  if (name.includes('蛋')) return '🥚';
-  if (name.includes('青菜') || name.includes('白菜') || name.includes('菠菜')) return '🥬';
-  if (name.includes('土豆')) return '🥔';
-  if (name.includes('番茄') || name.includes('西红柿')) return '🍅';
-  if (name.includes('萝卜')) return '🥕';
-  if (name.includes('黄瓜')) return '🥒';
-  if (name.includes('玉米')) return '🌽';
-  if (name.includes('豆')) return '🫘';
-  if (name.includes('菇') || name.includes('蘑')) return '🍄';
-  if (name.includes('苹果')) return '🍎';
-  if (name.includes('橙') || name.includes('橘')) return '🍊';
-  if (name.includes('葡萄')) return '🍇';
-  return '🛒';
+  if (name.includes('鸡')) return 'drumstick';
+  if (name.includes('鸭')) return 'drumstick';
+  if (name.includes('鱼') || name.includes('海') || name.includes('虾')) return 'soup';
+  if (name.includes('蛋')) return 'croissant';
+  if (name.includes('青菜') || name.includes('白菜') || name.includes('菠菜')) return 'salad';
+  if (name.includes('土豆')) return 'salad';
+  if (name.includes('番茄') || name.includes('西红柿')) return 'apple';
+  if (name.includes('萝卜')) return 'salad';
+  if (name.includes('黄瓜')) return 'salad';
+  if (name.includes('玉米')) return 'croissant';
+  if (name.includes('豆')) return 'salad';
+  if (name.includes('菇') || name.includes('蘑')) return 'salad';
+  if (name.includes('苹果')) return 'apple';
+  if (name.includes('橙') || name.includes('橘')) return 'apple';
+  if (name.includes('葡萄')) return 'apple';
+  return 'shopping-cart';
 };
 
 const featuredProducts = computed<GroceryProductVo[]>(() =>
@@ -110,13 +111,15 @@ onShow(() => void loadData());
         <view class="home__hero-glow home__hero-glow--2" />
       </view>
       <view class="home__hero-top">
-        <text class="home__hero-eyebrow">🌱 平台自营生鲜</text>
+        <view class="home__hero-eyebrow" style="display: flex; align-items: center; gap: 8rpx"
+          ><SvgIcon name="salad" :size="32" /><text>平台自营生鲜</text></view
+        >
         <text class="home__hero-title">新鲜直达 · 一鸡一码</text>
         <text class="home__hero-sub">按斤计价 · 多退少补 · 门店自提</text>
       </view>
 
       <view class="home__pickbar" @click="gotoPickupPicker">
-        <text class="home__pickbar-pin">📍</text>
+        <SvgIcon name="location-pin" :size="32" class="home__pickbar-pin" />
         <view class="home__pickbar-mid">
           <text class="home__pickbar-label">选择自提点</text>
           <text class="home__pickbar-hint">按距离自动排序</text>
@@ -128,19 +131,19 @@ onShow(() => void loadData());
     <!-- 快捷入口 -->
     <view class="home__quick">
       <view class="home__quick-item" @click="gotoScan">
-        <view class="home__quick-icon home__quick-icon--scan">📷</view>
+        <view class="home__quick-icon home__quick-icon--scan"><SvgIcon name="image" :size="44" /></view>
         <text class="home__quick-text">扫码溯源</text>
       </view>
       <view class="home__quick-item" @click="gotoPickupPicker">
-        <view class="home__quick-icon home__quick-icon--pickup">🏬</view>
+        <view class="home__quick-icon home__quick-icon--pickup"><SvgIcon name="store" :size="44" /></view>
         <text class="home__quick-text">附近自提</text>
       </view>
       <view class="home__quick-item" @click="gotoErrand">
-        <view class="home__quick-icon home__quick-icon--errand">🛵</view>
+        <view class="home__quick-icon home__quick-icon--errand"><SvgIcon name="motorcycle" :size="44" /></view>
         <text class="home__quick-text">跑腿服务</text>
       </view>
       <view class="home__quick-item" @click="gotoPickupPicker">
-        <view class="home__quick-icon home__quick-icon--vip">⭐</view>
+        <view class="home__quick-icon home__quick-icon--vip"><SvgIcon name="star" :size="44" /></view>
         <text class="home__quick-text">每日新品</text>
       </view>
     </view>
@@ -153,7 +156,7 @@ onShow(() => void loadData());
       </view>
       <view class="home__cats">
         <view class="home__cat" :class="{ 'home__cat--active': selectedCat === '' }" @click="pickCategory('')">
-          <text class="home__cat-icon">🌟</text>
+          <SvgIcon name="sparkles" :size="32" class="home__cat-icon" />
           <text class="home__cat-text">全部</text>
         </view>
         <view
@@ -163,22 +166,26 @@ onShow(() => void loadData());
           :class="{ 'home__cat--active': selectedCat === c.categoryId }"
           @click="pickCategory(c.categoryId)"
         >
-          <text class="home__cat-icon">{{ categoryIcon(c.name) }}</text>
+          <SvgIcon :name="categoryIcon(c.name)" :size="32" class="home__cat-icon" />
           <text class="home__cat-text">{{ c.name }}</text>
         </view>
       </view>
     </view>
 
     <!-- 精选可溯源 -->
-    <view v-if="!loading && featuredProducts.length > 0" class="home__section">
+    <view v-show="!loading && featuredProducts.length > 0" class="home__section">
       <view class="home__section-head">
-        <text class="home__section-title">🐓 精选可溯源</text>
+        <view class="home__section-title" style="display: flex; align-items: center; gap: 8rpx"
+          ><SvgIcon name="drumstick" :size="32" /><text>精选可溯源</text></view
+        >
         <text class="home__section-tip">扫码即可查养殖档案</text>
       </view>
-      <scroll-view scroll-x class="home__feature-scroll">
+      <scroll-view scroll-x :scroll-left="0" class="home__feature-scroll">
         <view class="home__feature-list">
           <view v-for="p in featuredProducts" :key="p.productId" class="home__feature" @click="gotoDetail(p)">
-            <view class="home__feature-emoji">{{ productEmoji(p.name) }}</view>
+            <view class="home__feature-emoji"
+              ><SvgIcon :name="productEmoji(p.name)" :size="80" color="var(--brand-primary)"
+            /></view>
             <view class="home__feature-badge">可溯源</view>
             <text class="home__feature-name">{{ p.name }}</text>
             <view class="home__feature-price">
@@ -208,7 +215,9 @@ onShow(() => void loadData());
           @click="gotoDetail(p)"
         >
           <view class="home__product-img">
-            <text class="home__product-emoji">{{ productEmoji(p.name) }}</text>
+            <view class="home__product-emoji"
+              ><SvgIcon :name="productEmoji(p.name)" :size="100" color="var(--brand-primary)"
+            /></view>
             <view v-if="p.hasTraceability === 1" class="home__product-trace">溯</view>
             <view v-if="p.saleStatus === 'sold_out'" class="home__product-mask">已售罄</view>
             <view v-else-if="p.saleStatus === 'off_shelf'" class="home__product-mask">已下架</view>
@@ -248,7 +257,7 @@ onShow(() => void loadData());
 .home__hero {
   position: relative;
   padding: 64rpx 32rpx 96rpx;
-  background: linear-gradient(135deg, #2e9c5d 0%, #5fbe7d 60%, #7ed09a 100%);
+  background: var(--brand-gradient);
   overflow: hidden;
   color: #fff;
 }
@@ -328,7 +337,7 @@ onShow(() => void loadData());
 .home__pickbar-label {
   font-size: 28rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
 }
 .home__pickbar-hint {
   font-size: 20rpx;
@@ -380,7 +389,7 @@ onShow(() => void loadData());
 }
 .home__quick-text {
   font-size: 22rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 
 /* ============ section 通用 ============ */
@@ -397,7 +406,7 @@ onShow(() => void loadData());
 .home__section-title {
   font-size: 32rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
 }
 .home__section-tip {
   font-size: 22rpx;
@@ -420,7 +429,7 @@ onShow(() => void loadData());
   border: 1rpx solid rgba(23, 32, 51, 0.06);
 }
 .home__cat--active {
-  background: linear-gradient(135deg, #2e9c5d, #5fbe7d);
+  background: var(--brand-gradient);
   color: #fff;
   border-color: transparent;
   box-shadow: 0 12rpx 24rpx rgba(46, 156, 93, 0.3);
@@ -449,8 +458,8 @@ onShow(() => void loadData());
   padding: 24rpx;
   background: linear-gradient(160deg, #fffbef 0%, #fff 60%);
   border-radius: 24rpx;
-  border: 1rpx solid rgba(255, 138, 0, 0.18);
-  box-shadow: 0 12rpx 32rpx rgba(255, 138, 0, 0.1);
+  border: 1rpx solid rgba(46, 156, 93, 0.18);
+  box-shadow: 0 12rpx 32rpx rgba(46, 156, 93, 0.1);
   position: relative;
 }
 .home__feature-emoji {
@@ -462,7 +471,7 @@ onShow(() => void loadData());
   top: 16rpx;
   right: 16rpx;
   padding: 4rpx 12rpx;
-  background: #ff8a00;
+  background: var(--brand-primary);
   color: #fff;
   font-size: 20rpx;
   border-radius: 999rpx;
@@ -472,7 +481,7 @@ onShow(() => void loadData());
   margin-top: 12rpx;
   font-size: 26rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -484,12 +493,12 @@ onShow(() => void loadData());
 }
 .home__feature-cur {
   font-size: 22rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-weight: 700;
 }
 .home__feature-yuan {
   font-size: 36rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-weight: 900;
 }
 .home__feature-unit {
@@ -537,7 +546,7 @@ onShow(() => void loadData());
   right: 16rpx;
   width: 40rpx;
   height: 40rpx;
-  background: #ff8a00;
+  background: var(--brand-primary);
   color: #fff;
   font-size: 22rpx;
   font-weight: 800;
@@ -563,7 +572,7 @@ onShow(() => void loadData());
 .home__product-name {
   font-size: 28rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -590,12 +599,12 @@ onShow(() => void loadData());
 }
 .home__product-cur {
   font-size: 20rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-weight: 700;
 }
 .home__product-yuan {
   font-size: 32rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-weight: 900;
 }
 .home__product-unit {
@@ -604,7 +613,7 @@ onShow(() => void loadData());
 }
 .home__product-buy {
   padding: 6rpx 16rpx;
-  background: linear-gradient(135deg, #2e9c5d, #5fbe7d);
+  background: var(--brand-gradient);
   color: #fff;
   font-size: 20rpx;
   font-weight: 700;

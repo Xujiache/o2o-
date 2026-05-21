@@ -39,7 +39,15 @@ describe('AlipayMockAdapter', () => {
     expect(svc.parseCallback(JSON.stringify({ outTradeNo: 'P1' }), 'wrong')).toBeNull();
   });
 
-  it('AlipayRealAdapter 缺凭证 → 抛错', () => {
-    expect(() => new AlipayRealAdapter({ appId: '', privateKey: '', publicKey: '' })).toThrow(/credentials missing/);
+  it('AlipayRealAdapter 缺凭证 → 抛 MISCONFIGURED', () => {
+    expect(() => new AlipayRealAdapter({ appId: '', privateKey: '', publicKey: '', notifyUrl: '' })).toThrow(
+      /MISCONFIGURED: ALIPAY_APP_ID/,
+    );
+  });
+
+  it('AlipayRealAdapter 缺 notifyUrl → 抛 MISCONFIGURED', () => {
+    expect(() => new AlipayRealAdapter({ appId: 'a', privateKey: 'pk', publicKey: 'pub', notifyUrl: '' })).toThrow(
+      /MISCONFIGURED: ALIPAY_NOTIFY_URL/,
+    );
   });
 });

@@ -18,11 +18,13 @@ html.dark {
   --border-strong: #2c3849;
   --border-muted: #161f2c;
 
-  --brand-50: #eff6ff;
-  --brand-100: #dbeafe;
-  --brand-500: #3b82f6;
-  --brand-600: #2563eb;
-  --brand-700: #1d4ed8;
+  --brand-50: #f0f9f3;
+  --brand-100: #e3f2eb;
+  --brand-500: #2e9c5d;
+  --brand-600: #28854f;
+  --brand-700: #1f7a47;
+  --brand-primary: #2e9c5d;
+  --brand-gradient: linear-gradient(135deg, #5fbe7d 0%, #2e9c5d 100%);
 
   --status-success: #22c55e;
   --status-warning: #f59e0b;
@@ -60,11 +62,11 @@ html.dark {
   color-scheme: dark;
 
   --el-color-primary: var(--brand-500);
-  --el-color-primary-light-3: #5d99ee;
-  --el-color-primary-light-5: #80b3f3;
-  --el-color-primary-light-7: #a3ccf8;
-  --el-color-primary-light-8: #c2dffb;
-  --el-color-primary-light-9: #d8eafe;
+  --el-color-primary-light-3: #5fbe7d;
+  --el-color-primary-light-5: #a3d9b9;
+  --el-color-primary-light-7: #d2ecde;
+  --el-color-primary-light-8: #e3f2eb;
+  --el-color-primary-light-9: #f0f9f3;
   --el-color-primary-dark-2: var(--brand-700);
 
   --el-color-success: var(--status-success);
@@ -136,7 +138,7 @@ html.dark {
   --el-tag-text-color: var(--fg-primary);
 
   /* Table 条纹 / 当前行 */
-  --el-table-current-row-bg-color: rgba(59, 130, 246, 0.12);
+  --el-table-current-row-bg-color: rgba(46, 156, 93, 0.12);
   --el-table-row-hover-bg-color: var(--bg-hover);
   --el-table-fixed-box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.6);
   --el-table-tr-bg-color: transparent;

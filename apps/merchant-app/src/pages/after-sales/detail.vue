@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { onLoad } from '@dcloudio/uni-app';
 import { onMounted, ref } from 'vue';
 
@@ -115,7 +115,7 @@ onMounted(() => {
   border-radius: 8rpx;
 }
 .d__seg text.on {
-  background: #ffb400;
+  background: var(--brand-primary);
   color: #fff;
 }
 .d__actions textarea {

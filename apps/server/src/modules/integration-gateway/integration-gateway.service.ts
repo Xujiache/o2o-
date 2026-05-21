@@ -48,16 +48,20 @@ export class IntegrationGatewayService implements OnModuleInit {
     }
 
     if (mode === 'real') {
-      this.amap = new AmapRealAdapter(process.env.AMAP_KEY ?? '');
+      this.amap = new AmapRealAdapter(process.env.AMAP_WEB_SERVICE_KEY ?? process.env.AMAP_KEY ?? '');
       this.wxpay = new WxpayRealAdapter({
         appId: process.env.WXPAY_APP_ID ?? '',
         mchId: process.env.WXPAY_MCH_ID ?? '',
         apiV3Key: process.env.WXPAY_API_V3_KEY ?? '',
+        privateKeyPath: process.env.WXPAY_PRIVATE_KEY_PATH ?? '',
+        certSerialNo: process.env.WXPAY_CERT_SERIAL_NO ?? process.env.WXPAY_SERIAL_NO ?? '',
+        notifyUrl: process.env.WXPAY_NOTIFY_URL ?? '',
       });
       this.alipay = new AlipayRealAdapter({
         appId: process.env.ALIPAY_APP_ID ?? '',
         privateKey: process.env.ALIPAY_PRIVATE_KEY ?? '',
         publicKey: process.env.ALIPAY_PUBLIC_KEY ?? '',
+        notifyUrl: process.env.ALIPAY_NOTIFY_URL ?? '',
       });
       this.getui = new GetuiRealAdapter({
         appId: process.env.GETUI_APP_ID ?? '',
@@ -68,14 +72,15 @@ export class IntegrationGatewayService implements OnModuleInit {
         accessKeyId: process.env.ALI_SMS_ACCESS_KEY_ID ?? '',
         accessKeySecret: process.env.ALI_SMS_ACCESS_KEY_SECRET ?? '',
         signName: process.env.ALI_SMS_SIGN_NAME ?? '',
+        templateLogin: process.env.ALI_SMS_TEMPLATE_LOGIN ?? '',
       });
       this.realname = new RealnameRealAdapter({
-        accessKeyId: process.env.ALI_REALNAME_ACCESS_KEY_ID ?? '',
-        accessKeySecret: process.env.ALI_REALNAME_ACCESS_KEY_SECRET ?? '',
+        accessKeyId: process.env.ALI_REALNAME_AK ?? process.env.ALI_REALNAME_ACCESS_KEY_ID ?? '',
+        accessKeySecret: process.env.ALI_REALNAME_SK ?? process.env.ALI_REALNAME_ACCESS_KEY_SECRET ?? '',
       });
       this.wxlogin = new WxLoginRealAdapter({
-        appId: process.env.WX_LOGIN_APP_ID ?? '',
-        appSecret: process.env.WX_LOGIN_APP_SECRET ?? '',
+        appId: process.env.WECHAT_MP_APP_ID ?? process.env.WX_LOGIN_APP_ID ?? '',
+        appSecret: process.env.WECHAT_MP_APP_SECRET ?? process.env.WX_LOGIN_APP_SECRET ?? '',
       });
     } else {
       this.amap = new AmapMockAdapter();

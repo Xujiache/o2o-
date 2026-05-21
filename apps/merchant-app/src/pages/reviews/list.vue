@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 
 import { listReviews, replyReview, type ReviewFilter, type ReviewListItemVo } from '@/api/reviews';
@@ -337,7 +337,7 @@ onMounted(load);
 .rv__hd-val {
   font-size: 38rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1;
 }
 .rv__hd-val--warn {
@@ -345,7 +345,7 @@ onMounted(load);
 }
 .rv__hd-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .rv__hd-stars {
   display: flex;
@@ -368,7 +368,7 @@ onMounted(load);
   text-align: center;
   padding: 14rpx 0;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   background: #fff;
   border-radius: 12rpx;
   position: relative;
@@ -403,7 +403,7 @@ onMounted(load);
   padding: 10rpx 22rpx;
   border-radius: 999rpx;
   font-size: 22rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   background: #fff;
   flex-shrink: 0;
 }
@@ -461,11 +461,11 @@ onMounted(load);
 .rv__card-name {
   font-size: 26rpx;
   font-weight: 600;
-  color: #172033;
+  color: var(--text-primary);
 }
 .rv__card-time {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .rv__card-rating {
   display: flex;
@@ -476,7 +476,7 @@ onMounted(load);
   display: block;
   margin-top: 16rpx;
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1.55;
 }
 .rv__card-content--mute {
@@ -505,7 +505,7 @@ onMounted(load);
 }
 .rv__order-no {
   font-size: 20rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 
 /* 已回复块 */
@@ -529,12 +529,12 @@ onMounted(load);
 }
 .rv__reply-time {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   margin-left: auto;
 }
 .rv__reply-content {
   font-size: 26rpx;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1.55;
 }
 
@@ -549,7 +549,7 @@ onMounted(load);
   align-items: center;
   gap: 8rpx;
   padding: 14rpx 28rpx;
-  background: #b7791f;
+  background: var(--brand-primary);
   color: #fff;
   font-size: 24rpx;
   font-weight: 700;
@@ -589,7 +589,7 @@ onMounted(load);
 .rv-drawer__title {
   font-size: 32rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
 }
 .rv-drawer__close {
   padding: 8rpx;
@@ -612,11 +612,11 @@ onMounted(load);
 }
 .rv-drawer__target-user {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .rv-drawer__target-content {
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 .rv-drawer__input {
@@ -627,14 +627,14 @@ onMounted(load);
   background: #f7f8fa;
   border-radius: 14rpx;
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
   box-sizing: border-box;
 }
 .rv-drawer__count {
   display: block;
   text-align: right;
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   margin-top: 8rpx;
 }
 .rv-drawer__quicks {
@@ -642,7 +642,7 @@ onMounted(load);
 }
 .rv-drawer__quicks-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   display: block;
   margin-bottom: 8rpx;
 }
@@ -653,11 +653,11 @@ onMounted(load);
 }
 .rv-drawer__quick {
   padding: 12rpx 16rpx;
-  background: rgba(183, 121, 31, 0.06);
-  border: 1rpx dashed rgba(183, 121, 31, 0.32);
+  background: rgba(46, 156, 93, 0.06);
+  border: 1rpx dashed rgba(46, 156, 93, 0.32);
   border-radius: 10rpx;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .rv-drawer__btns {
   display: flex;
@@ -674,10 +674,10 @@ onMounted(load);
 }
 .rv-drawer__btn--ghost {
   background: #f5f6f8;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .rv-drawer__btn--primary {
-  background: #b7791f;
+  background: var(--brand-primary);
   color: #fff;
 }
 .rv-drawer__btn--disabled {
@@ -689,7 +689,7 @@ onMounted(load);
 .rv__msg {
   text-align: center;
   padding: 80rpx 0;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 24rpx;
 }
 .rv__empty {
@@ -701,6 +701,6 @@ onMounted(load);
 }
 .rv__empty-text {
   font-size: 24rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 </style>

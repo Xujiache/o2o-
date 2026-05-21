@@ -148,7 +148,7 @@ function metricStatus(cfg: MetricCfg): 'good' | 'normal' | 'bad' {
               <SvgIcon
                 :name="m.icon"
                 :size="24"
-                :color="metricStatus(m) === 'good' ? '#11865c' : metricStatus(m) === 'bad' ? '#c0392b' : '#b7791f'"
+                :color="metricStatus(m) === 'good' ? '#2e9c5d' : metricStatus(m) === 'bad' ? '#ef4444' : '#b7791f'"
               />
             </view>
             <view class="a__metric-main">
@@ -204,7 +204,7 @@ function metricStatus(cfg: MetricCfg): 'good' | 'normal' | 'bad' {
 
     <!-- 提示 -->
     <view class="a__hint">
-      <SvgIcon name="lightbulb" :size="20" color="#0f766e" />
+      <SvgIcon name="lightbulb" :size="20" color="#2e9c5d" />
       <text>考核周期为自然月,数据每日 00:30 更新。当月数据次日早上完整。</text>
     </view>
   </view>
@@ -222,7 +222,7 @@ function metricStatus(cfg: MetricCfg): 'good' | 'normal' | 'bad' {
   position: relative;
   overflow: hidden;
   padding: 36rpx 28rpx 36rpx;
-  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  background: var(--brand-gradient-reverse);
   color: #fff;
 }
 .a__hero-deco {
@@ -313,7 +313,7 @@ function metricStatus(cfg: MetricCfg): 'good' | 'normal' | 'bad' {
 .a__msg {
   text-align: center;
   padding: 100rpx 0;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 24rpx;
 }
 
@@ -334,17 +334,17 @@ function metricStatus(cfg: MetricCfg): 'good' | 'normal' | 'bad' {
 .a__section-bar {
   width: 6rpx;
   height: 24rpx;
-  background: #0f766e;
+  background: var(--brand-primary);
   border-radius: 2rpx;
 }
 .a__section-title {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .a__section-tip {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   margin-left: auto;
 }
 
@@ -392,11 +392,11 @@ function metricStatus(cfg: MetricCfg): 'good' | 'normal' | 'bad' {
 .a__metric-label {
   font-size: 26rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .a__metric-desc {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .a__metric-val {
   display: flex;
@@ -412,13 +412,13 @@ function metricStatus(cfg: MetricCfg): 'good' | 'normal' | 'bad' {
   font-feature-settings: 'tnum';
 }
 .a__metric-val-num--good {
-  color: #11865c;
+  color: var(--brand-primary);
 }
 .a__metric-val-num--normal {
   color: #b7791f;
 }
 .a__metric-val-num--bad {
-  color: #c0392b;
+  color: var(--price-color);
 }
 .a__metric-target {
   font-size: 18rpx;
@@ -437,13 +437,13 @@ function metricStatus(cfg: MetricCfg): 'good' | 'normal' | 'bad' {
   transition: width 0.4s;
 }
 .a__metric-bar-fill--good {
-  background: linear-gradient(90deg, #0f766e, #14b8a6);
+  background: linear-gradient(90deg, #2e9c5d, #5fbe7d);
 }
 .a__metric-bar-fill--normal {
   background: linear-gradient(90deg, #b7791f, #f59e0b);
 }
 .a__metric-bar-fill--bad {
-  background: linear-gradient(90deg, #c0392b, #ef4444);
+  background: linear-gradient(90deg, #b91c1c, #ef4444);
 }
 
 /* 勋章 grid */
@@ -475,12 +475,12 @@ function metricStatus(cfg: MetricCfg): 'good' | 'normal' | 'bad' {
 .a__badge-label {
   font-size: 22rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
   text-align: center;
 }
 .a__badge-time {
   font-size: 18rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 .a__empty {
@@ -492,21 +492,21 @@ function metricStatus(cfg: MetricCfg): 'good' | 'normal' | 'bad' {
 }
 .a__empty-text {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 /* 提示 */
 .a__hint {
   margin: 16rpx 24rpx 0;
   padding: 16rpx 20rpx;
-  background: rgba(15, 118, 110, 0.05);
-  border: 1rpx dashed rgba(15, 118, 110, 0.24);
+  background: rgba(46, 156, 93, 0.05);
+  border: 1rpx dashed rgba(46, 156, 93, 0.24);
   border-radius: 12rpx;
   display: flex;
   align-items: center;
   gap: 10rpx;
   font-size: 20rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 </style>

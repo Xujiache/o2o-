@@ -71,6 +71,7 @@ import { MerchantAcceptRemindJob } from './jobs/merchant-accept-remind.job';
 import { MerchantAcceptTimeoutCancelJob } from './jobs/merchant-accept-timeout-cancel.job';
 import { NoRiderCancelJob } from './jobs/no-rider-cancel.job';
 import { NoRiderPriceIncreaseJob } from './jobs/no-rider-price-increase.job';
+import { OrderAutoCompleteJob } from './jobs/order-auto-complete.job';
 import { PaymentCallbackRetryJob } from './jobs/payment-callback-retry.job';
 import { PromoEndJob } from './jobs/promo-end.job';
 import { PromoStartJob } from './jobs/promo-start.job';
@@ -212,6 +213,8 @@ import { SchedulerController } from './scheduler.controller';
     CouponExpireJob,
     MarketingActivityToggleJob,
     ReconciliationJob,
+    // Cross-stage 自动完结
+    OrderAutoCompleteJob,
   ],
   exports: [ConfigCacheRefreshJob],
 })

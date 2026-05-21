@@ -3,7 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 
-import { FoodOrder, OrderTimeline, ProductSku, StockLock } from '../../database/entities';
+import { FoodOrder, OrderTimeline, PaymentOrder, ProductSku, RefundOrder, StockLock } from '../../database/entities';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
 import { CouponService } from '../../modules/coupon/coupon.service';
@@ -52,7 +52,17 @@ export class WaitPayTimeoutCloseJob extends BaseJob {
 
     for (const order of orders) {
       const released: Array<{ skuId: string; quantity: number }> = [];
+      let refundEmit: {
+        refundOrderId: string;
+        refundNo: string;
+        amount: string;
+      } | null = null;
       try {
+        // 检测 race:status=WAIT_PAY 但已有 PaymentOrder.success(回调比 cron 慢)→ 需触发退款
+        const paidPayment = await this.dataSource
+          .getRepository(PaymentOrder)
+          .findOne({ where: { bizType: 'FOOD', bizId: order.foodOrderId, status: 'success' } });
+
         await this.dataSource.transaction(async (em: EntityManager) => {
           await em.getRepository(FoodOrder).update(
             { foodOrderId: order.foodOrderId },
@@ -87,6 +97,35 @@ export class WaitPayTimeoutCloseJob extends BaseJob {
             reason: 'WAIT_PAY_TIMEOUT',
             createdAt: String(now),
           });
+
+          if (paidPayment) {
+            const amount = paidPayment.paidAmount ?? paidPayment.payableAmount;
+            const refundNo = `R${now}${String(order.foodOrderId).padStart(8, '0').slice(-8)}`;
+            const insertRes = await em.getRepository(RefundOrder).insert({
+              refundNo,
+              bizType: 'FOOD',
+              bizOrderId: order.foodOrderId,
+              paymentOrderId: paidPayment.paymentOrderId,
+              amount,
+              status: 'SUCCESS',
+              provider: paidPayment.payChannel,
+              providerRefundId: `mock_${refundNo}`,
+              errorMessage: null,
+              createdAt: String(now),
+              updatedAt: String(now),
+            });
+            await em
+              .getRepository(PaymentOrder)
+              .update({ paymentOrderId: paidPayment.paymentOrderId }, { status: 'refunded', updatedAt: String(now) });
+            await em
+              .getRepository(FoodOrder)
+              .update({ foodOrderId: order.foodOrderId }, { payStatus: 'refunded', updatedAt: String(now) });
+            refundEmit = {
+              refundOrderId: String(insertRes.identifiers[0]?.refundOrderId ?? ''),
+              refundNo,
+              amount,
+            };
+          }
         });
 
         await this.eventBus.publish(
@@ -105,6 +144,22 @@ export class WaitPayTimeoutCloseJob extends BaseJob {
             EventName.StockReleased,
             { orderId: order.foodOrderId, items: released, reason: 'WAIT_PAY_TIMEOUT', releasedAt: now },
             { bizType: 'food-order', bizId: order.foodOrderId },
+          );
+        }
+        if (refundEmit) {
+          const rf = refundEmit as { refundOrderId: string; refundNo: string; amount: string };
+          await this.eventBus.publish(
+            EventName.RefundExecuted,
+            {
+              refundOrderId: rf.refundOrderId,
+              refundNo: rf.refundNo,
+              bizType: 'FOOD',
+              bizOrderId: order.foodOrderId,
+              amount: rf.amount,
+              status: 'SUCCESS' as const,
+              executedAt: now,
+            },
+            { bizType: 'refund', bizId: rf.refundOrderId },
           );
         }
       } catch (e: unknown) {

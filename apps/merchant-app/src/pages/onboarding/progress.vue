@@ -1,7 +1,8 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { onMounted, ref } from 'vue';
 
 import { getOnboardingStatus, type OnboardingStatusVo } from '@/api';
+import NavBar from '@/components/common/NavBar.vue';
 
 const status = ref<OnboardingStatusVo | null>(null);
 const loading = ref(false);
@@ -25,6 +26,7 @@ function onResubmit(): void {
 
 <template>
   <view class="progress">
+    <NavBar title="审核进度" />
     <view class="progress__hero">
       <text class="progress__title">入驻审核进度</text>
       <text class="progress__sub">资质审核、驳回原因和重新提交入口</text>
@@ -60,8 +62,8 @@ function onResubmit(): void {
   padding: 34rpx;
   border-radius: 34rpx;
   color: #fff;
-  background: linear-gradient(135deg, #1f2937, #b7791f);
-  box-shadow: 0 24rpx 64rpx rgba(183, 121, 31, 0.24);
+  background: var(--brand-gradient);
+  box-shadow: 0 24rpx 64rpx rgba(46, 156, 93, 0.24);
 }
 .progress__title {
   display: block;
@@ -101,21 +103,21 @@ function onResubmit(): void {
   color: #52c41a;
 }
 .progress__status--rejected {
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 .progress__status--pending {
   color: #faad14;
 }
 .progress__alert {
   background: #fff1f0;
-  color: #ff4d4f;
+  color: var(--price-color);
   padding: 16rpx;
   border-radius: 8rpx;
   font-size: 24rpx;
 }
 .progress__btn {
   margin-top: 32rpx;
-  background: linear-gradient(135deg, #ffb400, #b7791f);
+  background: var(--brand-gradient);
   color: #fff;
   border-radius: 999rpx;
   font-weight: 700;

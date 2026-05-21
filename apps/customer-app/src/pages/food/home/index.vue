@@ -39,17 +39,17 @@ const ERRAND_FORM_PATH: Record<string, string> = {
 };
 
 const ERRAND_TYPE_META: Record<string, { icon: string; gradient: string }> = {
-  BUY: { icon: 'shopping-cart', gradient: 'linear-gradient(135deg, #FF7A45, #FFB020)' },
-  DELIVER: { icon: 'truck', gradient: 'linear-gradient(135deg, #5B5FF8, #00B8D9)' },
-  HELP: { icon: 'bell', gradient: 'linear-gradient(135deg, #11998E, #38EF7D)' },
-  CUSTOM: { icon: 'sparkles', gradient: 'linear-gradient(135deg, #FA709A, #FEE140)' },
+  BUY: { icon: 'shopping-cart', gradient: 'var(--brand-gradient)' },
+  DELIVER: { icon: 'truck', gradient: 'var(--brand-gradient)' },
+  HELP: { icon: 'bell', gradient: 'var(--brand-gradient)' },
+  CUSTOM: { icon: 'sparkles', gradient: 'var(--brand-gradient)' },
 };
 
 const decoratedErrand = computed(() =>
   errandTypes.value.map((t) => ({
     ...t,
     icon: ERRAND_TYPE_META[t.typeCode]?.icon ?? 'package',
-    gradient: ERRAND_TYPE_META[t.typeCode]?.gradient ?? 'linear-gradient(135deg, #5B5FF8, #00B8D9)',
+    gradient: ERRAND_TYPE_META[t.typeCode]?.gradient ?? 'var(--brand-gradient)',
   })),
 );
 
@@ -81,7 +81,14 @@ interface QuickEntry {
 }
 const QUICK_ENTRIES: QuickEntry[] = [
   { key: 'errand', icon: 'motorcycle', label: '跑腿代办', color: '#4776E6', action: 'errand-mode' },
-  { key: 'fried', icon: 'drumstick', label: '炸鸡专区', color: '#FF7A45', action: 'search-keyword', keyword: '炸鸡' },
+  {
+    key: 'fried',
+    icon: 'drumstick',
+    label: '炸鸡专区',
+    color: 'var(--brand-primary)',
+    action: 'search-keyword',
+    keyword: '炸鸡',
+  },
   { key: 'rice', icon: 'utensils', label: '盖饭套餐', color: '#56AB2F', action: 'search-keyword', keyword: '套餐' },
   { key: 'drink', icon: 'cup-soda', label: '饮料解渴', color: '#11998E', action: 'search-keyword', keyword: '饮料' },
   { key: 'soup', icon: 'soup', label: '靓汤滋补', color: '#A17359', action: 'search-keyword', keyword: '汤' },
@@ -226,12 +233,16 @@ onShow(() => {
     <!-- 顶部:城市 + 搜索 -->
     <view class="topbar">
       <view class="topbar__city" @tap="gotoCityPicker">
-        <SvgIcon name="location-pin" :size="30" :color="mode === 'food' ? '#FF6B35' : '#5B5FF8'" />
+        <SvgIcon
+          name="location-pin"
+          :size="30"
+          :color="mode === 'food' ? 'var(--brand-primary)' : 'var(--brand-primary)'"
+        />
         <text class="topbar__city-name">{{ cityName }}</text>
-        <SvgIcon name="chevron-down" :size="20" color="#5a6275" />
+        <SvgIcon name="chevron-down" :size="20" color="var(--text-secondary)" />
       </view>
       <view class="topbar__search" @tap="gotoSearch()">
-        <SvgIcon name="search" :size="26" color="#8a94a6" />
+        <SvgIcon name="search" :size="26" color="var(--text-muted)" />
         <text class="topbar__search-tip">
           {{ mode === 'food' ? '搜索商家 / 菜品' : '搜索跑腿服务' }}
         </text>
@@ -362,7 +373,7 @@ onShow(() => {
 
       <view class="errand-entry" @tap="gotoErrandOrders">
         <view class="errand-entry__icon">
-          <SvgIcon name="clipboard" :size="34" color="#5B5FF8" />
+          <SvgIcon name="clipboard" :size="34" color="var(--brand-primary)" />
         </view>
         <view class="errand-entry__main">
           <text class="errand-entry__title">我的跑腿订单</text>
@@ -406,7 +417,7 @@ onShow(() => {
 .topbar__city-name {
   font-size: 30rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .topbar__search {
   flex: 1;
@@ -420,7 +431,7 @@ onShow(() => {
 }
 .topbar__search-tip {
   font-size: 26rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 /* ===== segment 切换 ===== */
@@ -446,7 +457,7 @@ onShow(() => {
 .segment__label {
   font-size: 38rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   letter-spacing: 1rpx;
 }
 .segment__indicator {
@@ -459,12 +470,12 @@ onShow(() => {
   border-radius: 999rpx;
 }
 .food-home--food .segment__indicator {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
-  box-shadow: 0 4rpx 12rpx rgba(255, 122, 69, 0.36);
+  background: var(--brand-gradient);
+  box-shadow: 0 4rpx 12rpx rgba(46, 156, 93, 0.36);
 }
 .food-home--errand .segment__indicator {
-  background: linear-gradient(135deg, #5b5ff8, #00b8d9);
-  box-shadow: 0 4rpx 12rpx rgba(91, 95, 248, 0.36);
+  background: var(--brand-gradient);
+  box-shadow: 0 4rpx 12rpx rgba(46, 156, 93, 0.36);
 }
 
 /* ===== Hero ===== */
@@ -477,12 +488,12 @@ onShow(() => {
   overflow: hidden;
 }
 .hero--food {
-  background: linear-gradient(135deg, #ff7a45 0%, #ffb020 100%);
-  box-shadow: 0 20rpx 44rpx rgba(255, 107, 53, 0.28);
+  background: var(--brand-gradient);
+  box-shadow: 0 20rpx 44rpx rgba(46, 156, 93, 0.28);
 }
 .hero--errand {
-  background: linear-gradient(135deg, #5b5ff8 0%, #00b8d9 100%);
-  box-shadow: 0 20rpx 44rpx rgba(91, 95, 248, 0.28);
+  background: var(--brand-gradient);
+  box-shadow: 0 20rpx 44rpx rgba(46, 156, 93, 0.28);
 }
 .hero__greet {
   display: flex;
@@ -578,7 +589,7 @@ onShow(() => {
 }
 .quick__label {
   font-size: 22rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -594,7 +605,7 @@ onShow(() => {
   border-radius: 999rpx;
   padding: 12rpx 24rpx;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   box-shadow: 0 4rpx 12rpx rgba(31, 41, 55, 0.04);
 }
 .cats__text {
@@ -614,27 +625,27 @@ onShow(() => {
   border-radius: 4rpx;
 }
 .section-h__line--food {
-  background: linear-gradient(180deg, #ff7a45, #ffb020);
+  background: linear-gradient(180deg, var(--brand-primary), var(--brand-primary-light));
 }
 .section-h__line--errand {
-  background: linear-gradient(180deg, #5b5ff8, #00b8d9);
+  background: linear-gradient(180deg, var(--brand-primary), var(--brand-primary-light));
 }
 .section-h__title {
   font-size: 34rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   letter-spacing: 0.5rpx;
 }
 .section-h__tip {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 /* ===== 通用消息区 ===== */
 .msg {
   text-align: center;
   padding: 80rpx 0;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 26rpx;
   display: flex;
   flex-direction: column;
@@ -710,7 +721,7 @@ onShow(() => {
 .store__name {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -721,7 +732,7 @@ onShow(() => {
   align-items: center;
   gap: 6rpx;
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   line-height: 1.2;
 }
 .store__rating {
@@ -735,7 +746,7 @@ onShow(() => {
   font-size: 22rpx;
 }
 .store__stat {
-  color: #5a6275;
+  color: var(--text-secondary);
   font-size: 22rpx;
 }
 .store__dot {
@@ -751,7 +762,7 @@ onShow(() => {
   border-top: 1rpx solid rgba(31, 41, 55, 0.06);
 }
 .store__foot-stat {
-  color: #5a6275;
+  color: var(--text-secondary);
   font-size: 20rpx;
 }
 .store__foot-dot {
@@ -790,11 +801,11 @@ onShow(() => {
 .errand-card__title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .errand-card__desc {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
@@ -812,7 +823,7 @@ onShow(() => {
   width: 76rpx;
   height: 76rpx;
   border-radius: 18rpx;
-  background: linear-gradient(135deg, rgba(91, 95, 248, 0.14), rgba(0, 184, 217, 0.14));
+  background: linear-gradient(135deg, rgba(46, 156, 93, 0.14), rgba(95, 190, 125, 0.14));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -826,11 +837,11 @@ onShow(() => {
 .errand-entry__title {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .errand-entry__desc {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .errand-entry__arrow {
   color: #c5c9d2;

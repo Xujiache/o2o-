@@ -67,20 +67,88 @@ export class AmapMockAdapter implements AmapAdapter {
   }
 }
 
+/**
+ * 高德 Web API Real Adapter — "credentials present → live" skeleton.
+ *  - geocode :        GET https://restapi.amap.com/v3/geocode/geo
+ *  - reverseGeocode : GET https://restapi.amap.com/v3/geocode/regeo
+ *  - distance :       GET https://restapi.amap.com/v3/distance
+ *  - route :          GET https://restapi.amap.com/v3/direction/driving
+ */
 export class AmapRealAdapter implements AmapAdapter {
+  private static readonly BASE = 'https://restapi.amap.com/v3';
+
   constructor(private readonly key: string) {
-    if (!key) throw new Error('AMAP_KEY required (set INTEGRATION_MODE=mock or provide credentials)');
+    if (!key) throw new Error('MISCONFIGURED: AMAP_WEB_SERVICE_KEY required');
   }
-  geocode(): Promise<LatLng> {
-    throw new Error('amap real adapter not implemented yet — pending business stage');
+
+  private async get<T>(path: string, params: Record<string, string>): Promise<T> {
+    const usp = new URLSearchParams({ ...params, key: this.key, output: 'JSON' });
+    const url = `${AmapRealAdapter.BASE}${path}?${usp.toString()}`;
+    const res = await fetch(url, { method: 'GET' });
+    const txt = await res.text();
+    if (!res.ok) throw new Error(`amap GET ${path} http ${res.status}: ${txt}`);
+    return JSON.parse(txt) as T;
   }
-  reverseGeocode(): Promise<string> {
-    throw new Error('amap real adapter not implemented yet');
+
+  async geocode(address: string): Promise<LatLng> {
+    const json = await this.get<{ status?: string; geocodes?: Array<{ location?: string }>; info?: string }>(
+      '/geocode/geo',
+      { address },
+    );
+    if (json.status !== '1') throw new Error(`amap geocode failed: ${json.info ?? 'unknown'}`);
+    const loc = json.geocodes?.[0]?.location;
+    if (!loc) throw new Error('amap geocode no result');
+    const parts = loc.split(',');
+    const lng = Number(parts[0] ?? 0);
+    const lat = Number(parts[1] ?? 0);
+    return { lat, lng };
   }
-  distance(): Promise<number> {
-    throw new Error('amap real adapter not implemented yet');
+
+  async reverseGeocode(p: LatLng): Promise<string> {
+    const json = await this.get<{ status?: string; regeocode?: { formatted_address?: string }; info?: string }>(
+      '/geocode/regeo',
+      { location: `${p.lng},${p.lat}` },
+    );
+    if (json.status !== '1') throw new Error(`amap regeo failed: ${json.info ?? 'unknown'}`);
+    return json.regeocode?.formatted_address ?? '';
   }
-  route(): Promise<RouteResult> {
-    throw new Error('amap real adapter not implemented yet');
+
+  async distance(from: LatLng, to: LatLng): Promise<number> {
+    const json = await this.get<{ status?: string; results?: Array<{ distance?: string }>; info?: string }>(
+      '/distance',
+      {
+        origins: `${from.lng},${from.lat}`,
+        destination: `${to.lng},${to.lat}`,
+        type: '1', // 驾车
+      },
+    );
+    if (json.status !== '1') throw new Error(`amap distance failed: ${json.info ?? 'unknown'}`);
+    const d = json.results?.[0]?.distance;
+    if (!d) throw new Error('amap distance empty result');
+    return Number(d);
+  }
+
+  async route(from: LatLng, to: LatLng): Promise<RouteResult> {
+    const json = await this.get<{
+      status?: string;
+      route?: { paths?: Array<{ distance?: string; duration?: string }> };
+      info?: string;
+    }>('/direction/driving', {
+      origin: `${from.lng},${from.lat}`,
+      destination: `${to.lng},${to.lat}`,
+    });
+    if (json.status !== '1') throw new Error(`amap route failed: ${json.info ?? 'unknown'}`);
+    const path = json.route?.paths?.[0];
+    if (!path) throw new Error('amap route no path');
+    const total = Number(path.distance ?? 0);
+    const etaMs = Number(path.duration ?? 0) * 1000;
+    return {
+      totalDistanceMeters: total,
+      etaMs,
+      points: [
+        { ...from, distanceFromStart: 0 },
+        { ...to, distanceFromStart: total },
+      ],
+    };
   }
 }

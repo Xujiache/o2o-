@@ -60,15 +60,11 @@ describe('AmapMockAdapter', () => {
 });
 
 describe('AmapRealAdapter', () => {
-  it('无 key 抛错', () => {
-    expect(() => new AmapRealAdapter('')).toThrow(/AMAP_KEY required/);
+  it('无 key 抛 MISCONFIGURED', () => {
+    expect(() => new AmapRealAdapter('')).toThrow(/MISCONFIGURED: AMAP_WEB_SERVICE_KEY/);
   });
 
-  it('每个方法抛 not implemented', () => {
-    const r = new AmapRealAdapter('key');
-    expect(() => r.geocode()).toThrow(/not implemented/);
-    expect(() => r.reverseGeocode()).toThrow(/not implemented/);
-    expect(() => r.distance()).toThrow(/not implemented/);
-    expect(() => r.route()).toThrow(/not implemented/);
+  it('有 key 可以构造(实际 HTTP 调用不在单测范围)', () => {
+    expect(() => new AmapRealAdapter('test-key')).not.toThrow();
   });
 });

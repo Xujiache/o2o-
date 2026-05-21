@@ -5,7 +5,7 @@ import { ThirdPartyConfig } from '../entities';
 const NOW = Date.now().toString();
 
 /** Stage 0 用 mock,所有 provider 落 disabled,凭证到位再切 active */
-const PROVIDERS = ['amap', 'wxpay', 'alipay', 'getui', 'ali-sms', 'ali-realname', 'minio'];
+const PROVIDERS = ['amap', 'wxpay', 'alipay', 'getui', 'ali-sms', 'ali-realname', 'minio', 'ai-deepseek'];
 
 export async function seedThirdPartyConfig(ds: DataSource): Promise<number> {
   const repo = ds.getRepository(ThirdPartyConfig);

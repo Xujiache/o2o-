@@ -47,11 +47,11 @@ function next(): void {
 }
 .face__btn {
   margin-top: 32rpx;
-  background: #4c84ff;
+  background: var(--brand-primary);
   color: #fff;
   border-radius: 12rpx;
 }
 .face__btn[disabled] {
-  background: #aac4ff;
+  background: var(--brand-primary-light);
 }
 </style>

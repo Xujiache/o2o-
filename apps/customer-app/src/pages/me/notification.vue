@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+import NavBar from '@/components/common/NavBar.vue';
+
 const NS = 'o2o:customer:notification';
 
 interface Settings {
@@ -41,6 +43,7 @@ function getSwitchValue(e: Event): boolean {
 
 <template>
   <view class="notification">
+    <NavBar title="消息设置" />
     <view class="notification__title">消息设置</view>
     <text class="notification__hint">可按需开启或关闭常用提醒</text>
 

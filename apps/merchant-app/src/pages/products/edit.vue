@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { onLoad } from '@dcloudio/uni-app';
 import { computed, onMounted, ref } from 'vue';
 
@@ -11,6 +11,7 @@ import {
   updateProduct,
   uploadFile,
 } from '@/api';
+import NavBar from '@/components/common/NavBar.vue';
 import SvgIcon from '@/components/common/SvgIcon.vue';
 
 interface SkuRow {
@@ -260,6 +261,7 @@ onMounted(async () => {
 
 <template>
   <view class="edit">
+    <NavBar title="商品编辑" />
     <view class="edit__hero">
       <text class="edit__title">{{ isEdit ? '编辑商品' : '新增商品' }}</text>
       <text class="edit__sub">{{ isEdit ? `商品 ID: ${productId}` : '填写完整信息后提交,默认上架' }}</text>
@@ -443,7 +445,7 @@ onMounted(async () => {
   background: #f5f6f8;
 }
 .edit__hero {
-  background: linear-gradient(135deg, #1f2937, #b7791f);
+  background: var(--brand-gradient);
   color: #fff;
   border-radius: 24rpx;
   padding: 28rpx 24rpx;
@@ -463,7 +465,7 @@ onMounted(async () => {
 .edit__loading {
   text-align: center;
   padding: 80rpx 0;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 .edit__card {
@@ -476,7 +478,7 @@ onMounted(async () => {
 .edit__card-h {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
   margin-bottom: 16rpx;
 }
 
@@ -502,7 +504,7 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   gap: 12rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .edit__cover-icon {
   font-size: 64rpx;
@@ -549,19 +551,19 @@ onMounted(async () => {
 }
 .edit__label {
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   min-width: 160rpx;
 }
 .edit__field-value {
   flex: 1;
   font-size: 26rpx;
-  color: #172033;
+  color: var(--text-primary);
   text-align: right;
 }
 .edit__field-input {
   flex: 1;
   font-size: 26rpx;
-  color: #172033;
+  color: var(--text-primary);
   text-align: right;
   padding: 8rpx 0;
 }
@@ -576,7 +578,7 @@ onMounted(async () => {
 }
 .edit__hint {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   margin: -8rpx 0 12rpx;
 }
 
@@ -596,7 +598,7 @@ onMounted(async () => {
 .edit__sku-idx {
   font-size: 24rpx;
   font-weight: 700;
-  color: #b7791f;
+  color: var(--brand-primary);
 }
 .edit__sku-rm {
   font-size: 22rpx;
@@ -619,7 +621,7 @@ onMounted(async () => {
 }
 .edit__sku-label {
   font-size: 22rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   min-width: 100rpx;
 }
 .edit__sku-input {
@@ -632,9 +634,9 @@ onMounted(async () => {
 .edit__sku-add {
   text-align: center;
   padding: 18rpx;
-  border: 2rpx dashed #b7791f;
+  border: 2rpx dashed var(--brand-primary);
   border-radius: 12rpx;
-  color: #b7791f;
+  color: var(--brand-primary);
   font-size: 24rpx;
   font-weight: 600;
   margin-top: 8rpx;
@@ -660,11 +662,11 @@ onMounted(async () => {
 .edit__sku-weight-title {
   font-size: 26rpx;
   font-weight: 600;
-  color: #172033;
+  color: var(--text-primary);
 }
 .edit__sku-weight-tip {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .edit__sku-weight-body {
   margin-top: 14rpx;
@@ -682,14 +684,14 @@ onMounted(async () => {
 }
 .edit__sku-weight-unit {
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 .edit__sku-weight-preview {
   font-size: 22rpx;
-  color: #b7791f;
+  color: var(--brand-primary);
   font-weight: 700;
-  background: rgba(183, 121, 31, 0.08);
+  background: rgba(46, 156, 93, 0.08);
   padding: 6rpx 16rpx;
   border-radius: 999rpx;
   align-self: flex-start;
@@ -703,11 +705,11 @@ onMounted(async () => {
   padding: 6rpx 16rpx;
   border-radius: 999rpx;
   background: #f5f6f8;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-size: 22rpx;
 }
 .edit__sku-weight-preset--active {
-  background: linear-gradient(135deg, #1f2937, #b7791f);
+  background: var(--brand-gradient);
   color: #fff;
   font-weight: 700;
 }
@@ -740,7 +742,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .edit__gallery-rm {
   position: absolute;
@@ -761,7 +763,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 /* 提交栏 */
@@ -786,7 +788,7 @@ onMounted(async () => {
   box-shadow: 0 -8rpx 24rpx rgba(31, 41, 55, 0.08);
 }
 .edit__btn {
-  background: linear-gradient(135deg, #ffb400, #b7791f);
+  background: var(--brand-gradient);
   color: #fff;
   border-radius: 999rpx;
   height: 88rpx;
@@ -794,7 +796,7 @@ onMounted(async () => {
   font-size: 30rpx;
   font-weight: 800;
   text-align: center;
-  box-shadow: 0 12rpx 24rpx rgba(183, 121, 31, 0.32);
+  box-shadow: 0 12rpx 24rpx rgba(46, 156, 93, 0.32);
 }
 .edit__btn--disabled {
   background: #c5c9d2;

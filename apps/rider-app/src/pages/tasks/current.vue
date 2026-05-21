@@ -167,7 +167,7 @@ onShow(() => {
             class="actions__btn actions__btn--ghost"
             @tap="gotoDelivered(t)"
           >
-            <SvgIcon name="check-circle" :size="28" color="#0f766e" />
+            <SvgIcon name="check-circle" :size="28" color="#2e9c5d" />
             <text>确认送达</text>
           </view>
           <view class="actions__btn actions__btn--warn" @tap="gotoException(t)">
@@ -203,8 +203,8 @@ onShow(() => {
   padding: 32rpx 28rpx;
   border-radius: 26rpx;
   color: #fff;
-  background: linear-gradient(135deg, #0f766e, #14b8a6);
-  box-shadow: 0 18rpx 40rpx rgba(20, 184, 166, 0.22);
+  background: var(--brand-gradient-reverse);
+  box-shadow: 0 18rpx 40rpx rgba(46, 156, 93, 0.22);
   margin-bottom: 20rpx;
 }
 
@@ -274,12 +274,12 @@ onShow(() => {
 }
 
 .task-card__badge--errand {
-  background: #4776e6;
+  background: var(--brand-primary);
 }
 
 .task-card__order {
   flex: 1;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 22rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -287,7 +287,7 @@ onShow(() => {
 }
 
 .task-card__status {
-  color: #0f766e;
+  color: var(--brand-primary);
   font-size: 24rpx;
   font-weight: 700;
   flex-shrink: 0;
@@ -295,7 +295,7 @@ onShow(() => {
 
 .task-card__tip {
   display: block;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 27rpx;
   font-weight: 700;
   line-height: 1.45;
@@ -329,11 +329,11 @@ onShow(() => {
 }
 
 .route__dot--delivery {
-  background: #2563eb;
+  background: var(--brand-primary);
 }
 
 .route__name {
-  color: #172033;
+  color: var(--text-primary);
   font-size: 24rpx;
   line-height: 1.35;
 }
@@ -356,11 +356,11 @@ onShow(() => {
 }
 
 .time-row__label {
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 .time-row__value {
-  color: #172033;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -383,13 +383,13 @@ onShow(() => {
 }
 
 .actions__btn--primary {
-  background: #0f766e;
+  background: var(--brand-primary);
   color: #fff;
 }
 
 .actions__btn--ghost {
-  background: #eefcf9;
-  color: #0f766e;
+  background: #e8f5ee;
+  color: var(--brand-primary);
 }
 
 .actions__btn--warn {
@@ -406,12 +406,12 @@ onShow(() => {
 
 .empty__text {
   font-size: 28rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   margin: 18rpx 0 32rpx;
 }
 
 .empty__btn {
-  background: #0f766e;
+  background: var(--brand-primary);
   color: #fff;
   padding: 18rpx 48rpx;
   border-radius: 999rpx;
@@ -424,7 +424,7 @@ onShow(() => {
   left: 24rpx;
   right: 24rpx;
   bottom: calc(env(safe-area-inset-bottom, 0rpx) + 160rpx);
-  background: #0f766e;
+  background: var(--brand-primary);
   color: #fff;
   border-radius: 999rpx;
   padding: 22rpx 0;
@@ -433,7 +433,7 @@ onShow(() => {
   justify-content: center;
   font-size: 28rpx;
   font-weight: 700;
-  box-shadow: 0 16rpx 40rpx rgba(20, 184, 166, 0.28);
+  box-shadow: 0 16rpx 40rpx rgba(46, 156, 93, 0.28);
   z-index: 50;
 }
 </style>

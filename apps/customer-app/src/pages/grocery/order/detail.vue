@@ -13,6 +13,7 @@ import {
   statusTheme,
 } from '@/api/grocery-orders';
 import { prepay, simulatePayCallback } from '@/api/food-payments';
+import NavBar from '@/components/common/NavBar.vue';
 
 const order = ref<GroceryOrderVo | null>(null);
 const loading = ref(true);
@@ -34,9 +35,9 @@ function yuan(cents?: string | null): string {
 
 function deltaText(delta?: string | null): { text: string; color: string } {
   const n = Number(delta ?? 0);
-  if (n > 0) return { text: `补付 ¥ ${(n / 100).toFixed(2)}`, color: '#ff4d4f' };
-  if (n < 0) return { text: `退款 ¥ ${(-n / 100).toFixed(2)}`, color: '#2e9c5d' };
-  return { text: '无差额', color: '#5a6275' };
+  if (n > 0) return { text: `补付 ¥ ${(n / 100).toFixed(2)}`, color: 'var(--price-color)' };
+  if (n < 0) return { text: `退款 ¥ ${(-n / 100).toFixed(2)}`, color: 'var(--brand-primary)' };
+  return { text: '无差额', color: 'var(--text-secondary)' };
 }
 
 async function loadDetail(): Promise<void> {
@@ -116,6 +117,7 @@ onShow(() => void loadDetail());
 
 <template>
   <view class="detail">
+    <NavBar mode="float" color="#ffffff" />
     <view v-if="loading" class="detail__empty">加载中...</view>
     <template v-else-if="order">
       <view class="detail__hero">
@@ -180,7 +182,7 @@ onShow(() => void loadDetail());
         </view>
         <view v-if="order.remark" class="detail__sum-row">
           <text class="detail__sum-label">备注</text>
-          <text class="detail__sum-val" style="font-size: 26rpx; color: #5a6275">{{ order.remark }}</text>
+          <text class="detail__sum-val" style="font-size: 26rpx; color: var(--text-secondary)">{{ order.remark }}</text>
         </view>
       </view>
 
@@ -212,7 +214,7 @@ onShow(() => void loadDetail());
 }
 .detail__hero {
   padding: 56rpx 32rpx 40rpx;
-  background: linear-gradient(135deg, #5fbe7d 0%, #2e9c5d 100%);
+  background: var(--brand-gradient-reverse);
   color: #fff;
 }
 .detail__status {
@@ -273,18 +275,18 @@ onShow(() => void loadDetail());
 .detail__card-name {
   font-size: 30rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   display: block;
 }
 .detail__card-addr {
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   display: block;
   margin-top: 4rpx;
 }
 .detail__card-phone {
   font-size: 22rpx;
-  color: #5b5ff8;
+  color: var(--brand-primary);
   display: block;
   margin-top: 4rpx;
 }
@@ -302,12 +304,12 @@ onShow(() => void loadDetail());
   margin-top: 4rpx;
 }
 .detail__item-row--final {
-  color: #2e9c5d;
+  color: var(--brand-primary);
 }
 .detail__item-name {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .detail__item-spec {
   font-size: 24rpx;
@@ -317,18 +319,18 @@ onShow(() => void loadDetail());
 .detail__item-badge {
   padding: 4rpx 12rpx;
   background: #fff3e0;
-  color: #ff8a00;
+  color: var(--brand-primary);
   font-size: 20rpx;
   border-radius: 999rpx;
 }
 .detail__item-info {
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .detail__item-price {
   font-size: 28rpx;
   font-weight: 700;
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 .detail__sum-row {
   display: flex;
@@ -338,12 +340,12 @@ onShow(() => void loadDetail());
 }
 .detail__sum-label {
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .detail__sum-val {
   font-size: 36rpx;
   font-weight: 900;
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 
 .detail__bar {
@@ -361,7 +363,7 @@ onShow(() => void loadDetail());
   flex: 1;
   height: 88rpx;
   line-height: 88rpx;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   font-weight: 700;
   border-radius: 999rpx;
@@ -369,7 +371,7 @@ onShow(() => void loadDetail());
 }
 .detail__cta--ghost {
   background: #fff;
-  color: #5a6275;
+  color: var(--text-secondary);
   border: 1rpx solid #cbd5e1;
 }
 </style>

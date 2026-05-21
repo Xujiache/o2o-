@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import SvgIcon from '@/components/common/SvgIcon.vue';
 /**
  * GR-5 扫码识别页
  */
 import { onMounted, ref } from 'vue';
+
+import NavBar from '@/components/common/NavBar.vue';
 
 const manualCode = ref('');
 
@@ -35,12 +38,15 @@ onMounted(() => {});
 
 <template>
   <view class="scan">
+    <NavBar title="扫码溯源" />
     <view class="scan__hero">
       <text class="scan__title">生鲜溯源查询</text>
       <text class="scan__subtitle">扫码或输入二维码,查看一鸡一档</text>
     </view>
 
-    <button class="scan__btn" @click="scan">📷 扫一扫</button>
+    <button class="scan__btn" @click="scan">
+      <SvgIcon name="image" :size="32" style="margin-right: 8rpx; vertical-align: middle" />扫一扫
+    </button>
 
     <view class="scan__divider"><text>或手动输入</text></view>
 
@@ -65,7 +71,7 @@ onMounted(() => {});
 }
 .scan__hero {
   padding: 56rpx 32rpx;
-  background: linear-gradient(135deg, #5fbe7d, #2e9c5d);
+  background: var(--brand-gradient-reverse);
   color: #fff;
 }
 .scan__title {
@@ -81,7 +87,7 @@ onMounted(() => {});
 .scan__btn {
   margin: 40rpx 24rpx 0;
   padding: 36rpx 0;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   font-size: 32rpx;
   font-weight: 700;
@@ -109,7 +115,7 @@ onMounted(() => {});
 }
 .scan__manual-btn {
   padding: 0 32rpx;
-  background: #2e9c5d;
+  background: var(--brand-primary);
   color: #fff;
   border-radius: 16rpx;
   border: none;
@@ -122,6 +128,6 @@ onMounted(() => {});
 }
 .scan__tips text {
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 </style>

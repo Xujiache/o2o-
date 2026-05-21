@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 
 import { useAuthStore } from '@/stores/auth';
+import NavBar from '@/components/common/NavBar.vue';
 
 const auth = useAuthStore();
 const submitting = ref(false);
@@ -36,6 +37,7 @@ async function onAuthorize(): Promise<void> {
 
 <template>
   <view class="wechat">
+    <NavBar title="微信登录" />
     <view class="wechat__title">微信授权登录</view>
     <text class="wechat__hint">将获取你的微信 OpenID 用于绑定账号。首次登录需绑定手机号。</text>
     <button class="wechat__btn" :disabled="submitting" @click="onAuthorize">
@@ -67,7 +69,7 @@ async function onAuthorize(): Promise<void> {
   border-radius: 12rpx;
 }
 .wechat__error {
-  color: #ff4d4f;
+  color: var(--price-color);
   font-size: 26rpx;
 }
 </style>

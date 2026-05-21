@@ -14,7 +14,10 @@ export const ICONS: Record<string, string> = {
   settings:
     '<circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>',
   'chevron-right': '<polyline points="9 18 15 12 9 6"/>',
+  'chevron-left': '<polyline points="15 18 9 12 15 6"/>',
   'chevron-down': '<polyline points="6 9 12 15 18 9"/>',
+  'sliders-horizontal':
+    '<line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/><line x1="21" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="3" y2="12"/><line x1="21" y1="20" x2="16" y2="20"/><line x1="12" y1="20" x2="3" y2="20"/><circle cx="12" cy="4" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="14" cy="20" r="2"/>',
   plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
   minus: '<line x1="5" y1="12" x2="19" y2="12"/>',
   check: '<polyline points="20 6 9 17 4 12"/>',
@@ -104,7 +107,14 @@ export const ICONS: Record<string, string> = {
     '<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/><line x1="3" y1="20" x2="21" y2="20"/>',
   wallet: '<rect x="2" y="6" width="20" height="14" rx="2"/><path d="M22 10H2"/><circle cx="17" cy="14" r="1"/>',
 
-  /* 字母占位(支付方式如微信/支付宝) */
+  /* 安全 / 权限 */
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  'shield-check': '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
+  'alert-circle':
+    '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+  lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+
+  /* 支付方式字母图标 */
   wechat:
     '<path d="M8 2C4.7 2 2 4.5 2 7.5c0 1.7.9 3.2 2.3 4.2L4 14l2.5-1.4c.5.1.9.2 1.5.2 3.3 0 6-2.5 6-5.5S11.3 2 8 2Z"/><circle cx="6" cy="7" r="0.5"/><circle cx="10" cy="7" r="0.5"/><path d="M22 15.5c0 1.5-.7 2.8-1.9 3.7l.4 1.8-2.1-1.2c-.4.1-.9.1-1.4.1-3 0-5.5-2.2-5.5-4.9s2.5-4.9 5.5-4.9 5 2.2 5 4.9Z"/><circle cx="15" cy="15" r="0.5"/><circle cx="19" cy="15" r="0.5"/>',
   alipay:

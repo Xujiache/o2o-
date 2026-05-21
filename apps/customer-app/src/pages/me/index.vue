@@ -144,7 +144,7 @@ onShow(async () => {
     <view class="me__quick-grid">
       <view v-for="item in quickEntries" :key="item.key" class="me__quick-item" @tap="navigateByKey(item.key)">
         <view class="me__quick-icon">
-          <SvgIcon :name="item.icon" :size="34" color="#ff6b35" />
+          <SvgIcon :name="item.icon" :size="34" color="var(--brand-primary)" />
         </view>
         <text class="me__quick-label">{{ item.label }}</text>
       </view>
@@ -157,7 +157,7 @@ onShow(async () => {
       <view class="me__info-list">
         <view v-for="item in serviceEntries" :key="item.key" class="me__info-row" @tap="navigateByKey(item.key)">
           <view class="me__info-left">
-            <SvgIcon :name="item.icon" :size="30" color="#172033" />
+            <SvgIcon :name="item.icon" :size="30" color="var(--text-primary)" />
             <text class="me__info-title">{{ item.label }}</text>
           </view>
           <SvgIcon name="chevron-right" :size="28" color="#b6bfcd" />
@@ -175,7 +175,7 @@ onShow(async () => {
   padding: 24rpx 24rpx 220rpx;
   box-sizing: border-box;
   background: #fff;
-  color: #172033;
+  color: var(--text-primary);
 }
 
 .me__profile-card,
@@ -218,7 +218,7 @@ onShow(async () => {
 .me__avatar-letter {
   font-size: 38rpx;
   font-weight: 800;
-  color: #ff6b35;
+  color: var(--brand-primary);
 }
 
 .me__profile-body {
@@ -240,7 +240,7 @@ onShow(async () => {
   max-width: 300rpx;
   font-size: 34rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -263,8 +263,8 @@ onShow(async () => {
   min-height: 40rpx;
   padding: 0 12rpx;
   font-size: 22rpx;
-  color: #ff6b35;
-  border-color: rgba(255, 107, 53, 0.32);
+  color: var(--brand-primary);
+  border-color: rgba(46, 156, 93, 0.32);
 }
 
 .me__bio {
@@ -293,12 +293,12 @@ onShow(async () => {
 
 .me__tag--warn,
 .me__tag--info {
-  color: #ff7a45;
-  border-color: rgba(255, 122, 69, 0.36);
+  color: var(--brand-primary);
+  border-color: rgba(46, 156, 93, 0.36);
 }
 
 .me__tag--danger {
-  color: #ff4d4f;
+  color: var(--price-color);
   border-color: rgba(255, 77, 79, 0.36);
 }
 
@@ -312,7 +312,7 @@ onShow(async () => {
   justify-content: space-between;
   margin-bottom: 12rpx;
   font-size: 23rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 .me__progress {
@@ -325,7 +325,7 @@ onShow(async () => {
 
 .me__progress-fill {
   height: 100%;
-  background: #ff6b35;
+  background: var(--brand-primary);
   border-radius: 999rpx;
   transition: width 240ms ease;
 }
@@ -361,7 +361,7 @@ onShow(async () => {
 .me__quick-label {
   font-size: 25rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 
 .me__section {
@@ -377,7 +377,7 @@ onShow(async () => {
 .me__section-title {
   font-size: 30rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
 }
 
 .me__info-list {
@@ -408,6 +408,6 @@ onShow(async () => {
 .me__info-title {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 </style>

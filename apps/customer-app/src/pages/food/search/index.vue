@@ -4,6 +4,7 @@ import { computed, ref } from 'vue';
 
 import SvgIcon from '@/components/common/SvgIcon.vue';
 import { readStoredFoodCity, resolveFoodCityName } from '@/utils/food-city';
+import NavBar from '@/components/common/NavBar.vue';
 
 const HOT_KEYWORDS = ['炸鸡', '奶茶', '盖饭', '米粉', '咖啡', '汉堡', '烧烤', '轻食', '面条', '水果'];
 const HISTORY_KEY = 'food:search-history';
@@ -104,12 +105,13 @@ onUnload(stopHotTimer);
 
 <template>
   <view class="search-page">
+    <NavBar title="搜索" />
     <view class="search-head">
       <view class="search-head__back" @tap="goBack">
-        <SvgIcon name="chevron-left" :size="42" color="#172033" />
+        <SvgIcon name="chevron-left" :size="42" color="var(--text-primary)" />
       </view>
       <view class="search-bar__box">
-        <SvgIcon name="search" :size="30" color="#8a94a6" />
+        <SvgIcon name="search" :size="30" color="var(--text-muted)" />
         <input
           v-model="keyword"
           class="search-bar__input"
@@ -123,13 +125,13 @@ onUnload(stopHotTimer);
 
     <view class="city-card" @tap="goCity">
       <view class="city-card__main">
-        <SvgIcon name="location-pin" :size="34" color="#ff6b35" />
+        <SvgIcon name="location-pin" :size="34" color="var(--brand-primary)" />
         <view class="city-card__text">
           <text class="city-card__label">当前城市</text>
           <text class="city-card__name">{{ cityName }}</text>
         </view>
       </view>
-      <SvgIcon name="chevron-right" :size="30" color="#8a94a6" />
+      <SvgIcon name="chevron-right" :size="30" color="var(--text-muted)" />
     </view>
 
     <view class="section">
@@ -187,7 +189,7 @@ onUnload(stopHotTimer);
   flex: 1;
   height: 76rpx;
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
   min-width: 0;
 }
 
@@ -196,7 +198,7 @@ onUnload(stopHotTimer);
   height: 76rpx;
   line-height: 76rpx;
   border-radius: 999rpx;
-  background: #ff6b35;
+  background: var(--brand-primary);
   color: #fff;
   font-size: 27rpx;
   font-weight: 700;
@@ -232,12 +234,12 @@ onUnload(stopHotTimer);
 }
 
 .city-card__label {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 22rpx;
 }
 
 .city-card__name {
-  color: #172033;
+  color: var(--text-primary);
   font-size: 31rpx;
   font-weight: 800;
 }
@@ -254,13 +256,13 @@ onUnload(stopHotTimer);
 }
 
 .section__title {
-  color: #172033;
+  color: var(--text-primary);
   font-size: 30rpx;
   font-weight: 800;
 }
 
 .section__action {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 24rpx;
   padding: 8rpx 0 8rpx 24rpx;
 }
@@ -276,7 +278,7 @@ onUnload(stopHotTimer);
   padding: 16rpx 22rpx;
   border-radius: 999rpx;
   background: #f5f6f8;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 25rpx;
   overflow: hidden;
   text-overflow: ellipsis;

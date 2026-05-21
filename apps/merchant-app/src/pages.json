@@ -35,6 +35,7 @@
     { "path": "pages/grocery/picking/detail", "style": { "navigationBarTitleText": "拣货详情" } }
   ],
   "globalStyle": {
+    "navigationStyle": "custom",
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "O2O 商家端",
     "navigationBarBackgroundColor": "#FFFFFF",

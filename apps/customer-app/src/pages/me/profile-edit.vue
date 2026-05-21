@@ -6,6 +6,7 @@ import { uploadFile } from '@/api';
 import SvgIcon from '@/components/common/SvgIcon.vue';
 import { type CustomerGender, type CustomerRealnameStatus, useAuthStore } from '@/stores/auth';
 import { maskPhone } from '@/utils/format';
+import NavBar from '@/components/common/NavBar.vue';
 
 const auth = useAuthStore();
 
@@ -220,6 +221,7 @@ onUnmounted(() => {
 
 <template>
   <view class="edit">
+    <NavBar title="编辑资料" />
     <view class="edit__avatar-block">
       <view class="edit__avatar">
         <image v-if="form.avatarUrl" class="edit__avatar-image" :src="form.avatarUrl" mode="aspectFill" />
@@ -273,7 +275,7 @@ onUnmounted(() => {
     <view class="edit__card edit__card--readonly">
       <view class="edit__readonly-row" @tap="openMobilePanel">
         <view class="edit__readonly-left">
-          <SvgIcon name="phone" :size="28" color="#172033" />
+          <SvgIcon name="phone" :size="28" color="var(--text-primary)" />
           <text class="edit__readonly-label">手机号</text>
         </view>
         <view class="edit__readonly-right">
@@ -313,7 +315,7 @@ onUnmounted(() => {
 
       <view class="edit__readonly-row" @tap="goRealname">
         <view class="edit__readonly-left">
-          <SvgIcon name="shield-check" :size="28" color="#172033" />
+          <SvgIcon name="shield-check" :size="28" color="var(--text-primary)" />
           <text class="edit__readonly-label">实名状态</text>
         </view>
         <view class="edit__readonly-tag" :class="realnameMeta.className">{{ realnameMeta.label }}</view>
@@ -337,7 +339,7 @@ onUnmounted(() => {
   padding: 28rpx 24rpx 160rpx;
   box-sizing: border-box;
   background: #fff;
-  color: #172033;
+  color: var(--text-primary);
 }
 
 .edit__avatar-block {
@@ -368,7 +370,7 @@ onUnmounted(() => {
 .edit__avatar-letter {
   font-size: 42rpx;
   font-weight: 800;
-  color: #ff6b35;
+  color: var(--brand-primary);
 }
 
 .edit__avatar-actions {
@@ -386,7 +388,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 10rpx;
   background: #fff;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 24rpx;
   font-weight: 700;
 }
@@ -429,7 +431,7 @@ onUnmounted(() => {
 
 .edit__field-label {
   font-size: 23rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-weight: 700;
 }
 
@@ -441,7 +443,7 @@ onUnmounted(() => {
   border: 1rpx solid #e8ecf2;
   border-radius: 16rpx;
   background: #fff;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 28rpx;
 }
 
@@ -487,7 +489,7 @@ onUnmounted(() => {
 .edit__readonly-label,
 .edit__readonly-value {
   font-size: 27rpx;
-  color: #172033;
+  color: var(--text-primary);
 }
 
 .edit__readonly-value {
@@ -514,12 +516,12 @@ onUnmounted(() => {
 
 .edit__tag--warn,
 .edit__tag--info {
-  color: #ff7a45;
-  border-color: rgba(255, 122, 69, 0.36);
+  color: var(--brand-primary);
+  border-color: rgba(46, 156, 93, 0.36);
 }
 
 .edit__tag--danger {
-  color: #ff4d4f;
+  color: var(--price-color);
   border-color: rgba(255, 77, 79, 0.36);
 }
 
@@ -545,9 +547,9 @@ onUnmounted(() => {
   min-height: 78rpx;
   padding: 0 24rpx;
   border-radius: 16rpx;
-  border: 1rpx solid rgba(255, 107, 53, 0.52);
+  border: 1rpx solid rgba(46, 156, 93, 0.52);
   background: #fff;
-  color: #ff6b35;
+  color: var(--brand-primary);
   font-size: 25rpx;
   font-weight: 800;
   display: flex;
@@ -568,7 +570,7 @@ onUnmounted(() => {
   border: 1rpx solid rgba(255, 77, 79, 0.28);
   border-radius: 22rpx;
   background: #fff;
-  color: #ff4d4f;
+  color: var(--price-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -595,8 +597,8 @@ onUnmounted(() => {
   justify-content: center;
   font-size: 28rpx;
   font-weight: 800;
-  color: #ff6b35;
+  color: var(--brand-primary);
   background: #fff;
-  border: 1rpx solid rgba(255, 107, 53, 0.52);
+  border: 1rpx solid rgba(46, 156, 93, 0.52);
 }
 </style>

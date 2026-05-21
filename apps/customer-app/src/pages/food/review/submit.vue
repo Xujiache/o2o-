@@ -4,6 +4,7 @@ import { ref } from 'vue';
 
 import SvgIcon from '@/components/common/SvgIcon.vue';
 import { submitReview } from '@/api/food-review';
+import NavBar from '@/components/common/NavBar.vue';
 
 const orderId = ref('');
 const rating = ref(5);
@@ -46,6 +47,7 @@ onLoad((options) => {
 
 <template>
   <view class="review">
+    <NavBar title="评价订单" />
     <view class="review__title">评价订单</view>
     <view class="review__rating">
       <view v-for="i in 5" :key="i" :class="{ on: i <= rating }" class="review__star" @tap="rating = i">

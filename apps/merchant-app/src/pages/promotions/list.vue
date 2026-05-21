@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { onMounted, ref } from 'vue';
 
 import { listPromotions, setPromoStatus, type PromotionItemVo } from '@/api';
@@ -114,7 +114,7 @@ async function onEnd(p: PromotionItemVo): Promise<void> {
   background: #f0f0f0;
 }
 .promo__act--danger {
-  background: #ff4d4f;
+  background: var(--price-color);
   color: #fff;
 }
 .promo__empty {

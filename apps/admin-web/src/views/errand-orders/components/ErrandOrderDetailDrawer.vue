@@ -468,8 +468,8 @@ const fmtAddr = (addr: Record<string, unknown> | null): string => {
   color: var(--fg-primary);
 }
 .price-cell--total {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), transparent);
-  border-color: rgba(59, 130, 246, 0.32);
+  background: linear-gradient(135deg, rgba(46, 156, 93, 0.12), transparent);
+  border-color: rgba(46, 156, 93, 0.32);
 }
 .price-cell--total .value {
   color: var(--brand-500);

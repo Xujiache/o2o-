@@ -54,6 +54,8 @@ export const ThirdPartyProvider = {
   ALI_REALNAME: 'ali-realname',
   WXLOGIN: 'wxlogin',
   MINIO: 'minio',
+  /** AI 对话(OpenAI 兼容协议,默认 DeepSeek)— secret 内为 JSON: { apiKey, baseUrl?, model? } */
+  AI_DEEPSEEK: 'ai-deepseek',
 } as const;
 export type ThirdPartyProviderValue = (typeof ThirdPartyProvider)[keyof typeof ThirdPartyProvider];
 

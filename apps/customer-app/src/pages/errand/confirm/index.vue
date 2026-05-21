@@ -6,6 +6,7 @@ import { submitErrand } from '@/api/errand-orders';
 import { prepay, simulatePayCallback } from '@/api/food-payments';
 import { useErrandQuoteStore } from '@/stores/errand-quote';
 import { formatYuan } from '@/utils/format-price';
+import NavBar from '@/components/common/NavBar.vue';
 
 const quoteStore = useErrandQuoteStore();
 const quote = ref(quoteStore.current);
@@ -71,8 +72,9 @@ async function submit(): Promise<void> {
 
 <template>
   <view class="confirm">
+    <NavBar title="确认订单" />
     <view v-if="!quote" class="confirm__error">
-      <text class="confirm__error-icon">⏰</text>
+      <SvgIcon name="clock" :size="32" class="confirm__error-icon" />
       <text class="confirm__error-title">报价已失效</text>
       <text class="confirm__error-msg">请返回重新获取报价</text>
     </view>
@@ -140,18 +142,18 @@ async function submit(): Promise<void> {
 .confirm__error-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .confirm__error-msg {
   font-size: 24rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 .confirm__hero {
   position: relative;
   z-index: 1;
   padding: 60rpx 32rpx 80rpx;
-  background: linear-gradient(135deg, #5b5ff8 0%, #00b8d9 100%);
+  background: var(--brand-gradient);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -190,7 +192,7 @@ async function submit(): Promise<void> {
   display: flex;
   align-items: center;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   margin-bottom: 12rpx;
 }
 .confirm__textarea {
@@ -199,7 +201,7 @@ async function submit(): Promise<void> {
   background: #fff;
   border-radius: 16rpx;
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
   min-height: 120rpx;
   box-sizing: border-box;
 }
@@ -212,7 +214,7 @@ async function submit(): Promise<void> {
   background: #fff;
   border-radius: 16rpx;
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
   box-sizing: border-box;
 }
 .confirm__picker-arrow {
@@ -258,21 +260,21 @@ async function submit(): Promise<void> {
 }
 .confirm__bar-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .confirm__bar-amount {
   font-size: 36rpx;
   font-weight: 800;
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 .confirm__cta {
-  background: linear-gradient(135deg, #5b5ff8, #00b8d9);
+  background: var(--brand-gradient);
   color: #fff;
   font-size: 30rpx;
   font-weight: 700;
   border-radius: 999rpx;
   padding: 22rpx 48rpx;
-  box-shadow: 0 16rpx 40rpx rgba(91, 95, 248, 0.32);
+  box-shadow: 0 16rpx 40rpx rgba(46, 156, 93, 0.32);
 }
 .confirm__cta[disabled] {
   opacity: 0.6;

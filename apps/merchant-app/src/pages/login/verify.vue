@@ -1,6 +1,7 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 
+import NavBar from '@/components/common/NavBar.vue';
 import SmsCodeInput from '@/components/common/SmsCodeInput.vue';
 import { useAuthStore } from '@/stores/auth';
 
@@ -70,6 +71,7 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <view class="verify">
+    <NavBar title="短信验证" />
     <view class="verify__title">输入验证码</view>
     <text class="verify__hint">已发送至 {{ mobile }}</text>
 
@@ -125,7 +127,7 @@ async function onSubmit(): Promise<void> {
   background: #c5d4ff;
 }
 .verify__error {
-  color: #ff4d4f;
+  color: var(--price-color);
   font-size: 26rpx;
 }
 </style>

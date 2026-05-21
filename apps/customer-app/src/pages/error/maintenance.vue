@@ -9,7 +9,7 @@ function retry(): void {
 <template>
   <view class="page">
     <view class="page__icon">
-      <SvgIcon name="wrench" :size="100" color="#5a6275" />
+      <SvgIcon name="wrench" :size="100" color="var(--text-secondary)" />
     </view>
     <view class="page__title">系统维护中</view>
     <text class="page__desc">服务正在升级,稍后再试。</text>

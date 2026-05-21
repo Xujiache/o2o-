@@ -5,6 +5,7 @@ import { onMounted, ref } from 'vue';
 import { type AddressItemVo, getAddresses } from '@/api';
 import AddressCard from '@/components/common/AddressCard.vue';
 import { useFoodOrderStore } from '@/stores/food-order';
+import NavBar from '@/components/common/NavBar.vue';
 
 const list = ref<AddressItemVo[]>([]);
 const loading = ref(false);
@@ -45,6 +46,7 @@ function onAdd(): void {
 
 <template>
   <view class="address-list">
+    <NavBar title="我的地址" />
     <view v-if="selectMode" class="address-list__hint">点击地址完成选择</view>
     <view v-if="loading" class="address-list__loading">加载中...</view>
     <view v-else-if="list.length === 0" class="address-list__empty">暂无收件地址,新增一个吧</view>
@@ -65,8 +67,8 @@ function onAdd(): void {
   background: #fff;
 }
 .address-list__hint {
-  background: rgba(255, 122, 69, 0.1);
-  color: #ff6b35;
+  background: rgba(46, 156, 93, 0.1);
+  color: var(--brand-primary);
   padding: 16rpx 24rpx;
   border-radius: 12rpx;
   font-size: 24rpx;
@@ -93,7 +95,7 @@ function onAdd(): void {
   bottom: 32rpx;
   left: 24rpx;
   right: 24rpx;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   border-radius: 999rpx;
   font-weight: 700;

@@ -42,3 +42,26 @@ export function listAfterSales(params?: {
 export function getAfterSaleDetail(id: string): Promise<ApiResponse<AdminAfterSaleDetailVo>> {
   return request({ url: `/api/v1/admin/after-sales/${id}`, method: 'GET' });
 }
+
+export type ArbitrateResponsibleParty = 'MERCHANT' | 'RIDER' | 'CUSTOMER' | 'PLATFORM';
+export type ArbitrateDecision = 'APPROVE' | 'REJECT' | 'PARTIAL';
+
+export interface ArbitrateReq {
+  responsibleParty: ArbitrateResponsibleParty;
+  decision: ArbitrateDecision;
+  /** 退款金额（分,字符串） */
+  refundAmount: string;
+  /** 罚款金额（分,字符串） */
+  penalty: string;
+  remark?: string;
+}
+
+export interface ArbitrateVo {
+  afterSaleId: string;
+  status: string;
+  refundOrderId: string | null;
+}
+
+export function arbitrate(id: string, body: ArbitrateReq): Promise<ApiResponse<ArbitrateVo>> {
+  return request({ url: `/api/v1/admin/after-sales/${id}/arbitrate`, method: 'POST', data: body });
+}

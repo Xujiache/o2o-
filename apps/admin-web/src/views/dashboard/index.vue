@@ -87,7 +87,7 @@ const errandPieOption = computed(() => {
         label: { show: false },
         emphasis: { label: { show: true, fontSize: 14, fontWeight: '500', color: '#e6edf7' } },
         data,
-        color: ['#f59e0b', '#3b82f6', '#a855f7', '#60a5fa', '#22c55e', '#10b981', '#ef4444'],
+        color: ['#f59e0b', '#2e9c5d', '#a855f7', '#60a5fa', '#22c55e', '#10b981', '#ef4444'],
       },
     ],
   };
@@ -134,8 +134,8 @@ const foodBarOption = computed(() => {
             x2: 0,
             y2: 1,
             colorStops: [
-              { offset: 0, color: '#3b82f6' },
-              { offset: 1, color: '#1d4ed8' },
+              { offset: 0, color: '#5fbe7d' },
+              { offset: 1, color: '#1f7a47' },
             ],
           },
         },

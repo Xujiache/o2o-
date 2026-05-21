@@ -6,6 +6,7 @@ import { cancelOrder, getOrderDetail, type OrderDetailVo } from '@/api/food-orde
 import { getOrderTrack, type TrackVo } from '@/api/food-track';
 import { formatYuan } from '@/utils/format-price';
 import { actorLabel, foodStatusLabel } from '@/utils/food-order-status';
+import NavBar from '@/components/common/NavBar.vue';
 
 const orderId = ref('');
 const detail = ref<OrderDetailVo | null>(null);
@@ -20,9 +21,11 @@ const canCancel = computed<boolean>(() => detail.value?.actions?.includes('cance
 const canPay = computed<boolean>(() => detail.value?.actions?.includes('pay') ?? false);
 const canReview = computed<boolean>(() => detail.value?.actions?.includes('review') ?? false);
 
-const mapCenter = computed(
-  () => track.value?.riderLocation ?? track.value?.end ?? track.value?.start ?? { lng: 116.4, lat: 39.9 },
+/** 优先骑手实时位置 → 收货点 → 起点;全部缺失则返回 null,模板隐藏地图改显文字 */
+const mapCenter = computed<{ lng: number; lat: number } | null>(
+  () => track.value?.riderLocation ?? track.value?.end ?? track.value?.start ?? null,
 );
+const hasMapCenter = computed<boolean>(() => mapCenter.value != null);
 const mapMarkers = computed(() => {
   if (!track.value) return [];
   const markers = [
@@ -31,14 +34,14 @@ const mapMarkers = computed(() => {
       latitude: track.value.start.lat,
       longitude: track.value.start.lng,
       title: '商家位置',
-      callout: { content: '商家', display: 'ALWAYS', color: '#172033', fontSize: 12 },
+      callout: { content: '商家', display: 'ALWAYS', color: 'var(--text-primary)', fontSize: 12 },
     },
     {
       id: 2,
       latitude: track.value.end.lat,
       longitude: track.value.end.lng,
       title: '收货位置',
-      callout: { content: '收货', display: 'ALWAYS', color: '#172033', fontSize: 12 },
+      callout: { content: '收货', display: 'ALWAYS', color: 'var(--text-primary)', fontSize: 12 },
     },
   ];
   if (track.value.riderLocation) {
@@ -47,7 +50,7 @@ const mapMarkers = computed(() => {
       latitude: track.value.riderLocation.lat,
       longitude: track.value.riderLocation.lng,
       title: '骑手实时位置',
-      callout: { content: '骑手', display: 'ALWAYS', color: '#172033', fontSize: 12 },
+      callout: { content: '骑手', display: 'ALWAYS', color: 'var(--text-primary)', fontSize: 12 },
     });
   }
   return markers;
@@ -60,7 +63,7 @@ const mapPolyline = computed(() =>
             { latitude: track.value.start.lat, longitude: track.value.start.lng },
             { latitude: track.value.end.lat, longitude: track.value.end.lng },
           ],
-          color: '#ff7a45',
+          color: 'var(--brand-primary)',
           width: 4,
           dottedLine: true,
         },
@@ -164,6 +167,7 @@ onUnmounted(() => {
 
 <template>
   <view class="detail">
+    <NavBar mode="float" color="#ffffff" />
     <view v-if="loading && !detail" class="detail__loading">加载中...</view>
 
     <template v-else-if="detail">
@@ -178,6 +182,7 @@ onUnmounted(() => {
       <view class="map-card">
         <view class="card-title">配送地图</view>
         <map
+          v-if="hasMapCenter && mapCenter"
           class="map"
           :latitude="mapCenter.lat"
           :longitude="mapCenter.lng"
@@ -185,6 +190,7 @@ onUnmounted(() => {
           :polyline="mapPolyline"
           :scale="14"
         />
+        <view v-else class="map-card__empty">暂无骑手位置</view>
         <view class="map-card__legend">
           <text>商家位置</text>
           <text>收货位置</text>
@@ -268,7 +274,7 @@ onUnmounted(() => {
 .detail__loading {
   padding: 160rpx 0;
   text-align: center;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .hero {
   display: flex;
@@ -276,9 +282,9 @@ onUnmounted(() => {
   gap: 10rpx;
   padding: 34rpx 30rpx;
   border-radius: 24rpx;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
-  box-shadow: 0 18rpx 42rpx rgba(255, 122, 69, 0.22);
+  box-shadow: 0 18rpx 42rpx rgba(46, 156, 93, 0.22);
 }
 .hero__status {
   font-size: 40rpx;
@@ -299,7 +305,7 @@ onUnmounted(() => {
 }
 .card-title {
   margin-bottom: 16rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 28rpx;
   font-weight: 800;
 }
@@ -308,6 +314,17 @@ onUnmounted(() => {
   height: 360rpx;
   border-radius: 18rpx;
   overflow: hidden;
+}
+.map-card__empty {
+  width: 100%;
+  height: 360rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18rpx;
+  background: #f5f6f8;
+  color: var(--text-muted);
+  font-size: 26rpx;
 }
 .map-card__legend {
   display: flex;
@@ -319,19 +336,19 @@ onUnmounted(() => {
   padding: 6rpx 14rpx;
   border-radius: 999rpx;
   background: #f5f6f8;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-size: 22rpx;
 }
 .address-name,
 .address-text {
   display: block;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 28rpx;
   font-weight: 700;
 }
 .address-text {
   margin-top: 8rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-size: 25rpx;
   font-weight: 400;
   line-height: 1.5;
@@ -351,17 +368,17 @@ onUnmounted(() => {
   min-width: 0;
 }
 .line__name {
-  color: #172033;
+  color: var(--text-primary);
   font-size: 27rpx;
   font-weight: 700;
 }
 .line__spec {
   margin-left: 8rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 22rpx;
 }
 .line__qty {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 24rpx;
 }
 .line__price {
@@ -373,14 +390,14 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   padding: 10rpx 0;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-size: 26rpx;
 }
 .amount-row--total {
   margin-top: 10rpx;
   padding-top: 18rpx;
   border-top: 1rpx solid rgba(31, 41, 55, 0.08);
-  color: #172033;
+  color: var(--text-primary);
   font-size: 32rpx;
   font-weight: 800;
 }
@@ -397,7 +414,7 @@ onUnmounted(() => {
   top: 34rpx;
   bottom: -12rpx;
   width: 2rpx;
-  background: rgba(255, 122, 69, 0.18);
+  background: rgba(46, 156, 93, 0.18);
 }
 .timeline:last-child::before {
   display: none;
@@ -411,8 +428,8 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 .timeline__dot--active {
-  background: #ff7a45;
-  box-shadow: 0 0 0 8rpx rgba(255, 122, 69, 0.14);
+  background: var(--brand-primary);
+  box-shadow: 0 0 0 8rpx rgba(46, 156, 93, 0.14);
 }
 .timeline__main {
   display: flex;
@@ -421,13 +438,13 @@ onUnmounted(() => {
   gap: 4rpx;
 }
 .timeline__title {
-  color: #172033;
+  color: var(--text-primary);
   font-size: 26rpx;
   font-weight: 700;
 }
 .timeline__time,
 .timeline__reason {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 22rpx;
 }
 .actions {
@@ -450,10 +467,10 @@ onUnmounted(() => {
 }
 .actions__btn--ghost {
   background: #f5f6f8;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .actions__btn--primary {
-  background: #ff7a45;
+  background: var(--brand-primary);
   color: #fff;
 }
 .actions__btn--danger {
@@ -482,7 +499,7 @@ onUnmounted(() => {
 }
 .dialog__title {
   margin-bottom: 16rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 32rpx;
   font-weight: 800;
 }

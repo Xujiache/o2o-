@@ -6,6 +6,7 @@ import { type ListStatusTab } from '@/api/errand-orders';
 import { useErrandOrderStore } from '@/stores/errand-order';
 import { statusLabel, typeLabel, urgentLabel } from '@/utils/errand-status';
 import { formatYuan } from '@/utils/format-price';
+import NavBar from '@/components/common/NavBar.vue';
 
 const store = useErrandOrderStore();
 const tab = ref<ListStatusTab>('ALL');
@@ -48,6 +49,7 @@ onMounted(load);
 
 <template>
   <view class="list">
+    <NavBar title="跑腿订单" />
     <!-- Tab 栏 -->
     <view class="list__tabs">
       <scroll-view scroll-x :show-scrollbar="false" class="list__tabs-scroll">
@@ -82,7 +84,7 @@ onMounted(load);
         </view>
 
         <view class="list__body">
-          <SvgIcon name="location-pin" :size="22" color="#ff6b35" />
+          <SvgIcon name="location-pin" :size="22" color="var(--brand-primary)" />
           <text class="list__addr">{{ o.deliveryAddress }}</text>
         </view>
 
@@ -126,21 +128,21 @@ onMounted(load);
   border-radius: 999rpx;
   background: #fff;
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 .list__tab--active {
-  background: linear-gradient(135deg, #5b5ff8, #00b8d9);
+  background: var(--brand-gradient);
   color: #fff;
   font-weight: 700;
-  box-shadow: 0 8rpx 20rpx rgba(91, 95, 248, 0.3);
+  box-shadow: 0 8rpx 20rpx rgba(46, 156, 93, 0.3);
 }
 
 /* Empty / loading */
 .list__empty {
   padding: 160rpx 40rpx;
   text-align: center;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 26rpx;
   display: flex;
   flex-direction: column;
@@ -183,14 +185,14 @@ onMounted(load);
 .list__type-tag {
   padding: 4rpx 14rpx;
   background: linear-gradient(135deg, #ebecff, #e0f7fa);
-  color: #5b5ff8;
+  color: var(--brand-primary);
   font-size: 22rpx;
   font-weight: 700;
   border-radius: 8rpx;
 }
 .list__order-no {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -201,7 +203,7 @@ onMounted(load);
   flex-shrink: 0;
 }
 .list__status--active {
-  color: #5b5ff8;
+  color: var(--brand-primary);
 }
 .list__status--ok {
   color: #11998e;
@@ -210,7 +212,7 @@ onMounted(load);
   color: #ff8c42;
 }
 .list__status--mute {
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 .list__body {
@@ -229,7 +231,7 @@ onMounted(load);
 .list__addr {
   flex: 1;
   font-size: 26rpx;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1.4;
 }
 
@@ -241,11 +243,11 @@ onMounted(load);
 }
 .list__urgent {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .list__amount {
   font-size: 32rpx;
   font-weight: 800;
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 </style>

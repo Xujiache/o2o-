@@ -69,7 +69,7 @@ async function onPick(): Promise<void> {
   color: #4c84ff;
 }
 .upload-field__error {
-  color: #ff4d4f;
+  color: var(--price-color);
   font-size: 22rpx;
 }
 </style>

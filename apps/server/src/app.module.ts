@@ -49,6 +49,7 @@ import { CartModule } from './modules/cart/cart.module';
 import { CommonConfigModule } from './modules/common-config/common-config.module';
 import { CouponModule } from './modules/coupon/coupon.module';
 import { CustomerAfterSaleModule } from './modules/customer-after-sale/customer-after-sale.module';
+import { CustomerAiChatModule } from './modules/customer-ai-chat/customer-ai-chat.module';
 import { CustomerAuthModule } from './modules/customer-auth/customer-auth.module';
 import { CustomerOrdersModule } from './modules/customer-orders/customer-orders.module';
 import { CustomerReviewModule } from './modules/customer-review/customer-review.module';
@@ -108,6 +109,7 @@ import { TrackModule } from './modules/track/track.module';
 import { TrackQueryModule } from './modules/track-query/track-query.module';
 import { UserProfileModule } from './modules/user-profile/user-profile.module';
 import { ViolationModule } from './modules/violation/violation.module';
+import { WsGatewayModule } from './modules/ws-gateway/ws-gateway.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 
 @Module({
@@ -233,6 +235,10 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     GroceryOrderModule,
     // GR-5 — 一鸡一码溯源(档案 + 二维码批次 + 扫码绑)
     TraceabilityModule,
+    // 4 端统一 WebSocket 推送(DomainEvent → topic 桥)
+    WsGatewayModule,
+    // AI 食材顾问对话(SSE 流式,DeepSeek OpenAI 兼容协议)
+    CustomerAiChatModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

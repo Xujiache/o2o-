@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 
 import MapView from '@/components/common/MapView.vue';
+import NavBar from '@/components/common/NavBar.vue';
 
 const STORAGE_COORDS = 'o2o:customer:picked-coords';
 const STORAGE_LOCATION = 'o2o:customer:picked-location';
@@ -70,6 +71,7 @@ onMounted(restorePickedLocation);
 
 <template>
   <view class="addr-map">
+    <NavBar title="地图选点" />
     <view class="addr-map__title">地图选点</view>
     <text class="addr-map__hint">优先使用系统原生选点;平台不支持时保留清晰降级,不写入模拟坐标。</text>
     <button class="addr-map__btn" @click="chooseLocation">使用系统地图选点</button>
@@ -124,7 +126,7 @@ onMounted(restorePickedLocation);
 .addr-map__error {
   display: block;
   margin-top: 16rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-size: 24rpx;
 }
 .addr-map__btn {

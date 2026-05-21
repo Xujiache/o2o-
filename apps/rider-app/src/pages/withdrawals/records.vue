@@ -169,14 +169,14 @@ onMounted(() => store.refresh());
 .r__stat-val {
   font-size: 30rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1;
   font-feature-settings: 'tnum';
   letter-spacing: -0.5rpx;
 }
 .r__stat-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .r__stat-divider {
   width: 1rpx;
@@ -198,11 +198,11 @@ onMounted(() => store.refresh());
   text-align: center;
   padding: 14rpx 0;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   border-radius: 8rpx;
 }
 .r__tab--active {
-  background: #0f766e;
+  background: var(--brand-primary);
   color: #fff;
   font-weight: 700;
 }
@@ -211,7 +211,7 @@ onMounted(() => store.refresh());
 .r__msg {
   text-align: center;
   padding: 80rpx 0;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 24rpx;
 }
 .r__empty {
@@ -223,17 +223,17 @@ onMounted(() => store.refresh());
 }
 .r__empty-text {
   font-size: 24rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .r__empty-btn {
   margin-top: 12rpx;
   padding: 18rpx 44rpx;
-  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  background: var(--brand-gradient-reverse);
   color: #fff;
   font-size: 26rpx;
   font-weight: 700;
   border-radius: 12rpx;
-  box-shadow: 0 12rpx 28rpx rgba(15, 118, 110, 0.36);
+  box-shadow: 0 12rpx 28rpx rgba(46, 156, 93, 0.36);
 }
 
 /* 卡 */
@@ -264,7 +264,7 @@ onMounted(() => store.refresh());
 }
 .r__card-no {
   font-size: 22rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-feature-settings: 'tnum';
 }
 .r__status {
@@ -274,11 +274,11 @@ onMounted(() => store.refresh());
   border-radius: 4rpx;
 }
 .r__status--ok {
-  color: #11865c;
+  color: var(--brand-primary);
   background: #e9f7ef;
 }
 .r__status--info {
-  color: #2563eb;
+  color: var(--brand-primary);
   background: #e6f0ff;
 }
 .r__status--warn {
@@ -286,7 +286,7 @@ onMounted(() => store.refresh());
   background: #fff7e0;
 }
 .r__status--fail {
-  color: #c0392b;
+  color: var(--price-color);
   background: #fdecea;
 }
 
@@ -302,11 +302,11 @@ onMounted(() => store.refresh());
 }
 .r__card-amount-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .r__card-amount {
   font-size: 22rpx;
-  color: #c0392b;
+  color: var(--price-color);
   font-weight: 700;
 }
 .r__card-amount-num {
@@ -323,24 +323,24 @@ onMounted(() => store.refresh());
 }
 .r__card-row-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .r__card-row-val {
   font-size: 22rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-feature-settings: 'tnum';
 }
 .r__card-fail {
   margin: 0 22rpx 18rpx;
   padding: 12rpx 14rpx;
   background: #fdecea;
-  border-left: 4rpx solid #c0392b;
+  border-left: 4rpx solid #ef4444;
   border-radius: 0 6rpx 6rpx 0;
   display: flex;
   align-items: flex-start;
   gap: 8rpx;
   font-size: 22rpx;
-  color: #c0392b;
+  color: var(--price-color);
   line-height: 1.5;
 }
 </style>

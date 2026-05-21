@@ -4,6 +4,7 @@ import { createSSRApp } from 'vue';
 import App from './App.vue';
 import { useAuthStore } from './stores/auth';
 import { setRefreshHandler } from './utils/request';
+import './styles/theme.css';
 
 export function createApp() {
   const app = createSSRApp(App);

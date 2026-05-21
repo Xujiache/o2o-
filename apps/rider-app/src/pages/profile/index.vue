@@ -320,7 +320,7 @@ function showAbout(): void {
             :class="{ 'me__edit-vehicle-item--active': vehicleType === v.key }"
             @tap="vehicleType = v.key"
           >
-            <SvgIcon :name="v.icon" :size="26" :color="vehicleType === v.key ? '#0f766e' : '#8a94a6'" />
+            <SvgIcon :name="v.icon" :size="26" :color="vehicleType === v.key ? '#2e9c5d' : '#8a94a6'" />
             <text>{{ v.label }}</text>
           </view>
         </view>
@@ -345,7 +345,7 @@ function showAbout(): void {
       </view>
       <view class="me__list">
         <view class="me__item" @tap="go('/pages/earnings/index', true)">
-          <view class="me__item-icon"><SvgIcon name="wallet" :size="24" color="#0f766e" /></view>
+          <view class="me__item-icon"><SvgIcon name="wallet" :size="24" color="#2e9c5d" /></view>
           <view class="me__item-main">
             <text class="me__item-label">收益中心</text>
             <text class="me__item-desc">查看每日结算明细</text>
@@ -353,7 +353,7 @@ function showAbout(): void {
           <text class="me__item-arrow">›</text>
         </view>
         <view class="me__item" @tap="go('/pages/withdrawals/form')">
-          <view class="me__item-icon"><SvgIcon name="credit-card" :size="24" color="#0f766e" /></view>
+          <view class="me__item-icon"><SvgIcon name="credit-card" :size="24" color="#2e9c5d" /></view>
           <view class="me__item-main">
             <text class="me__item-label">申请提现</text>
             <text class="me__item-desc">把收益转到银行卡</text>
@@ -361,7 +361,7 @@ function showAbout(): void {
           <text class="me__item-arrow">›</text>
         </view>
         <view class="me__item" @tap="go('/pages/withdrawals/records')">
-          <view class="me__item-icon"><SvgIcon name="clipboard" :size="24" color="#0f766e" /></view>
+          <view class="me__item-icon"><SvgIcon name="clipboard" :size="24" color="#2e9c5d" /></view>
           <view class="me__item-main">
             <text class="me__item-label">提现记录</text>
             <text class="me__item-desc">历史提现单</text>
@@ -379,7 +379,7 @@ function showAbout(): void {
       </view>
       <view class="me__list">
         <view class="me__item" @tap="go('/pages/assessment/index')">
-          <view class="me__item-icon"><SvgIcon name="chart-bar" :size="24" color="#0f766e" /></view>
+          <view class="me__item-icon"><SvgIcon name="chart-bar" :size="24" color="#2e9c5d" /></view>
           <view class="me__item-main">
             <text class="me__item-label">考核中心</text>
             <text class="me__item-desc">准时率 / 接单率 / 投诉率</text>
@@ -387,7 +387,7 @@ function showAbout(): void {
           <text class="me__item-arrow">›</text>
         </view>
         <view class="me__item" @tap="go('/pages/violations/index')">
-          <view class="me__item-icon"><SvgIcon name="alert-triangle" :size="24" color="#0f766e" /></view>
+          <view class="me__item-icon"><SvgIcon name="alert-triangle" :size="24" color="#2e9c5d" /></view>
           <view class="me__item-main">
             <text class="me__item-label">违规记录</text>
             <text class="me__item-desc">异常订单与申诉</text>
@@ -395,7 +395,7 @@ function showAbout(): void {
           <text class="me__item-arrow">›</text>
         </view>
         <view class="me__item" @tap="go('/pages/onboarding/progress')">
-          <view class="me__item-icon"><SvgIcon name="file-edit" :size="24" color="#0f766e" /></view>
+          <view class="me__item-icon"><SvgIcon name="file-edit" :size="24" color="#2e9c5d" /></view>
           <view class="me__item-main">
             <text class="me__item-label">入驻进度</text>
             <text class="me__item-desc">资质与审核状态</text>
@@ -413,7 +413,7 @@ function showAbout(): void {
       </view>
       <view class="me__list">
         <view class="me__item" @tap="showContactSupport">
-          <view class="me__item-icon"><SvgIcon name="life-buoy" :size="24" color="#0f766e" /></view>
+          <view class="me__item-icon"><SvgIcon name="life-buoy" :size="24" color="#2e9c5d" /></view>
           <view class="me__item-main">
             <text class="me__item-label">联系客服</text>
             <text class="me__item-desc">骑手专线 400-000-0001</text>
@@ -421,7 +421,7 @@ function showAbout(): void {
           <text class="me__item-arrow">›</text>
         </view>
         <view class="me__item" @tap="showAbout">
-          <view class="me__item-icon"><SvgIcon name="lightbulb" :size="24" color="#0f766e" /></view>
+          <view class="me__item-icon"><SvgIcon name="lightbulb" :size="24" color="#2e9c5d" /></view>
           <view class="me__item-main">
             <text class="me__item-label">关于</text>
             <text class="me__item-desc">版本信息</text>
@@ -455,7 +455,7 @@ function showAbout(): void {
   position: relative;
   overflow: hidden;
   padding: 44rpx 28rpx 68rpx;
-  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  background: var(--brand-gradient-reverse);
   color: #fff;
 }
 .me__hero-deco {
@@ -507,7 +507,7 @@ function showAbout(): void {
   height: 24rpx;
   border-radius: 50%;
   background: #999;
-  border: 4rpx solid #14b8a6;
+  border: 4rpx solid #5fbe7d;
 }
 .me__avatar-dot--online {
   background: #4ade80;
@@ -598,7 +598,7 @@ function showAbout(): void {
   padding: 24rpx 16rpx;
   position: relative;
   z-index: 2;
-  box-shadow: 0 12rpx 32rpx rgba(15, 118, 110, 0.08);
+  box-shadow: 0 12rpx 32rpx rgba(46, 156, 93, 0.08);
 }
 .me__stat {
   flex: 1;
@@ -610,14 +610,14 @@ function showAbout(): void {
 .me__stat-val {
   font-size: 34rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1;
   font-feature-settings: 'tnum';
   letter-spacing: -0.5rpx;
 }
 .me__stat-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .me__stat-divider {
   width: 1rpx;
@@ -642,18 +642,18 @@ function showAbout(): void {
 .me__section-bar {
   width: 6rpx;
   height: 24rpx;
-  background: #0f766e;
+  background: var(--brand-primary);
   border-radius: 2rpx;
 }
 .me__section-title {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .me__section-action {
   margin-left: auto;
   font-size: 22rpx;
-  color: #0f766e;
+  color: var(--brand-primary);
   font-weight: 600;
 }
 .me__rating {
@@ -685,11 +685,11 @@ function showAbout(): void {
 }
 .me__info-label {
   font-size: 24rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .me__info-val {
   font-size: 26rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-weight: 600;
   max-width: 60%;
   text-align: right;
@@ -699,10 +699,10 @@ function showAbout(): void {
   font-feature-settings: 'tnum';
 }
 .me__info-val--ok {
-  color: #0f766e;
+  color: var(--brand-primary);
 }
 .me__info-val--warn {
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 
 /* 车辆编辑 */
@@ -711,7 +711,7 @@ function showAbout(): void {
 }
 .me__edit-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   margin-top: 14rpx;
   margin-bottom: 8rpx;
 }
@@ -730,12 +730,12 @@ function showAbout(): void {
   border-radius: 10rpx;
   background: #fff;
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .me__edit-vehicle-item--active {
-  border-color: #0f766e;
-  background: rgba(15, 118, 110, 0.06);
-  color: #0f766e;
+  border-color: var(--brand-primary);
+  background: rgba(46, 156, 93, 0.06);
+  color: var(--brand-primary);
   font-weight: 700;
 }
 .me__edit-input {
@@ -744,19 +744,19 @@ function showAbout(): void {
   background: #f7f8fa;
   border-radius: 10rpx;
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
   box-sizing: border-box;
 }
 .me__edit-btn {
   margin-top: 22rpx;
   padding: 22rpx 0;
   text-align: center;
-  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  background: var(--brand-gradient-reverse);
   color: #fff;
   font-size: 28rpx;
   font-weight: 700;
   border-radius: 12rpx;
-  box-shadow: 0 10rpx 24rpx rgba(15, 118, 110, 0.32);
+  box-shadow: 0 10rpx 24rpx rgba(46, 156, 93, 0.32);
   letter-spacing: 2rpx;
 }
 .me__edit-btn--disabled {
@@ -780,13 +780,13 @@ function showAbout(): void {
   border-top: none;
 }
 .me__item:active {
-  background: rgba(15, 118, 110, 0.02);
+  background: rgba(46, 156, 93, 0.02);
 }
 .me__item-icon {
   width: 56rpx;
   height: 56rpx;
   border-radius: 10rpx;
-  background: rgba(15, 118, 110, 0.08);
+  background: rgba(46, 156, 93, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -802,11 +802,11 @@ function showAbout(): void {
 .me__item-label {
   font-size: 26rpx;
   font-weight: 600;
-  color: #172033;
+  color: var(--text-primary);
 }
 .me__item-desc {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 .me__item-arrow {
@@ -833,7 +833,7 @@ function showAbout(): void {
 .me__logout-text {
   font-size: 28rpx;
   font-weight: 700;
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 
 /* 底部 */

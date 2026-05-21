@@ -3,6 +3,7 @@ import { onLoad } from '@dcloudio/uni-app';
 import { onMounted, ref } from 'vue';
 
 import { getOrderTrack, type TrackVo } from '@/api/food-track';
+import NavBar from '@/components/common/NavBar.vue';
 
 const orderId = ref('');
 const track = ref<TrackVo | null>(null);
@@ -24,24 +25,28 @@ onLoad((options) => {
 
 onMounted(() => {
   void load();
+  // TODO(WS): 替换轮询为 WebSocket 订阅 customer:order:${orderId},W3 agent 已建 ws-gateway 模块,接入约定见 docs/ARCHITECTURE.md
 });
 </script>
 
 <template>
-  <view class="track" v-if="track">
-    <view class="track__title">配送轨迹</view>
-    <view class="track__source">数据源:{{ track.source === 'real' ? '实时' : '预计' }}</view>
-    <view class="track__row">起点:{{ track.start.lng }}, {{ track.start.lat }}</view>
-    <view class="track__row">终点:{{ track.end.lng }}, {{ track.end.lat }}</view>
-    <view v-if="track.riderLocation" class="track__row">
-      骑手位置:{{ track.riderLocation.lng }}, {{ track.riderLocation.lat }} ({{
-        new Date(track.riderLocation.updatedAt).toLocaleTimeString()
-      }})
+  <view class="track-page">
+    <NavBar title="配送轨迹" />
+    <view class="track" v-if="track">
+      <view class="track__title">配送轨迹</view>
+      <view class="track__source">数据源:{{ track.source === 'real' ? '实时' : '预计' }}</view>
+      <view class="track__row">起点:{{ track.start.lng }}, {{ track.start.lat }}</view>
+      <view class="track__row">终点:{{ track.end.lng }}, {{ track.end.lat }}</view>
+      <view v-if="track.riderLocation" class="track__row">
+        骑手位置:{{ track.riderLocation.lng }}, {{ track.riderLocation.lat }} ({{
+          new Date(track.riderLocation.updatedAt).toLocaleTimeString()
+        }})
+      </view>
+      <view class="track__eta">预计 {{ track.eta }} 分钟送达</view>
+      <view class="track__hint">轨迹信息会随配送状态更新。</view>
     </view>
-    <view class="track__eta">预计 {{ track.eta }} 分钟送达</view>
-    <view class="track__hint">轨迹信息会随配送状态更新。</view>
+    <view v-else-if="loading" class="track__loading">加载中…</view>
   </view>
-  <view v-else-if="loading" class="track__loading">加载中…</view>
 </template>
 
 <style scoped>

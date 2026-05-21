@@ -164,14 +164,14 @@ function gotoRecords(): void {
     <!-- 手机 + 验证码 -->
     <view class="w__card">
       <view class="w__field">
-        <view class="w__field-icon"><SvgIcon name="phone" :size="24" color="#0f766e" /></view>
+        <view class="w__field-icon"><SvgIcon name="phone" :size="24" color="#2e9c5d" /></view>
         <view class="w__field-main">
           <text class="w__field-label">手机号</text>
           <input v-model="mobile" type="number" maxlength="11" class="w__field-input" placeholder="11 位手机号" />
         </view>
       </view>
       <view class="w__field w__field--last">
-        <view class="w__field-icon"><SvgIcon name="check-circle" :size="24" color="#0f766e" /></view>
+        <view class="w__field-icon"><SvgIcon name="check-circle" :size="24" color="#2e9c5d" /></view>
         <view class="w__field-main">
           <text class="w__field-label">短信验证码</text>
           <view class="w__sms-row">
@@ -187,15 +187,15 @@ function gotoRecords(): void {
     <!-- 风控提示 -->
     <view class="w__hints">
       <view class="w__hint">
-        <SvgIcon name="lightbulb" :size="18" color="#0f766e" />
+        <SvgIcon name="lightbulb" :size="18" color="#2e9c5d" />
         <text>提现到注册手机号绑定的银行卡,工作日 T+1 到账</text>
       </view>
       <view class="w__hint">
-        <SvgIcon name="lightbulb" :size="18" color="#0f766e" />
+        <SvgIcon name="lightbulb" :size="18" color="#2e9c5d" />
         <text>单笔上限 ¥1,000,单日上限 ¥10,000</text>
       </view>
       <view class="w__hint">
-        <SvgIcon name="lightbulb" :size="18" color="#0f766e" />
+        <SvgIcon name="lightbulb" :size="18" color="#2e9c5d" />
         <text>如遇异常,请联系骑手专线 400-000-0001</text>
       </view>
     </view>
@@ -221,7 +221,7 @@ function gotoRecords(): void {
   position: relative;
   overflow: hidden;
   padding: 36rpx 28rpx 40rpx;
-  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  background: var(--brand-gradient-reverse);
   color: #fff;
 }
 .w__hero-deco {
@@ -318,7 +318,7 @@ function gotoRecords(): void {
 }
 .w__amount-label {
   font-size: 24rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .w__amount-row {
   display: flex;
@@ -331,13 +331,13 @@ function gotoRecords(): void {
 .w__amount-symbol {
   font-size: 40rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
 }
 .w__amount-input {
   flex: 1;
   font-size: 64rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   font-feature-settings: 'tnum';
   letter-spacing: -1rpx;
   line-height: 1;
@@ -349,8 +349,8 @@ function gotoRecords(): void {
 .w__amount-max {
   padding: 10rpx 18rpx;
   border-radius: 999rpx;
-  border: 1rpx solid #0f766e;
-  color: #0f766e;
+  border: 1rpx solid #2e9c5d;
+  color: var(--brand-primary);
   font-size: 22rpx;
   font-weight: 700;
   flex-shrink: 0;
@@ -359,7 +359,7 @@ function gotoRecords(): void {
   display: block;
   margin-top: 14rpx;
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 /* 表单卡 */
@@ -384,7 +384,7 @@ function gotoRecords(): void {
   width: 56rpx;
   height: 56rpx;
   border-radius: 10rpx;
-  background: rgba(15, 118, 110, 0.08);
+  background: rgba(46, 156, 93, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -396,14 +396,14 @@ function gotoRecords(): void {
 }
 .w__field-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   display: block;
   margin-bottom: 6rpx;
 }
 .w__field-input {
   width: 100%;
   font-size: 30rpx;
-  color: #172033;
+  color: var(--text-primary);
   padding: 4rpx 0;
   font-feature-settings: 'tnum';
 }
@@ -415,12 +415,12 @@ function gotoRecords(): void {
 .w__sms-btn {
   flex-shrink: 0;
   padding: 12rpx 22rpx;
-  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  background: var(--brand-gradient-reverse);
   color: #fff;
   font-size: 22rpx;
   font-weight: 600;
   border-radius: 999rpx;
-  box-shadow: 0 6rpx 16rpx rgba(15, 118, 110, 0.32);
+  box-shadow: 0 6rpx 16rpx rgba(46, 156, 93, 0.32);
 }
 .w__sms-btn--disabled {
   background: #dde2ea;
@@ -432,8 +432,8 @@ function gotoRecords(): void {
 .w__hints {
   margin: 16rpx 24rpx 0;
   padding: 18rpx 22rpx;
-  background: rgba(15, 118, 110, 0.05);
-  border: 1rpx dashed rgba(15, 118, 110, 0.24);
+  background: rgba(46, 156, 93, 0.05);
+  border: 1rpx dashed rgba(46, 156, 93, 0.24);
   border-radius: 14rpx;
 }
 .w__hint {
@@ -442,7 +442,7 @@ function gotoRecords(): void {
   gap: 8rpx;
   padding: 6rpx 0;
   font-size: 22rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
@@ -460,13 +460,13 @@ function gotoRecords(): void {
 .w__submit {
   text-align: center;
   padding: 26rpx 0;
-  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  background: var(--brand-gradient-reverse);
   color: #fff;
   font-size: 30rpx;
   font-weight: 700;
   border-radius: 12rpx;
   letter-spacing: 4rpx;
-  box-shadow: 0 14rpx 32rpx rgba(15, 118, 110, 0.4);
+  box-shadow: 0 14rpx 32rpx rgba(46, 156, 93, 0.4);
 }
 .w__submit--disabled {
   background: #dde2ea;

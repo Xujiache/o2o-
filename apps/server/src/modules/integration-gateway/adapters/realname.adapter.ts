@@ -1,3 +1,5 @@
+import { createHash, createHmac, randomUUID } from 'node:crypto';
+
 import { nanoid } from 'nanoid';
 
 export type RealnameFailedReason = '内容不符' | '三要素不一致' | '三方不可用' | '企业资质不一致' | '人脸核验未通过';
@@ -30,22 +32,8 @@ export interface VerifyFaceOpts {
 }
 
 export interface RealnameAdapter {
-  /**
-   * 校验姓名 + 身份证号 三要素一致性(个人)。
-   * mock 行为:姓名首字汉字 → success;否则 → failed("内容不符")。
-   */
   verify(realName: string, idCardNo: string): Promise<RealnameVerifyResult>;
-
-  /**
-   * 企业三要素 + 资质核验(stage 2)。
-   * mock 行为:licenseNo.length==18 且 legalName 首字汉字 → success;否则 → failed("企业资质不一致")。
-   */
   verifyEnterprise(opts: VerifyEnterpriseOpts): Promise<RealnameVerifyResult>;
-
-  /**
-   * 人脸 + 身份证三要素核验(stage 3 骑手入驻)。
-   * mock 行为:idCardNo.length==18 且 faceFileId 非空 且 realName 首字汉字 → success;否则 → failed("人脸核验未通过")。
-   */
   verifyFace(opts: VerifyFaceOpts): Promise<RealnameVerifyResult>;
 }
 
@@ -81,19 +69,132 @@ export class RealnameMockAdapter implements RealnameAdapter {
   }
 }
 
+export interface RealnameRealOpts {
+  accessKeyId: string;
+  accessKeySecret: string;
+  /** 默认 cloudauth.aliyuncs.com(实人认证) */
+  endpoint?: string;
+}
+
+/**
+ * 阿里云实名 Real Adapter — "credentials present → live" skeleton.
+ *  - 服务      : 阿里云 CloudAuth(实人认证) 或 IDFaceVerify(身份核验)
+ *  - endpoint  : https://cloudauth.aliyuncs.com
+ *  - action    : Id2MetaVerify (三要素) / DescribeFaceVerify (人脸)
+ *  - 签名      : ACS3-HMAC-SHA256 v3(同短信)
+ */
 export class RealnameRealAdapter implements RealnameAdapter {
-  constructor(opts: { accessKeyId: string; accessKeySecret: string }) {
-    if (!opts.accessKeyId || !opts.accessKeySecret) {
-      throw new Error('ali-realname credentials missing — set INTEGRATION_MODE=mock until ready');
+  private readonly endpoint: string;
+
+  constructor(private readonly opts: RealnameRealOpts) {
+    this.requireKey('ALI_REALNAME_AK', opts.accessKeyId);
+    this.requireKey('ALI_REALNAME_SK', opts.accessKeySecret);
+    this.endpoint = opts.endpoint ?? 'https://cloudauth.aliyuncs.com';
+  }
+
+  private requireKey(name: string, val: string | undefined): void {
+    if (!val) throw new Error(`MISCONFIGURED: ${name} required`);
+  }
+
+  private signRequest(params: {
+    method: string;
+    query: Record<string, string>;
+    body: string;
+    headers: Record<string, string>;
+    action: string;
+    version: string;
+  }): string {
+    const { method, query, body, headers, action, version } = params;
+    const canonicalQuery = Object.keys(query)
+      .sort()
+      .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(query[k] ?? '')}`)
+      .join('&');
+    const hashedPayload = createHash('sha256').update(body).digest('hex');
+    headers['x-acs-content-sha256'] = hashedPayload;
+    headers['x-acs-action'] = action;
+    headers['x-acs-version'] = version;
+    const lowerHeaders: Record<string, string> = {};
+    for (const [k, v] of Object.entries(headers)) lowerHeaders[k.toLowerCase()] = String(v);
+    const signedHeaderKeys = Object.keys(lowerHeaders).sort();
+    const canonicalHeaders = signedHeaderKeys.map((k) => `${k}:${lowerHeaders[k]}`).join('\n') + '\n';
+    const signedHeaders = signedHeaderKeys.join(';');
+    const canonicalRequest = [method, '/', canonicalQuery, canonicalHeaders, signedHeaders, hashedPayload].join('\n');
+    const stringToSign = `ACS3-HMAC-SHA256\n${createHash('sha256').update(canonicalRequest).digest('hex')}`;
+    const signature = createHmac('sha256', this.opts.accessKeySecret).update(stringToSign).digest('hex');
+    return `ACS3-HMAC-SHA256 Credential=${this.opts.accessKeyId},SignedHeaders=${signedHeaders},Signature=${signature}`;
+  }
+
+  private async call(action: string, version: string, query: Record<string, string>): Promise<Record<string, unknown>> {
+    const headers: Record<string, string> = {
+      host: new URL(this.endpoint).host,
+      'x-acs-date': new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+      'x-acs-signature-nonce': randomUUID(),
+    };
+    headers.Authorization = this.signRequest({
+      method: 'POST',
+      query,
+      body: '',
+      headers,
+      action,
+      version,
+    });
+    const url = `${this.endpoint}/?${Object.keys(query)
+      .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(query[k] ?? '')}`)
+      .join('&')}`;
+    const res = await fetch(url, { method: 'POST', headers });
+    const txt = await res.text();
+    if (!res.ok) throw new Error(`ali-realname ${action} http ${res.status}: ${txt}`);
+    return JSON.parse(txt) as Record<string, unknown>;
+  }
+
+  async verify(realName: string, idCardNo: string): Promise<RealnameVerifyResult> {
+    try {
+      const json = await this.call('Id2MetaVerify', '2019-03-07', {
+        ParamType: 'normal',
+        UserName: realName,
+        IdentifyNum: idCardNo,
+      });
+      const data = (json.Data ?? {}) as { Bizcode?: string; ResultObject?: { Bizcode?: string } };
+      const code = data.Bizcode ?? data.ResultObject?.Bizcode;
+      const reqId = String(json.RequestId ?? `ali-${Date.now()}`);
+      if (code === '1') return { success: true, providerRequestId: reqId };
+      return { success: false, providerRequestId: reqId, reason: '三要素不一致' };
+    } catch {
+      return { success: false, providerRequestId: `err-${Date.now()}`, reason: '三方不可用' };
     }
   }
-  async verify(_realName: string, _idCardNo: string): Promise<RealnameVerifyResult> {
-    throw new Error('ali-realname not configured (stage 1+)');
+
+  async verifyEnterprise(opts: VerifyEnterpriseOpts): Promise<RealnameVerifyResult> {
+    try {
+      const json = await this.call('VerifyEnterpriseFourMeta', '2019-03-07', {
+        LicenseNo: opts.licenseNo,
+        EnterpriseName: '', // 由调用方补;骨架先留空,真实接入时增字段
+        LegalPerson: opts.legalName,
+        LegalPersonCertNo: opts.legalIdCardNo,
+      });
+      const reqId = String(json.RequestId ?? `ali-${Date.now()}`);
+      const data = (json.Data ?? {}) as { VerifyResult?: string };
+      if (data.VerifyResult === '1') return { success: true, providerRequestId: reqId };
+      return { success: false, providerRequestId: reqId, reason: '企业资质不一致' };
+    } catch {
+      return { success: false, providerRequestId: `err-${Date.now()}`, reason: '三方不可用' };
+    }
   }
-  async verifyEnterprise(_opts: VerifyEnterpriseOpts): Promise<RealnameVerifyResult> {
-    throw new Error('ali-realname enterprise not configured (stage 2+)');
-  }
-  async verifyFace(_opts: VerifyFaceOpts): Promise<RealnameVerifyResult> {
-    throw new Error('ali-realname face not configured (stage 3+)');
+
+  async verifyFace(opts: VerifyFaceOpts): Promise<RealnameVerifyResult> {
+    try {
+      const json = await this.call('DescribeFaceVerify', '2019-03-07', {
+        SceneId: 'rider-onboarding',
+        OuterOrderNo: opts.faceFileId,
+        CertName: opts.realName,
+        CertNo: opts.idCardNo,
+      });
+      const reqId = String(json.RequestId ?? `ali-${Date.now()}`);
+      const data = (json.ResultObject ?? {}) as { Passed?: string };
+      if (data.Passed === 'T') return { success: true, providerRequestId: reqId };
+      return { success: false, providerRequestId: reqId, reason: '人脸核验未通过' };
+    } catch {
+      return { success: false, providerRequestId: `err-${Date.now()}`, reason: '三方不可用' };
+    }
   }
 }

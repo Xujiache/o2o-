@@ -1,7 +1,8 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { onMounted, ref } from 'vue';
 
 import { listStockAlerts, setStockThreshold, type StockAlertItemVo } from '@/api';
+import NavBar from '@/components/common/NavBar.vue';
 
 const list = ref<StockAlertItemVo[]>([]);
 const loading = ref(false);
@@ -75,7 +76,7 @@ async function onChangeThreshold(p: StockAlertItemVo, value: string): Promise<vo
 }
 .alerts__meta {
   font-size: 22rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 .alerts__field {
   width: 120rpx;

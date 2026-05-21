@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { onShow } from '@dcloudio/uni-app';
 import { computed, ref } from 'vue';
 
@@ -260,12 +260,12 @@ const filteredList = computed<ProductItemVo[]>(() => {
 .plist__title {
   font-size: 36rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   letter-spacing: 0.5rpx;
 }
 .plist__subtitle {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .plist__header-r {
   display: flex;
@@ -286,11 +286,11 @@ const filteredList = computed<ProductItemVo[]>(() => {
 }
 .plist__btn--ghost {
   background: #fff;
-  color: #5a6275;
+  color: var(--text-secondary);
   border: 1rpx solid #d8dde4;
 }
 .plist__btn--primary {
-  background: #b7791f;
+  background: var(--brand-primary);
   color: #fff;
 }
 
@@ -313,13 +313,13 @@ const filteredList = computed<ProductItemVo[]>(() => {
 .plist__summary-val {
   font-size: 36rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1;
   font-feature-settings: 'tnum';
 }
 .plist__summary-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .plist__summary-divider {
   width: 1rpx;
@@ -342,7 +342,7 @@ const filteredList = computed<ProductItemVo[]>(() => {
   text-align: center;
   padding: 14rpx 0;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   border-radius: 8rpx;
 }
 .plist__tab--active {
@@ -355,7 +355,7 @@ const filteredList = computed<ProductItemVo[]>(() => {
 .plist__msg {
   text-align: center;
   padding: 100rpx 0;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 24rpx;
 }
 .plist__empty {
@@ -367,7 +367,7 @@ const filteredList = computed<ProductItemVo[]>(() => {
 }
 .plist__empty-text {
   font-size: 26rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 /* 两列 grid */
@@ -387,7 +387,7 @@ const filteredList = computed<ProductItemVo[]>(() => {
   transition: border-color 0.15s;
 }
 .plist__card--checked {
-  border-color: #b7791f;
+  border-color: var(--brand-primary);
   border-width: 2rpx;
 }
 .plist__card--off {
@@ -423,7 +423,7 @@ const filteredList = computed<ProductItemVo[]>(() => {
   position: absolute;
   inset: 0;
   background: rgba(255, 255, 255, 0.72);
-  color: #5a6275;
+  color: var(--text-secondary);
   font-size: 26rpx;
   font-weight: 700;
   display: flex;
@@ -448,8 +448,8 @@ const filteredList = computed<ProductItemVo[]>(() => {
   justify-content: center;
 }
 .plist__check-box--on {
-  background: #b7791f;
-  border-color: #b7791f;
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
 }
 
 .plist__status {
@@ -462,7 +462,7 @@ const filteredList = computed<ProductItemVo[]>(() => {
   font-weight: 700;
   z-index: 2;
   background: rgba(255, 255, 255, 0.96);
-  color: #5a6275;
+  color: var(--text-secondary);
   border: 1rpx solid rgba(0, 0, 0, 0.06);
 }
 .plist__status--on_shelf {
@@ -472,7 +472,7 @@ const filteredList = computed<ProductItemVo[]>(() => {
 }
 .plist__status--off_shelf {
   background: #f0f1f3;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .plist__status--sold_out {
   background: #fdecea;
@@ -481,8 +481,8 @@ const filteredList = computed<ProductItemVo[]>(() => {
 }
 .plist__status--draft {
   background: #fff7e0;
-  color: #b7791f;
-  border-color: rgba(183, 121, 31, 0.2);
+  color: var(--brand-primary);
+  border-color: rgba(46, 156, 93, 0.2);
 }
 
 .plist__info {
@@ -496,7 +496,7 @@ const filteredList = computed<ProductItemVo[]>(() => {
 .plist__name {
   font-size: 26rpx;
   font-weight: 600;
-  color: #172033;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -521,16 +521,16 @@ const filteredList = computed<ProductItemVo[]>(() => {
 }
 .plist__sku-tag {
   background: #fff7e0;
-  color: #b7791f;
+  color: var(--brand-primary);
   font-size: 18rpx;
   padding: 2rpx 8rpx;
   border-radius: 4rpx;
   font-weight: 700;
-  border: 1rpx solid rgba(183, 121, 31, 0.2);
+  border: 1rpx solid rgba(46, 156, 93, 0.2);
 }
 .plist__meta {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .plist__actions {
   margin-top: 8rpx;
@@ -547,11 +547,11 @@ const filteredList = computed<ProductItemVo[]>(() => {
 }
 .plist__act--ghost {
   background: #f5f6f8;
-  color: #5a6275;
+  color: var(--text-secondary);
   border: 1rpx solid #e6e9ee;
 }
 .plist__act--on {
-  background: #b7791f;
+  background: var(--brand-primary);
   color: #fff;
 }
 .plist__act--off {
@@ -583,11 +583,11 @@ const filteredList = computed<ProductItemVo[]>(() => {
 .plist__bar-checked {
   font-size: 28rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
 }
 .plist__bar-total {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .plist__bar-btn {
   padding: 16rpx 26rpx;
@@ -601,7 +601,7 @@ const filteredList = computed<ProductItemVo[]>(() => {
   border: 1rpx solid rgba(192, 57, 43, 0.3);
 }
 .plist__bar-btn--primary {
-  background: #b7791f;
+  background: var(--brand-primary);
   color: #fff;
 }
 </style>

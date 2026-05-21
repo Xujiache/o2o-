@@ -2,6 +2,7 @@
 import { onLoad } from '@dcloudio/uni-app';
 import { computed, onMounted, ref } from 'vue';
 
+import SvgIcon from '@/components/common/SvgIcon.vue';
 import { useTaskStore } from '@/stores/task';
 
 const store = useTaskStore();
@@ -101,7 +102,7 @@ onMounted(async () => {
 
     <!-- 无需取件码:说明卡 -->
     <view v-else class="p__notice">
-      <text class="p__notice-icon">ℹ️</text>
+      <SvgIcon name="alert-circle" :size="32" class="p__notice-icon" />
       <text class="p__notice-text">{{ noCodeTip }}</text>
     </view>
 
@@ -121,7 +122,7 @@ onMounted(async () => {
 }
 .p__hero {
   padding: 40rpx 32rpx 56rpx;
-  background: linear-gradient(135deg, #5b5ff8 0%, #00b8d9 100%);
+  background: var(--brand-gradient-reverse);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -163,11 +164,11 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   margin-bottom: 12rpx;
 }
 .p__required {
-  color: #ff4d4f;
+  color: var(--price-color);
   margin-left: 4rpx;
 }
 .p__input {
@@ -177,7 +178,7 @@ onMounted(async () => {
   background: #f7f8fa;
   border-radius: 16rpx;
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
   box-sizing: border-box;
   letter-spacing: 4rpx;
 }
@@ -215,13 +216,13 @@ onMounted(async () => {
   z-index: 50;
 }
 .p__cta {
-  background: linear-gradient(135deg, #5b5ff8, #00b8d9);
+  background: var(--brand-gradient);
   color: #fff;
   font-size: 30rpx;
   font-weight: 700;
   border-radius: 999rpx;
   padding: 22rpx 0;
-  box-shadow: 0 12rpx 28rpx rgba(91, 95, 248, 0.3);
+  box-shadow: 0 12rpx 28rpx rgba(46, 156, 93, 0.3);
 }
 .p__cta[disabled] {
   opacity: 0.6;

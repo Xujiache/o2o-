@@ -5,7 +5,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   AdminUser,
   DomainEvent,
+  ErrandTimeline,
   IntegrationRequestLog,
+  OrderTimeline,
   RiderEarning,
   RiderStatus,
   RiskUserTag,
@@ -79,6 +81,8 @@ import { ThirdPartyConfigChangedSubscriber } from './subscribers/third-party-con
       AdminUser,
       RiderEarning,
       SysConfig,
+      OrderTimeline,
+      ErrandTimeline,
     ]),
     SchedulerModule,
     IntegrationGatewayModule,

@@ -178,14 +178,14 @@ function firstChild(group: FilteredGroup): MenuChild {
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: linear-gradient(135deg, var(--brand-500), #6366f1);
+  background: linear-gradient(135deg, #5fbe7d, var(--brand-500));
   display: grid;
   place-items: center;
   color: white;
   font-size: 18px;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.06),
-    0 6px 20px -6px rgba(59, 130, 246, 0.5);
+    0 6px 20px -6px rgba(46, 156, 93, 0.5);
 }
 .brand__name {
   font-size: 14px;
@@ -306,7 +306,7 @@ function firstChild(group: FilteredGroup): MenuChild {
   color: var(--fg-primary) !important;
 }
 :deep(.el-menu-item.is-active) {
-  background: linear-gradient(90deg, rgba(59, 130, 246, 0.16), transparent);
+  background: linear-gradient(90deg, rgba(46, 156, 93, 0.16), transparent);
   color: var(--brand-500) !important;
   font-weight: 500;
   border-left: 2px solid var(--brand-500);

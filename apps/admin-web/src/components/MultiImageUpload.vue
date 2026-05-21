@@ -254,8 +254,8 @@ function move(idx: number, dir: -1 | 1): void {
     color 0.15s;
 }
 .cell--add:hover {
-  border-color: #3b82f6;
-  color: #3b82f6;
+  border-color: #2e9c5d;
+  color: #2e9c5d;
 }
 .cell--add:disabled {
   opacity: 0.6;

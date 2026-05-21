@@ -30,6 +30,6 @@ onLoad(() => {
 }
 .launch__hint {
   font-size: 28rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 </style>

@@ -3,6 +3,7 @@ import { onLoad } from '@dcloudio/uni-app';
 import { ref } from 'vue';
 
 import { applyAfterSale } from '@/api/food-after-sale';
+import NavBar from '@/components/common/NavBar.vue';
 
 const orderId = ref('');
 const type = ref<'REFUND' | 'EXCHANGE'>('REFUND');
@@ -46,6 +47,7 @@ onLoad((options) => {
 
 <template>
   <view class="apply">
+    <NavBar title="申请售后" />
     <view class="apply__title">申请售后</view>
     <view class="apply__row">
       <text class="apply__label">类型</text>

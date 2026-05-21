@@ -1,8 +1,9 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, ref } from 'vue';
 
 import { submitApplication, type SubmitApplicationReq } from '@/api';
 import MobileInput from '@/components/common/MobileInput.vue';
+import NavBar from '@/components/common/NavBar.vue';
 import SmsCodeInput from '@/components/common/SmsCodeInput.vue';
 import UploadField from '@/components/common/UploadField.vue';
 import { useAuthStore } from '@/stores/auth';
@@ -90,6 +91,7 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <view class="apply">
+    <NavBar title="入驻申请" />
     <view class="apply__hero">
       <text class="apply__title">商家入驻申请</text>
       <text class="apply__subtitle">提交资质后，平台将在 1-2 个工作日内完成审核</text>
@@ -137,9 +139,9 @@ async function onSubmit(): Promise<void> {
   margin-bottom: 12rpx;
   padding: 36rpx;
   border-radius: 34rpx;
-  background: linear-gradient(135deg, #1f2937, #b7791f);
+  background: var(--brand-gradient);
   color: #fff;
-  box-shadow: 0 24rpx 64rpx rgba(183, 121, 31, 0.24);
+  box-shadow: 0 24rpx 64rpx rgba(46, 156, 93, 0.24);
 }
 .apply__title {
   display: block;
@@ -165,7 +167,7 @@ async function onSubmit(): Promise<void> {
 }
 .apply__sms-btn {
   flex-shrink: 0;
-  background: linear-gradient(135deg, #ffb400, #b7791f);
+  background: var(--brand-gradient);
   color: #fff;
   font-size: 24rpx;
   padding: 12rpx 24rpx;
@@ -180,7 +182,7 @@ async function onSubmit(): Promise<void> {
 }
 .apply__submit {
   margin-top: 48rpx;
-  background: linear-gradient(135deg, #ffb400, #b7791f);
+  background: var(--brand-gradient);
   color: #fff;
   border-radius: 999rpx;
   font-weight: 700;
@@ -193,7 +195,7 @@ async function onSubmit(): Promise<void> {
   font-size: 26rpx;
 }
 .apply__error {
-  color: #ff4d4f;
+  color: var(--price-color);
   font-size: 26rpx;
 }
 </style>

@@ -1,6 +1,7 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 
+import NavBar from '@/components/common/NavBar.vue';
 import { useAuthStore } from '@/stores/auth';
 
 const auth = useAuthStore();
@@ -77,6 +78,7 @@ function onApply(): void {
 
 <template>
   <view class="login">
+    <NavBar title="登录" />
     <view class="login__hero">
       <view class="login__greet">您好，</view>
       <view class="login__title">欢迎使用笑联商家</view>
@@ -129,7 +131,7 @@ function onApply(): void {
 }
 .login__hero {
   padding: 120rpx 56rpx 200rpx;
-  background: linear-gradient(135deg, #1f2937 0%, #b7791f 100%);
+  background: var(--brand-gradient);
   color: #fff;
 }
 .login__greet {
@@ -147,7 +149,7 @@ function onApply(): void {
   padding: 48rpx 40rpx 56rpx;
   background: #fff;
   border-radius: 32rpx;
-  box-shadow: 0 20rpx 60rpx rgba(183, 121, 31, 0.14);
+  box-shadow: 0 20rpx 60rpx rgba(46, 156, 93, 0.14);
 }
 .login__field {
   margin-bottom: 32rpx;
@@ -156,14 +158,14 @@ function onApply(): void {
   display: block;
   font-size: 30rpx;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
   margin-bottom: 16rpx;
 }
 .login__input {
   width: 100%;
   height: 72rpx;
   font-size: 28rpx;
-  color: #1f2937;
+  color: var(--text-primary);
   border-bottom: 1rpx solid #e5e7eb;
 }
 .login__placeholder {
@@ -181,7 +183,7 @@ function onApply(): void {
 }
 .login__sms {
   font-size: 26rpx;
-  color: #b7791f;
+  color: var(--brand-primary);
   padding-left: 16rpx;
   white-space: nowrap;
 }
@@ -192,7 +194,7 @@ function onApply(): void {
   display: block;
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 .login__btn {
   margin-top: 24rpx;
@@ -205,7 +207,7 @@ function onApply(): void {
 }
 .login__btn--primary {
   margin-top: 40rpx;
-  background: linear-gradient(135deg, #ffb400, #b7791f);
+  background: var(--brand-gradient);
   color: #fff;
 }
 .login__btn--primary.login__btn--disabled {
@@ -214,6 +216,6 @@ function onApply(): void {
 }
 .login__btn--ghost {
   background: #f0f3f8;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 </style>

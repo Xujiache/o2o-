@@ -11,6 +11,7 @@
 import { onMounted, ref } from 'vue';
 
 import { listPickupPoints, type PickupPointVo } from '@/api/pickup-points';
+import NavBar from '@/components/common/NavBar.vue';
 
 const loading = ref(true);
 const list = ref<PickupPointVo[]>([]);
@@ -77,6 +78,7 @@ function pick(p: PickupPointVo): void {
 
 <template>
   <view class="picker">
+    <NavBar title="选择自提点" />
     <view class="picker__hero">
       <text class="picker__title">选择自提点</text>
       <text class="picker__subtitle">{{ userLng !== null ? '已按距离排序' : '按更新时间排序' }}</text>
@@ -121,7 +123,7 @@ function pick(p: PickupPointVo): void {
 }
 .picker__hero {
   padding: 40rpx 32rpx 56rpx;
-  background: linear-gradient(135deg, #5fbe7d 0%, #2e9c5d 100%);
+  background: var(--brand-gradient-reverse);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -142,7 +144,7 @@ function pick(p: PickupPointVo): void {
   font-size: 28rpx;
 }
 .picker__empty--err {
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 .picker__list {
   padding: 24rpx;
@@ -170,11 +172,11 @@ function pick(p: PickupPointVo): void {
 .picker__card-name {
   font-size: 32rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
 }
 .picker__card-dist {
   font-size: 24rpx;
-  color: #2e9c5d;
+  color: var(--brand-primary);
   font-weight: 700;
 }
 .picker__card-row {
@@ -184,7 +186,7 @@ function pick(p: PickupPointVo): void {
 }
 .picker__card-addr {
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 .picker__card-hour {
@@ -193,13 +195,13 @@ function pick(p: PickupPointVo): void {
 }
 .picker__card-phone {
   font-size: 24rpx;
-  color: #5b5ff8;
+  color: var(--brand-primary);
 }
 .picker__card-notice {
   margin-top: 12rpx;
   padding: 8rpx 16rpx;
   background: #fff3e0;
-  color: #ff8a00;
+  color: var(--brand-primary);
   font-size: 22rpx;
   border-radius: 12rpx;
 }
@@ -209,7 +211,7 @@ function pick(p: PickupPointVo): void {
   right: 18rpx;
   padding: 4rpx 14rpx;
   background: #fff3e0;
-  color: #ff8a00;
+  color: var(--brand-primary);
   font-size: 22rpx;
   border-radius: 999rpx;
 }

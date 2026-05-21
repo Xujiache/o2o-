@@ -1,7 +1,8 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { onMounted, ref } from 'vue';
 
 import { createCategory, type CategoryVo, deleteCategory, listCategories, updateCategory } from '@/api';
+import NavBar from '@/components/common/NavBar.vue';
 
 const list = ref<CategoryVo[]>([]);
 const loading = ref(false);
@@ -116,6 +117,7 @@ async function onDelete(c: CategoryVo): Promise<void> {
 
 <template>
   <view class="cat">
+    <NavBar title="商品分类" />
     <view class="cat__title">商品分类</view>
     <view class="cat__hint">每家店的分类相互独立。新建商品时会从这里选择所属分类。</view>
 
@@ -160,7 +162,7 @@ async function onDelete(c: CategoryVo): Promise<void> {
 }
 .cat__hint {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   margin-top: 8rpx;
 }
 .cat__add {
@@ -176,7 +178,7 @@ async function onDelete(c: CategoryVo): Promise<void> {
   border-bottom: 1rpx solid #ddd;
 }
 .cat__btn {
-  background: #b7791f;
+  background: var(--brand-primary);
   color: #fff;
   font-size: 24rpx;
   padding: 12rpx 24rpx;
@@ -184,7 +186,7 @@ async function onDelete(c: CategoryVo): Promise<void> {
 }
 .cat__loading {
   text-align: center;
-  color: #8a94a6;
+  color: var(--text-muted);
   padding: 32rpx 0;
 }
 .cat__item {
@@ -207,11 +209,11 @@ async function onDelete(c: CategoryVo): Promise<void> {
 }
 .cat__name {
   font-size: 30rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-weight: 500;
 }
 .cat__order {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 22rpx;
 }
 .cat__ops {
@@ -221,10 +223,10 @@ async function onDelete(c: CategoryVo): Promise<void> {
 }
 .cat__op {
   font-size: 24rpx;
-  color: #b7791f;
+  color: var(--brand-primary);
   padding: 6rpx 14rpx;
   border-radius: 999rpx;
-  background: rgba(183, 121, 31, 0.08);
+  background: rgba(46, 156, 93, 0.08);
 }
 .cat__op--mute {
   color: #c5c9d2;
@@ -247,12 +249,12 @@ async function onDelete(c: CategoryVo): Promise<void> {
   flex: 1;
   font-size: 28rpx;
   padding: 12rpx 18rpx;
-  border: 1rpx solid #b7791f;
+  border: 1rpx solid var(--brand-primary);
   border-radius: 8rpx;
 }
 .cat__empty {
   text-align: center;
-  color: #8a94a6;
+  color: var(--text-muted);
   padding: 64rpx 0;
 }
 </style>

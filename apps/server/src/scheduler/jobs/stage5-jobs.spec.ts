@@ -1,6 +1,13 @@
 import type { DataSource, EntityManager, Repository } from 'typeorm';
 
-import type { FoodOrder, OrderTimeline, PaymentOrder, ProductSku, StockLock } from '../../database/entities';
+import type {
+  FoodOrder,
+  OrderTimeline,
+  PaymentOrder,
+  ProductSku,
+  RefundOrder,
+  StockLock,
+} from '../../database/entities';
 import type { DomainEventBus } from '../../events/domain-event-bus';
 import type { DistributedLockService } from '../distributed-lock.service';
 
@@ -18,6 +25,7 @@ const fakeLock = (): jest.Mocked<DistributedLockService> =>
 interface World {
   orders: FoodOrder[];
   payments: PaymentOrder[];
+  refunds: RefundOrder[];
   skus: ProductSku[];
   stockLocks: StockLock[];
   timelines: OrderTimeline[];
@@ -28,6 +36,7 @@ function makeWorld(): World {
   return {
     orders: [],
     payments: [],
+    refunds: [],
     skus: [],
     stockLocks: [],
     timelines: [],
@@ -78,58 +87,88 @@ function fakeOrderRepo(w: World): jest.Mocked<Repository<FoodOrder>> {
 }
 
 function fakeDataSource(w: World): jest.Mocked<DataSource> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const makeRepo = (name: string): any => {
+    if (name === 'FoodOrder') {
+      return {
+        update: jest.fn(async (criteria: Partial<FoodOrder>, patch: Partial<FoodOrder>) => {
+          const idx = w.orders.findIndex((o) => o.foodOrderId === criteria.foodOrderId);
+          if (idx >= 0) w.orders[idx] = { ...w.orders[idx]!, ...patch };
+          return { affected: 1, raw: [] };
+        }),
+      };
+    }
+    if (name === 'StockLock') {
+      return {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        find: jest.fn(({ where }: { where: any }) =>
+          Promise.resolve(w.stockLocks.filter((l) => l.orderId === where.orderId && l.status === where.status)),
+        ),
+        update: jest.fn(async (criteria: Partial<StockLock>, patch: Partial<StockLock>) => {
+          const idx = w.stockLocks.findIndex((l) => l.stockLockId === criteria.stockLockId);
+          if (idx >= 0) w.stockLocks[idx] = { ...w.stockLocks[idx]!, ...patch };
+          return { affected: 1, raw: [] };
+        }),
+      };
+    }
+    if (name === 'ProductSku') {
+      return {
+        decrement: jest.fn(async (criteria: { skuId: string }, _f: string, by: number) => {
+          const sku = w.skus.find((s) => s.skuId === criteria.skuId);
+          if (sku) sku.stockLocked = Math.max(0, sku.stockLocked - by);
+          return { affected: 1, raw: [] };
+        }),
+        increment: jest.fn(async (criteria: { skuId: string }, _f: string, by: number) => {
+          const sku = w.skus.find((s) => s.skuId === criteria.skuId);
+          if (sku) sku.stock += by;
+          return { affected: 1, raw: [] };
+        }),
+      };
+    }
+    if (name === 'OrderTimeline') {
+      return {
+        insert: jest.fn(async (rec: Partial<OrderTimeline>) => {
+          w.timelines.push(rec as OrderTimeline);
+          return { identifiers: [], generatedMaps: [], raw: [] };
+        }),
+      };
+    }
+    if (name === 'PaymentOrder') {
+      return {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        findOne: jest.fn(({ where }: { where: any }) =>
+          Promise.resolve(
+            w.payments.find(
+              (p) =>
+                p.bizType === where.bizType && p.bizId === where.bizId && (!where.status || p.status === where.status),
+            ) ?? null,
+          ),
+        ),
+        update: jest.fn(async (criteria: Partial<PaymentOrder>, patch: Partial<PaymentOrder>) => {
+          const idx = w.payments.findIndex((p) => p.paymentOrderId === criteria.paymentOrderId);
+          if (idx >= 0) w.payments[idx] = { ...w.payments[idx]!, ...patch };
+          return { affected: 1, raw: [] };
+        }),
+      };
+    }
+    if (name === 'RefundOrder') {
+      return {
+        insert: jest.fn(async (rec: Partial<RefundOrder>) => {
+          const refundId = `RF${w.refunds.length + 1}`;
+          w.refunds.push({ ...(rec as RefundOrder), refundOrderId: refundId });
+          return { identifiers: [{ refundOrderId: refundId }], generatedMaps: [], raw: [] };
+        }),
+      };
+    }
+    return {};
+  };
   return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getRepository: jest.fn().mockImplementation((entity: any) => makeRepo(entity?.name ?? '')),
     transaction: jest.fn(async (cb: (em: EntityManager) => Promise<unknown>) => {
       const em: Partial<EntityManager> = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        getRepository: jest.fn().mockImplementation((entity: any) => {
-          const name: string = entity?.name ?? '';
-          if (name === 'FoodOrder') {
-            return {
-              update: jest.fn(async (criteria: Partial<FoodOrder>, patch: Partial<FoodOrder>) => {
-                const idx = w.orders.findIndex((o) => o.foodOrderId === criteria.foodOrderId);
-                if (idx >= 0) w.orders[idx] = { ...w.orders[idx]!, ...patch };
-                return { affected: 1, raw: [] };
-              }),
-            };
-          }
-          if (name === 'StockLock') {
-            return {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              find: jest.fn(({ where }: { where: any }) =>
-                Promise.resolve(w.stockLocks.filter((l) => l.orderId === where.orderId && l.status === where.status)),
-              ),
-              update: jest.fn(async (criteria: Partial<StockLock>, patch: Partial<StockLock>) => {
-                const idx = w.stockLocks.findIndex((l) => l.stockLockId === criteria.stockLockId);
-                if (idx >= 0) w.stockLocks[idx] = { ...w.stockLocks[idx]!, ...patch };
-                return { affected: 1, raw: [] };
-              }),
-            };
-          }
-          if (name === 'ProductSku') {
-            return {
-              decrement: jest.fn(async (criteria: { skuId: string }, _f: string, by: number) => {
-                const sku = w.skus.find((s) => s.skuId === criteria.skuId);
-                if (sku) sku.stockLocked = Math.max(0, sku.stockLocked - by);
-                return { affected: 1, raw: [] };
-              }),
-              increment: jest.fn(async (criteria: { skuId: string }, _f: string, by: number) => {
-                const sku = w.skus.find((s) => s.skuId === criteria.skuId);
-                if (sku) sku.stock += by;
-                return { affected: 1, raw: [] };
-              }),
-            };
-          }
-          if (name === 'OrderTimeline') {
-            return {
-              insert: jest.fn(async (rec: Partial<OrderTimeline>) => {
-                w.timelines.push(rec as OrderTimeline);
-                return { identifiers: [], generatedMaps: [], raw: [] };
-              }),
-            };
-          }
-          return {};
-        }),
+        getRepository: jest.fn().mockImplementation((entity: any) => makeRepo(entity?.name ?? '')),
       };
       return cb(em as EntityManager);
     }),

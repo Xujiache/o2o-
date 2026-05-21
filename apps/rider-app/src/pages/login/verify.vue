@@ -88,18 +88,18 @@ async function onResend(): Promise<void> {
   color: #666;
 }
 .verify__btn {
-  background: #4c84ff;
+  background: var(--brand-primary);
   color: #fff;
   border-radius: 12rpx;
   margin-top: 16rpx;
 }
 .verify__btn[disabled] {
-  background: #aac4ff;
+  background: var(--brand-primary-light);
 }
 .verify__resend {
   text-align: center;
   font-size: 26rpx;
-  color: #4c84ff;
+  color: var(--brand-primary);
   margin-top: 24rpx;
 }
 .verify__resend.disabled {

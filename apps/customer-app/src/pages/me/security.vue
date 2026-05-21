@@ -4,6 +4,7 @@ import { computed, onUnmounted, reactive, ref } from 'vue';
 import SvgIcon from '@/components/common/SvgIcon.vue';
 import { type CustomerRealnameStatus, useAuthStore } from '@/stores/auth';
 import { maskPhone } from '@/utils/format';
+import NavBar from '@/components/common/NavBar.vue';
 
 const auth = useAuthStore();
 
@@ -108,9 +109,10 @@ onUnmounted(() => {
 
 <template>
   <view class="security">
+    <NavBar title="账号安全" />
     <view class="security__summary">
       <view class="security__icon">
-        <SvgIcon name="shield-check" :size="46" color="#ff6b35" />
+        <SvgIcon name="shield-check" :size="46" color="var(--brand-primary)" />
       </view>
       <view class="security__summary-main">
         <text class="security__name">账号安全</text>
@@ -122,7 +124,7 @@ onUnmounted(() => {
     <view class="security__card">
       <view class="security__row" @tap="toggleMobilePanel">
         <view class="security__row-left">
-          <SvgIcon name="phone" :size="30" color="#172033" />
+          <SvgIcon name="phone" :size="30" color="var(--text-primary)" />
           <view class="security__row-text">
             <text class="security__row-title">修改手机号</text>
             <text class="security__row-sub">{{ maskedMobile }}</text>
@@ -158,7 +160,7 @@ onUnmounted(() => {
 
       <view class="security__row" @tap="goRealname">
         <view class="security__row-left">
-          <SvgIcon name="shield-check" :size="30" color="#172033" />
+          <SvgIcon name="shield-check" :size="30" color="var(--text-primary)" />
           <view class="security__row-text">
             <text class="security__row-title">实名认证</text>
             <text class="security__row-sub">{{ realnameMeta.label }}</text>
@@ -169,7 +171,7 @@ onUnmounted(() => {
 
       <view class="security__row" @tap="goProfileEdit">
         <view class="security__row-left">
-          <SvgIcon name="user" :size="30" color="#172033" />
+          <SvgIcon name="user" :size="30" color="var(--text-primary)" />
           <view class="security__row-text">
             <text class="security__row-title">个人资料</text>
             <text class="security__row-sub">头像、昵称和简介</text>
@@ -192,7 +194,7 @@ onUnmounted(() => {
   padding: 28rpx 24rpx 80rpx;
   box-sizing: border-box;
   background: #fff;
-  color: #172033;
+  color: var(--text-primary);
 }
 
 .security__summary,
@@ -241,7 +243,7 @@ onUnmounted(() => {
 .security__row-sub {
   margin-top: 4rpx;
   font-size: 23rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 .security__tag {
@@ -263,12 +265,12 @@ onUnmounted(() => {
 
 .security__tag--warn,
 .security__tag--info {
-  color: #ff7a45;
-  border-color: rgba(255, 122, 69, 0.36);
+  color: var(--brand-primary);
+  border-color: rgba(46, 156, 93, 0.36);
 }
 
 .security__tag--danger {
-  color: #ff4d4f;
+  color: var(--price-color);
   border-color: rgba(255, 77, 79, 0.36);
 }
 
@@ -319,7 +321,7 @@ onUnmounted(() => {
   border: 1rpx solid #e8ecf2;
   border-radius: 16rpx;
   background: #fff;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 28rpx;
 }
 
@@ -337,9 +339,9 @@ onUnmounted(() => {
   min-height: 78rpx;
   padding: 0 24rpx;
   border-radius: 16rpx;
-  border: 1rpx solid rgba(255, 107, 53, 0.52);
+  border: 1rpx solid rgba(46, 156, 93, 0.52);
   background: #fff;
-  color: #ff6b35;
+  color: var(--brand-primary);
   font-size: 25rpx;
   font-weight: 800;
   display: flex;
@@ -359,7 +361,7 @@ onUnmounted(() => {
   margin-top: 18rpx;
   border-radius: 22rpx;
   border-color: rgba(255, 77, 79, 0.28);
-  color: #ff4d4f;
+  color: var(--price-color);
   display: flex;
   align-items: center;
   justify-content: center;

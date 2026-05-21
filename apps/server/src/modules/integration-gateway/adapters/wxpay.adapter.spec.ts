@@ -65,7 +65,29 @@ describe('WxpayMockAdapter', () => {
     expect(r.refundId).toBe('mock-refund-R1');
   });
 
-  it('WxpayRealAdapter 缺凭证 → 抛错', () => {
-    expect(() => new WxpayRealAdapter({ appId: '', mchId: '', apiV3Key: '' })).toThrow(/credentials missing/);
+  it('WxpayRealAdapter 缺凭证 → 抛 MISCONFIGURED', () => {
+    expect(
+      () =>
+        new WxpayRealAdapter({
+          appId: '',
+          mchId: '',
+          apiV3Key: '',
+          certSerialNo: '',
+          notifyUrl: '',
+        }),
+    ).toThrow(/MISCONFIGURED: WXPAY_APP_ID/);
+  });
+
+  it('WxpayRealAdapter 缺 privateKey path → 抛 MISCONFIGURED', () => {
+    expect(
+      () =>
+        new WxpayRealAdapter({
+          appId: 'wx',
+          mchId: '1500000000',
+          apiV3Key: '12345678901234567890123456789012',
+          certSerialNo: 'SERIAL',
+          notifyUrl: 'http://example/callback',
+        }),
+    ).toThrow(/MISCONFIGURED: WXPAY_PRIVATE_KEY_PATH/);
   });
 });

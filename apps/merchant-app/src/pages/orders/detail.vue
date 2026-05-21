@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { onLoad } from '@dcloudio/uni-app';
 import { computed, onMounted, ref } from 'vue';
 
@@ -21,9 +21,20 @@ const canAccept = computed(() => allowedActions.value.includes('ACCEPT'));
 const canReject = computed(() => allowedActions.value.includes('REJECT'));
 const canReady = computed(() => allowedActions.value.includes('READY'));
 
+/** 仅在后端返回了至少一个真实坐标(store/delivery/riderLocation)时才渲染地图，
+ *  避免默认 116.4/39.9(天安门)误导商家。零坐标视为缺失。 */
+function isRealPoint(p?: { lng: number; lat: number } | null): boolean {
+  return !!p && (Number(p.lng) !== 0 || Number(p.lat) !== 0);
+}
+const hasMap = computed(() => {
+  const map = detail.value?.map;
+  return !!map && (isRealPoint(map.store) || isRealPoint(map.delivery) || isRealPoint(map.riderLocation));
+});
+
 const mapCenter = computed(() => {
   const map = detail.value?.map;
-  return map?.riderLocation ?? map?.delivery ?? map?.store ?? { lng: 116.4, lat: 39.9 };
+  // 兜底 0,0：仅在 hasMap=false 时使用，此时 <map> 不会渲染。
+  return map?.riderLocation ?? map?.delivery ?? map?.store ?? { lng: 0, lat: 0 };
 });
 
 const mapMarkers = computed(() => {
@@ -68,7 +79,7 @@ const mapPolyline = computed(() => {
         { latitude: map.store.lat, longitude: map.store.lng },
         { latitude: map.delivery.lat, longitude: map.delivery.lng },
       ],
-      color: '#ff7a45',
+      color: '#2e9c5d',
       width: 4,
       dottedLine: true,
     },
@@ -167,7 +178,7 @@ onMounted(load);
         <view class="hero__amount">{{ fmtYuan(detail.payableAmountCents) }}</view>
       </view>
 
-      <view class="map-card">
+      <view v-if="hasMap" class="map-card">
         <view class="card-title">配送地图</view>
         <map
           class="map"
@@ -287,7 +298,7 @@ onMounted(load);
 .order__loading {
   padding: 160rpx 0;
   text-align: center;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .hero {
   display: flex;
@@ -325,7 +336,7 @@ onMounted(load);
 }
 .card-title {
   margin-bottom: 16rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 28rpx;
   font-weight: 800;
 }
@@ -345,7 +356,7 @@ onMounted(load);
   padding: 6rpx 14rpx;
   border-radius: 999rpx;
   background: #f5f6f8;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-size: 22rpx;
 }
 .address-row {
@@ -354,14 +365,14 @@ onMounted(load);
   align-items: baseline;
 }
 .address-row__name {
-  color: #172033;
+  color: var(--text-primary);
   font-size: 30rpx;
   font-weight: 700;
 }
 .address-row__mobile,
 .address-detail,
 .note {
-  color: #5a6275;
+  color: var(--text-secondary);
   font-size: 26rpx;
   line-height: 1.5;
 }
@@ -387,17 +398,17 @@ onMounted(load);
   min-width: 0;
 }
 .line__name {
-  color: #172033;
+  color: var(--text-primary);
   font-size: 27rpx;
   font-weight: 700;
 }
 .line__spec {
   margin-left: 8rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 22rpx;
 }
 .line__qty {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 24rpx;
 }
 .line__price {
@@ -409,14 +420,14 @@ onMounted(load);
   display: flex;
   justify-content: space-between;
   padding: 10rpx 0;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-size: 26rpx;
 }
 .amount-row--total {
   margin-top: 10rpx;
   padding-top: 18rpx;
   border-top: 1rpx solid rgba(31, 41, 55, 0.08);
-  color: #172033;
+  color: var(--text-primary);
   font-size: 32rpx;
   font-weight: 800;
 }
@@ -447,7 +458,7 @@ onMounted(load);
   flex-shrink: 0;
 }
 .timeline__dot--active {
-  background: #ff7a45;
+  background: var(--brand-primary);
   box-shadow: 0 0 0 8rpx rgba(255, 122, 69, 0.14);
 }
 .timeline__main {
@@ -457,13 +468,13 @@ onMounted(load);
   gap: 4rpx;
 }
 .timeline__title {
-  color: #172033;
+  color: var(--text-primary);
   font-size: 26rpx;
   font-weight: 700;
 }
 .timeline__time,
 .timeline__reason {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 22rpx;
 }
 .actions {
@@ -486,10 +497,10 @@ onMounted(load);
 }
 .actions__btn--ghost {
   background: #f5f6f8;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .actions__btn--primary {
-  background: #ff7a45;
+  background: var(--brand-primary);
   color: #fff;
 }
 .actions__btn--danger {
@@ -518,7 +529,7 @@ onMounted(load);
 }
 .dialog__title {
   margin-bottom: 16rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 32rpx;
   font-weight: 800;
 }

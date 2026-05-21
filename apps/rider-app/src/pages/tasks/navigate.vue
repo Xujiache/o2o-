@@ -42,15 +42,20 @@ const targetLocation = computed(() => {
   return deliveryLocation.value ?? fallbackTarget.value;
 });
 
-const mapLongitude = computed(
-  () => currentLng.value ?? targetLocation.value?.lng ?? pickupLocation.value?.lng ?? 116.4,
+/** 地图中心：优先骑手实时定位，其次目的地，最后取货点；
+ *  没有任何真实坐标时返回 null，由模板隐藏 <map> 以避免硬编码 116.4/39.9(天安门)。 */
+const mapLongitude = computed<number | null>(
+  () => currentLng.value ?? targetLocation.value?.lng ?? pickupLocation.value?.lng ?? null,
 );
-const mapLatitude = computed(() => currentLat.value ?? targetLocation.value?.lat ?? pickupLocation.value?.lat ?? 39.9);
+const mapLatitude = computed<number | null>(
+  () => currentLat.value ?? targetLocation.value?.lat ?? pickupLocation.value?.lat ?? null,
+);
+const hasMapCenter = computed(() => mapLongitude.value != null && mapLatitude.value != null);
 
 const mapMarkers = computed<MapMarker[]>(() => {
   const markers: MapMarker[] = [];
   if (currentLng.value != null && currentLat.value != null) {
-    markers.push(makeMarker(1, currentLng.value, currentLat.value, '骑手当前位置', '#14b8a6'));
+    markers.push(makeMarker(1, currentLng.value, currentLat.value, '骑手当前位置', '#5fbe7d'));
   }
   if (pickupLocation.value) {
     markers.push(
@@ -70,7 +75,7 @@ const mapMarkers = computed<MapMarker[]>(() => {
         deliveryLocation.value.lng,
         deliveryLocation.value.lat,
         deliveryLocation.value.name || '送达点',
-        '#2563eb',
+        '#2e9c5d',
       ),
     );
   }
@@ -81,7 +86,7 @@ const mapMarkers = computed<MapMarker[]>(() => {
         fallbackTarget.value.lng,
         fallbackTarget.value.lat,
         fallbackTarget.value.name || '目的地',
-        '#2563eb',
+        '#2e9c5d',
       ),
     );
   }
@@ -164,8 +169,8 @@ async function getCurrentPoint(): Promise<{ lng: number; lat: number } | null> {
     currentLat.value = point.latitude;
     return { lng: point.longitude, lat: point.latitude };
   } catch (err) {
-    locationError.value = err instanceof Error ? err.message : '定位失败';
-    uni.showToast({ title: locationError.value, icon: 'none' });
+    locationError.value = err instanceof Error ? err.message : '无法获取定位';
+    uni.showToast({ title: '无法获取定位', icon: 'none' });
     return null;
   }
 }
@@ -220,13 +225,15 @@ onMounted(async () => {
 
     <view class="map-card">
       <map
+        v-if="hasMapCenter"
         class="map-card__map"
-        :longitude="mapLongitude"
-        :latitude="mapLatitude"
+        :longitude="mapLongitude!"
+        :latitude="mapLatitude!"
         :markers="mapMarkers"
         :scale="14"
         show-location
       />
+      <view v-else class="map-card__placeholder">暂无可用坐标，请点击「重新定位」</view>
       <view v-if="loading" class="map-card__mask">正在同步任务位置</view>
       <view v-else-if="!targetLocation" class="map-card__mask">暂无目的地坐标，请刷新任务后再导航</view>
     </view>
@@ -280,9 +287,9 @@ onMounted(async () => {
   gap: 20rpx;
   padding: 28rpx;
   border-radius: 24rpx;
-  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  background: var(--brand-gradient-reverse);
   color: #fff;
-  box-shadow: 0 18rpx 44rpx rgba(20, 184, 166, 0.22);
+  box-shadow: 0 18rpx 44rpx rgba(46, 156, 93, 0.22);
 }
 
 .nav-hero__label,
@@ -338,7 +345,7 @@ onMounted(async () => {
 }
 
 .route-card__dot--delivery {
-  background: #2563eb;
+  background: var(--brand-primary);
 }
 
 .route-card__name,
@@ -349,13 +356,13 @@ onMounted(async () => {
 }
 
 .route-card__name {
-  color: #172033;
+  color: var(--text-primary);
   font-size: 28rpx;
   font-weight: 700;
 }
 
 .route-card__sub {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 23rpx;
   margin-top: 4rpx;
 }
@@ -372,6 +379,17 @@ onMounted(async () => {
 .map-card__map {
   width: 100%;
   height: 540rpx;
+}
+
+.map-card__placeholder {
+  width: 100%;
+  height: 540rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 26rpx;
+  background: #f5f6f8;
 }
 
 .map-card__mask {
@@ -400,13 +418,13 @@ onMounted(async () => {
 }
 
 .info-panel__label {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 24rpx;
   flex-shrink: 0;
 }
 
 .info-panel__value {
-  color: #172033;
+  color: var(--text-primary);
   font-size: 24rpx;
   font-weight: 600;
   text-align: right;
@@ -433,19 +451,19 @@ onMounted(async () => {
 }
 
 .actions__btn--ghost {
-  color: #0f766e;
-  background: #eefcf9;
+  color: var(--brand-primary);
+  background: #e8f5ee;
 }
 
 .actions__btn--primary {
   color: #fff;
-  background: #0f766e;
+  background: var(--brand-primary);
 }
 
 .actions__btn--success {
   grid-column: 1 / -1;
   color: #fff;
-  background: #14b8a6;
+  background: var(--brand-primary-light);
 }
 
 .actions__btn[disabled] {

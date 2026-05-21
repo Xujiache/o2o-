@@ -7,6 +7,7 @@ import SmsCodeInput from '@/components/common/SmsCodeInput.vue';
 import SvgIcon from '@/components/common/SvgIcon.vue';
 import { useAuthStore } from '@/stores/auth';
 import { maskPhone } from '@/utils/format';
+import NavBar from '@/components/common/NavBar.vue';
 
 const auth = useAuthStore();
 const realName = ref('');
@@ -117,13 +118,14 @@ onUnmounted(() => {
 
 <template>
   <view class="rn">
+    <NavBar mode="float" color="#ffffff" />
     <!-- Hero — 与"我的"页同款深色 hero -->
     <view class="rn__hero">
       <view class="rn__hero-deco rn__hero-deco--1" />
       <view class="rn__hero-deco rn__hero-deco--2" />
 
       <view class="rn__hero-badge">
-        <SvgIcon name="shield-check" :size="52" color="#ff7a45" />
+        <SvgIcon name="shield-check" :size="52" color="var(--brand-primary)" />
       </view>
       <view class="rn__hero-text">
         <text class="rn__hero-title">实名认证</text>
@@ -173,7 +175,7 @@ onUnmounted(() => {
 
     <view v-else-if="result?.status === 'failed'" class="rn__result rn__result--fail">
       <view class="rn__result-icon">
-        <SvgIcon name="alert-circle" :size="80" color="#ff4d4f" />
+        <SvgIcon name="alert-circle" :size="80" color="var(--price-color)" />
       </view>
       <text class="rn__result-title">认证未通过</text>
       <text class="rn__result-sub">{{ result.reason || '身份信息核验失败,请核对后重试' }}</text>
@@ -184,7 +186,7 @@ onUnmounted(() => {
     <template v-if="!result">
       <view class="rn__card">
         <view class="rn__field">
-          <view class="rn__field-icon"><SvgIcon name="user" :size="28" color="#ff7a45" /></view>
+          <view class="rn__field-icon"><SvgIcon name="user" :size="28" color="var(--brand-primary)" /></view>
           <view class="rn__field-main">
             <text class="rn__field-label">真实姓名</text>
             <input class="rn__field-input" type="text" placeholder="与身份证一致" v-model="realName" maxlength="50" />
@@ -195,7 +197,7 @@ onUnmounted(() => {
         </view>
 
         <view class="rn__field">
-          <view class="rn__field-icon"><SvgIcon name="credit-card" :size="28" color="#ff7a45" /></view>
+          <view class="rn__field-icon"><SvgIcon name="credit-card" :size="28" color="var(--brand-primary)" /></view>
           <view class="rn__field-main">
             <text class="rn__field-label">身份证号</text>
             <IdCardInput v-model="idCardNo" />
@@ -206,7 +208,7 @@ onUnmounted(() => {
         </view>
 
         <view class="rn__field rn__field--last">
-          <view class="rn__field-icon"><SvgIcon name="lock" :size="28" color="#ff7a45" /></view>
+          <view class="rn__field-icon"><SvgIcon name="lock" :size="28" color="var(--brand-primary)" /></view>
           <view class="rn__field-main">
             <view class="rn__field-label-row">
               <text class="rn__field-label">短信验证码</text>
@@ -228,12 +230,12 @@ onUnmounted(() => {
 
       <!-- 安全说明 -->
       <view class="rn__hint">
-        <SvgIcon name="shield" :size="22" color="#ff7a45" />
+        <SvgIcon name="shield" :size="22" color="var(--brand-primary)" />
         <text class="rn__hint-text"> 您的身份信息全程加密传输,仅用于实名核验,不会用于任何商业用途 </text>
       </view>
 
       <view v-if="errorMsg" class="rn__error">
-        <SvgIcon name="alert-circle" :size="22" color="#ff4d4f" />
+        <SvgIcon name="alert-circle" :size="22" color="var(--price-color)" />
         <text class="rn__error-text">{{ errorMsg }}</text>
       </view>
 
@@ -293,7 +295,7 @@ onUnmounted(() => {
   width: 96rpx;
   height: 96rpx;
   border-radius: 48rpx;
-  background: linear-gradient(135deg, rgba(255, 122, 69, 0.18), rgba(255, 176, 32, 0.18));
+  background: linear-gradient(135deg, rgba(46, 156, 93, 0.18), rgba(95, 190, 125, 0.18));
   border: 2rpx solid rgba(255, 255, 255, 0.18);
   display: flex;
   align-items: center;
@@ -347,9 +349,9 @@ onUnmounted(() => {
   font-weight: 700;
 }
 .rn__step--done .rn__step-dot {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
-  border-color: rgba(255, 122, 69, 0.5);
-  box-shadow: 0 4rpx 14rpx rgba(255, 122, 69, 0.5);
+  background: var(--brand-gradient);
+  border-color: rgba(46, 156, 93, 0.5);
+  box-shadow: 0 4rpx 14rpx rgba(46, 156, 93, 0.5);
 }
 .rn__step-label {
   font-size: 22rpx;
@@ -365,7 +367,7 @@ onUnmounted(() => {
   transition: background 240ms ease;
 }
 .rn__step-line--done {
-  background: linear-gradient(90deg, #ff7a45, rgba(255, 176, 32, 0.4));
+  background: linear-gradient(90deg, var(--brand-primary), rgba(95, 190, 125, 0.4));
 }
 
 /* ===== 表单卡 — 跟"我"页 menu 卡片同款 ===== */
@@ -391,7 +393,7 @@ onUnmounted(() => {
   width: 60rpx;
   height: 60rpx;
   border-radius: 16rpx;
-  background: rgba(255, 122, 69, 0.1);
+  background: rgba(46, 156, 93, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -409,7 +411,7 @@ onUnmounted(() => {
 .rn__field-label {
   display: block;
   font-size: 24rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   margin-bottom: 8rpx;
   font-weight: 500;
 }
@@ -421,7 +423,7 @@ onUnmounted(() => {
 .rn__field-input {
   width: 100%;
   font-size: 30rpx;
-  color: #172033;
+  color: var(--text-primary);
   padding: 4rpx 0;
 }
 .rn__field-check {
@@ -445,12 +447,12 @@ onUnmounted(() => {
 .rn__field-main :deep(.id-card-input__field),
 .rn__field-main :deep(.sms-code-input__field) {
   font-size: 30rpx;
-  color: #172033;
+  color: var(--text-primary);
   padding: 4rpx 0;
 }
 .rn__field-main :deep(.id-card-input__hint) {
   font-size: 22rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   margin-top: 6rpx;
 }
 
@@ -467,12 +469,12 @@ onUnmounted(() => {
 .rn__sms-btn {
   flex-shrink: 0;
   padding: 14rpx 24rpx;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   font-size: 24rpx;
   font-weight: 600;
   border-radius: 999rpx;
-  box-shadow: 0 6rpx 16rpx rgba(255, 122, 69, 0.32);
+  box-shadow: 0 6rpx 16rpx rgba(46, 156, 93, 0.32);
 }
 .rn__sms-btn--disabled {
   background: #e5e7eb;
@@ -487,14 +489,14 @@ onUnmounted(() => {
   display: flex;
   align-items: flex-start;
   gap: 12rpx;
-  background: rgba(255, 122, 69, 0.08);
+  background: rgba(46, 156, 93, 0.08);
   border-radius: 20rpx;
-  border: 1rpx dashed rgba(255, 122, 69, 0.32);
+  border: 1rpx dashed rgba(46, 156, 93, 0.32);
 }
 .rn__hint-text {
   flex: 1;
   font-size: 22rpx;
-  color: #ff6b35;
+  color: var(--brand-primary);
   line-height: 1.5;
 }
 
@@ -512,7 +514,7 @@ onUnmounted(() => {
 .rn__error-text {
   flex: 1;
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 
 /* ===== 底部固定提交 ===== */
@@ -542,13 +544,13 @@ onUnmounted(() => {
 }
 .rn__progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ff7a45, #ffb020);
+  background: linear-gradient(90deg, var(--brand-primary), var(--brand-primary-light));
   border-radius: 999rpx;
   transition: width 280ms ease;
 }
 .rn__progress-text {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-weight: 500;
   flex-shrink: 0;
 }
@@ -558,10 +560,10 @@ onUnmounted(() => {
   font-weight: 700;
   color: #fff;
   padding: 26rpx 0;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   border-radius: 999rpx;
   letter-spacing: 4rpx;
-  box-shadow: 0 16rpx 36rpx rgba(255, 122, 69, 0.4);
+  box-shadow: 0 16rpx 36rpx rgba(46, 156, 93, 0.4);
   transition: transform 120ms ease;
 }
 .rn__submit:active {
@@ -603,13 +605,13 @@ onUnmounted(() => {
 .rn__result-title {
   font-size: 40rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
 }
 .rn__result--ok .rn__result-title {
   color: #11998e;
 }
 .rn__result--fail .rn__result-title {
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 .rn__result-sub {
   font-size: 26rpx;
@@ -632,13 +634,13 @@ onUnmounted(() => {
   font-size: 30rpx;
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   border-radius: 999rpx;
-  box-shadow: 0 12rpx 28rpx rgba(255, 122, 69, 0.36);
+  box-shadow: 0 12rpx 28rpx rgba(46, 156, 93, 0.36);
   letter-spacing: 4rpx;
 }
 .rn__result-cta--fail {
-  background: linear-gradient(135deg, #ff4d4f, #ff7875);
+  background: var(--brand-gradient);
   box-shadow: 0 12rpx 28rpx rgba(255, 77, 79, 0.36);
 }
 </style>

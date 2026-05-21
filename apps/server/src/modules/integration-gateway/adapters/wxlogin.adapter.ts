@@ -26,13 +26,47 @@ export class WxLoginMockAdapter implements WxLoginAdapter {
   }
 }
 
+export interface WxLoginRealOpts {
+  appId: string;
+  appSecret: string;
+  endpoint?: string;
+}
+
+/**
+ * 微信小程序登录 Real Adapter — "credentials present → live" skeleton.
+ *  - endpoint : https://api.weixin.qq.com/sns/jscode2session
+ *  - GET ?appid=&secret=&js_code=&grant_type=authorization_code
+ */
 export class WxLoginRealAdapter implements WxLoginAdapter {
-  constructor(opts: { appId: string; appSecret: string }) {
-    if (!opts.appId || !opts.appSecret) {
-      throw new Error('wxlogin credentials missing — set INTEGRATION_MODE=mock until ready');
-    }
+  private readonly endpoint: string;
+
+  constructor(private readonly opts: WxLoginRealOpts) {
+    if (!opts.appId) throw new Error('MISCONFIGURED: WECHAT_MP_APP_ID required');
+    if (!opts.appSecret) throw new Error('MISCONFIGURED: WECHAT_MP_APP_SECRET required');
+    this.endpoint = opts.endpoint ?? 'https://api.weixin.qq.com/sns/jscode2session';
   }
-  async jscode2session(_jsCode: string): Promise<WxLoginSession> {
-    throw new Error('wxlogin not configured (stage 1+)');
+
+  async jscode2session(jsCode: string): Promise<WxLoginSession> {
+    if (!jsCode) throw new Error('jsCode required');
+    const url = `${this.endpoint}?appid=${encodeURIComponent(this.opts.appId)}&secret=${encodeURIComponent(this.opts.appSecret)}&js_code=${encodeURIComponent(jsCode)}&grant_type=authorization_code`;
+    const res = await fetch(url, { method: 'GET' });
+    const txt = await res.text();
+    if (!res.ok) throw new Error(`wxlogin http ${res.status}: ${txt}`);
+    const json = JSON.parse(txt) as {
+      openid?: string;
+      session_key?: string;
+      unionid?: string;
+      errcode?: number;
+      errmsg?: string;
+    };
+    if (json.errcode && json.errcode !== 0) {
+      throw new Error(`wxlogin errcode=${json.errcode} msg=${json.errmsg ?? ''}`);
+    }
+    if (!json.openid || !json.session_key) throw new Error(`wxlogin missing fields: ${txt}`);
+    return {
+      openId: json.openid,
+      sessionKey: json.session_key,
+      unionId: json.unionid,
+    };
   }
 }

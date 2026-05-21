@@ -5,6 +5,7 @@ import SvgIcon from '@/components/common/SvgIcon.vue';
 import { useErrandFormStore } from '@/stores/errand-form';
 import { useErrandQuoteStore } from '@/stores/errand-quote';
 import { formatYuan } from '@/utils/format-price';
+import NavBar from '@/components/common/NavBar.vue';
 
 const formStore = useErrandFormStore();
 const quoteStore = useErrandQuoteStore();
@@ -29,6 +30,7 @@ function goConfirm(): void {
 
 <template>
   <view class="quote">
+    <NavBar mode="float" color="#ffffff" />
     <view v-if="loading" class="quote__loading">报价计算中…</view>
     <view v-else-if="!quote" class="quote__error">
       <SvgIcon name="alert-triangle" :size="80" color="#d33" />
@@ -96,7 +98,7 @@ function goConfirm(): void {
 .quote__error {
   text-align: center;
   padding: 160rpx 40rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 26rpx;
 }
 .quote__error {
@@ -111,16 +113,16 @@ function goConfirm(): void {
 .quote__error-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .quote__error-msg {
   font-size: 24rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 .quote__hero {
   padding: 60rpx 32rpx 80rpx;
-  background: linear-gradient(135deg, #5b5ff8 0%, #00b8d9 100%);
+  background: var(--brand-gradient);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -162,7 +164,7 @@ function goConfirm(): void {
   display: block;
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
   margin-bottom: 8rpx;
 }
 .quote__row {
@@ -183,22 +185,22 @@ function goConfirm(): void {
 }
 .quote__row-label {
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .quote__row-value {
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-weight: 600;
 }
 .quote__row--total .quote__row-label {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .quote__row-pay {
   font-size: 40rpx;
   font-weight: 800;
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 
 .quote__warn {
@@ -250,12 +252,12 @@ function goConfirm(): void {
   z-index: 50;
 }
 .quote__cta {
-  background: linear-gradient(135deg, #5b5ff8, #00b8d9);
+  background: var(--brand-gradient);
   color: #fff;
   font-size: 30rpx;
   font-weight: 700;
   border-radius: 999rpx;
   padding: 24rpx 0;
-  box-shadow: 0 16rpx 40rpx rgba(91, 95, 248, 0.32);
+  box-shadow: 0 16rpx 40rpx rgba(46, 156, 93, 0.32);
 }
 </style>

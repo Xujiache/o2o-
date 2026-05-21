@@ -152,9 +152,9 @@ onMounted(() => {
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(80% 60% at 20% 10%, rgba(59, 130, 246, 0.22), transparent 60%),
-    radial-gradient(60% 70% at 90% 90%, rgba(99, 102, 241, 0.16), transparent 60%),
-    linear-gradient(135deg, #0a1a3a 0%, #0b1228 60%, #070a15 100%);
+    radial-gradient(80% 60% at 20% 10%, rgba(46, 156, 93, 0.22), transparent 60%),
+    radial-gradient(60% 70% at 90% 90%, rgba(95, 190, 125, 0.16), transparent 60%),
+    linear-gradient(135deg, #07261a 0%, #0a2218 60%, #070f0b 100%);
   color: #e6edf7;
   padding: 56px 64px;
   display: flex;
@@ -175,14 +175,14 @@ onMounted(() => {
 .orb-1 {
   width: 360px;
   height: 360px;
-  background: #3b82f6;
+  background: #2e9c5d;
   top: -80px;
   left: -60px;
 }
 .orb-2 {
   width: 280px;
   height: 280px;
-  background: #6366f1;
+  background: #5fbe7d;
   bottom: -60px;
   right: -40px;
 }
@@ -207,14 +207,14 @@ onMounted(() => {
   width: 56px;
   height: 56px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  background: linear-gradient(135deg, #5fbe7d, #2e9c5d);
   display: grid;
   place-items: center;
   font-size: 26px;
   color: white;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.1),
-    0 12px 32px -8px rgba(59, 130, 246, 0.6);
+    0 12px 32px -8px rgba(46, 156, 93, 0.6);
 }
 .brand-name {
   font-size: 30px;
@@ -246,8 +246,8 @@ onMounted(() => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #3b82f6;
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.8);
+  background: #2e9c5d;
+  box-shadow: 0 0 12px rgba(46, 156, 93, 0.8);
 }
 .brand-foot {
   position: relative;

@@ -126,7 +126,11 @@ export function listOrders(q: {
   pageNo?: number;
   pageSize?: number;
 }): Promise<ApiResponse<OrderListPageVo>> {
-  return request<OrderListPageVo>({ url: '/api/v1/c/food/orders', method: 'GET', data: q });
+  return request<OrderListPageVo>({
+    url: '/api/v1/c/food/orders',
+    method: 'GET',
+    params: q as Record<string, unknown>,
+  });
 }
 export function getOrderDetail(orderId: string): Promise<ApiResponse<OrderDetailVo>> {
   return request<OrderDetailVo>({ url: `/api/v1/c/food/orders/${orderId}`, method: 'GET' });

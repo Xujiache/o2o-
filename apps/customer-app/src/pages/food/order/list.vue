@@ -9,6 +9,7 @@ import { type ListStatusTab as ErrandTab } from '@/api/errand-orders';
 import { useErrandOrderStore } from '@/stores/errand-order';
 import { statusLabel as errandStatusLabel, typeLabel as errandTypeLabel, urgentLabel } from '@/utils/errand-status';
 import { formatYuan } from '@/utils/format-price';
+import NavBar from '@/components/common/NavBar.vue';
 
 type Mode = 'food' | 'errand';
 const MODES: Array<{ key: Mode; label: string }> = [
@@ -166,6 +167,7 @@ onShow(() => {
 
 <template>
   <view class="order-page" :class="`order-page--${mode}`">
+    <NavBar title="我的订单" />
     <!-- 大分类 tabs:外卖 / 跑腿(京东风格) -->
     <view class="segment">
       <view
@@ -191,7 +193,9 @@ onShow(() => {
           @tap="switchFoodTab(t.key)"
         >
           <text class="subtab__label">{{ t.label }}</text>
-          <text v-if="foodTab === t.key && t.key !== 'all'" class="subtab__x" @tap.stop="switchFoodTab('all')">✕</text>
+          <view v-if="foodTab === t.key && t.key !== 'all'" class="subtab__x" @tap.stop="switchFoodTab('all')">
+            <SvgIcon name="x" :size="24" />
+          </view>
         </view>
       </view>
 
@@ -213,7 +217,7 @@ onShow(() => {
             </text>
           </view>
           <view class="card__body">
-            <SvgIcon name="utensils" :size="20" color="#ff6b35" />
+            <SvgIcon name="utensils" :size="20" color="var(--brand-primary)" />
             <text class="card__brief">{{ o.itemsBrief }}</text>
           </view>
           <view class="card__foot">
@@ -235,9 +239,9 @@ onShow(() => {
           @tap="switchErrandTab(t.key)"
         >
           <text class="subtab__label">{{ t.label }}</text>
-          <text v-if="errandTab === t.key && t.key !== 'ALL'" class="subtab__x" @tap.stop="switchErrandTab('ALL')"
-            >✕</text
-          >
+          <view v-if="errandTab === t.key && t.key !== 'ALL'" class="subtab__x" @tap.stop="switchErrandTab('ALL')">
+            <SvgIcon name="x" :size="24" />
+          </view>
         </view>
       </view>
 
@@ -259,7 +263,7 @@ onShow(() => {
             </text>
           </view>
           <view class="card__body">
-            <SvgIcon name="location-pin" :size="20" color="#5B5FF8" />
+            <SvgIcon name="location-pin" :size="20" color="var(--brand-primary)" />
             <text class="card__brief">{{ o.deliveryAddress }}</text>
           </view>
           <view class="card__foot">
@@ -313,7 +317,7 @@ onShow(() => {
 .segment__label {
   font-size: 34rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   letter-spacing: 1rpx;
 }
 .segment__indicator {
@@ -326,12 +330,12 @@ onShow(() => {
   border-radius: 999rpx;
 }
 .order-page--food .segment__indicator {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
-  box-shadow: 0 4rpx 12rpx rgba(255, 122, 69, 0.36);
+  background: var(--brand-gradient);
+  box-shadow: 0 4rpx 12rpx rgba(46, 156, 93, 0.36);
 }
 .order-page--errand .segment__indicator {
-  background: linear-gradient(135deg, #5b5ff8, #00b8d9);
-  box-shadow: 0 4rpx 12rpx rgba(91, 95, 248, 0.36);
+  background: var(--brand-gradient);
+  box-shadow: 0 4rpx 12rpx rgba(46, 156, 93, 0.36);
 }
 
 /* 子 tabs */
@@ -354,7 +358,7 @@ onShow(() => {
   border-radius: 999rpx;
   background: #fff;
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   box-shadow: 0 4rpx 12rpx rgba(31, 41, 55, 0.04);
 }
 .subtab__label {
@@ -375,19 +379,19 @@ onShow(() => {
   font-weight: 700;
 }
 .subtab--active-food {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
-  box-shadow: 0 8rpx 20rpx rgba(255, 122, 69, 0.3);
+  background: var(--brand-gradient);
+  box-shadow: 0 8rpx 20rpx rgba(46, 156, 93, 0.3);
 }
 .subtab--active-errand {
-  background: linear-gradient(135deg, #5b5ff8, #00b8d9);
-  box-shadow: 0 8rpx 20rpx rgba(91, 95, 248, 0.3);
+  background: var(--brand-gradient);
+  box-shadow: 0 8rpx 20rpx rgba(46, 156, 93, 0.3);
 }
 
 /* Empty */
 .empty {
   padding: 140rpx 40rpx;
   text-align: center;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 26rpx;
   display: flex;
   flex-direction: column;
@@ -431,15 +435,15 @@ onShow(() => {
 }
 .card__tag--food {
   background: linear-gradient(135deg, #fff1e6, #ffe6cc);
-  color: #ff7a45;
+  color: var(--brand-primary);
 }
 .card__tag--errand {
   background: linear-gradient(135deg, #ebecff, #e0f7fa);
-  color: #5b5ff8;
+  color: var(--brand-primary);
 }
 .card__order-no {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -455,17 +459,17 @@ onShow(() => {
 }
 .list__status--mute,
 .card__status.list__status--mute {
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .list__status--warn,
 .card__status.list__status--warn {
   color: #ff8c42;
 }
 .list__status--active-food {
-  color: #ff6b35;
+  color: var(--brand-primary);
 }
 .list__status--active-errand {
-  color: #5b5ff8;
+  color: var(--brand-primary);
 }
 
 .card__body {
@@ -479,7 +483,7 @@ onShow(() => {
 .card__brief {
   flex: 1;
   font-size: 26rpx;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -500,11 +504,11 @@ onShow(() => {
 }
 .card__foot-l {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .card__amount {
   font-size: 32rpx;
   font-weight: 800;
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 </style>

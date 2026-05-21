@@ -9,7 +9,7 @@ function retry(): void {
 <template>
   <view class="page">
     <view class="page__icon">
-      <SvgIcon name="radio-tower" :size="100" color="#5a6275" />
+      <SvgIcon name="radio-tower" :size="100" color="var(--text-secondary)" />
     </view>
     <view class="page__title">网络错误</view>
     <text class="page__desc">连接服务器失败,请检查网络后重试。</text>

@@ -21,7 +21,7 @@ const TABS: Tab[] = [
   { key: 'profile', icon: 'user', label: '我的', path: '/pages/profile/index' },
 ];
 
-const ACTIVE_COLOR = '#0f766e';
+const ACTIVE_COLOR = '#2e9c5d';
 const INACTIVE_COLOR = '#8a94a6';
 
 function onTap(t: Tab): void {
@@ -82,14 +82,14 @@ function onTap(t: Tab): void {
   transition: background 200ms ease;
 }
 .ftb__item--active {
-  background: rgba(15, 118, 110, 0.12);
+  background: rgba(46, 156, 93, 0.12);
 }
 .ftb__label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .ftb__label--active {
-  color: #0f766e;
+  color: var(--brand-primary);
   font-weight: 700;
 }
 </style>

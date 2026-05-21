@@ -1,8 +1,9 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 /** 配送范围编辑。 */
 import { ref } from 'vue';
 
 import { updateStoreSettings } from '@/api';
+import NavBar from '@/components/common/NavBar.vue';
 
 const text = ref(
   JSON.stringify(
@@ -51,6 +52,7 @@ async function onSave(): Promise<void> {
 
 <template>
   <view class="da">
+    <NavBar title="配送范围" />
     <view class="da__title">配送范围(GeoJSON Polygon)</view>
     <text class="da__hint">请按 GeoJSON Polygon 格式维护配送范围。</text>
     <textarea class="da__editor" v-model="text" />
@@ -92,7 +94,7 @@ async function onSave(): Promise<void> {
   font-size: 26rpx;
 }
 .da__error {
-  color: #ff4d4f;
+  color: var(--price-color);
   font-size: 26rpx;
 }
 </style>

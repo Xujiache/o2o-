@@ -8,6 +8,7 @@ import { type PublicStoreDetailVo, getPublicStoreDetail } from '@/api/food-store
 import { useFoodCartStore } from '@/stores/food-cart';
 import { formatYuan } from '@/utils/format-price';
 import { formatWeight } from '@/utils/format-weight';
+import NavBar from '@/components/common/NavBar.vue';
 
 const storeId = ref('');
 const data = ref<FoodStoreProductsVo | null>(null);
@@ -390,6 +391,7 @@ onUnmounted(() => {
 
 <template>
   <view class="store">
+    <NavBar mode="float" color="#ffffff" />
     <view v-if="loading" class="store__loading">加载中…</view>
 
     <template v-else-if="data">
@@ -477,7 +479,12 @@ onUnmounted(() => {
                 <view class="store__product-top">
                   <view class="store__product-name-row">
                     <text class="store__product-name">{{ p.name }}</text>
-                    <text v-if="productWeightLabel(p)" class="store__weight-tag">⚖ {{ productWeightLabel(p) }}</text>
+                    <view
+                      v-if="productWeightLabel(p)"
+                      class="store__weight-tag"
+                      style="display: flex; align-items: center; gap: 8rpx"
+                      ><SvgIcon name="ruler" :size="32" /><text>{{ productWeightLabel(p) }}</text></view
+                    >
                   </view>
                   <text v-if="p.description" class="store__product-desc">{{ p.description }}</text>
                   <view class="store__product-meta">
@@ -558,9 +565,14 @@ onUnmounted(() => {
             <text v-if="pickerProduct.description" class="sku__desc">{{ pickerProduct.description }}</text>
             <view class="sku__price-row">
               <text class="sku__base-price">¥{{ formatYuan(pickerProduct.basePrice) }} 起</text>
-              <text v-if="productWeightLabel(pickerProduct)" class="sku__head-weight"
-                >⚖ {{ productWeightLabel(pickerProduct) }}</text
+              <view
+                v-if="productWeightLabel(pickerProduct)"
+                class="sku__head-weight"
+                style="display: flex; align-items: center; gap: 6rpx"
               >
+                <SvgIcon name="ruler" :size="28" />
+                <text>{{ productWeightLabel(pickerProduct) }}</text>
+              </view>
             </view>
           </view>
           <text class="sku__close" @tap="skuPickerOpen = false">×</text>
@@ -648,7 +660,7 @@ onUnmounted(() => {
             <text class="cs__count">共 {{ cartCount }} 件商品</text>
           </view>
           <view v-if="cartCount > 0" class="cs__clear" @tap="cartClearAll">
-            <text>🗑</text>
+            <SvgIcon name="x" :size="28" />
             <text>清空</text>
           </view>
         </view>
@@ -676,13 +688,16 @@ onUnmounted(() => {
               <text class="cs__item-name">{{ it.name }}</text>
               <view class="cs__item-meta">
                 <text v-if="it.specValue" class="cs__item-spec">{{ it.specValue }}</text>
-                <text
+                <view
                   v-if="formatWeight(productBySkuId.get(it.skuId)?.skus.find((s) => s.skuId === it.skuId)?.weightGrams)"
                   class="cs__item-weight"
+                  style="display: flex; align-items: center; gap: 6rpx"
                 >
-                  ⚖
-                  {{ formatWeight(productBySkuId.get(it.skuId)?.skus.find((s) => s.skuId === it.skuId)?.weightGrams) }}
-                </text>
+                  <SvgIcon name="ruler" :size="24" />
+                  <text>{{
+                    formatWeight(productBySkuId.get(it.skuId)?.skus.find((s) => s.skuId === it.skuId)?.weightGrams)
+                  }}</text>
+                </view>
               </view>
               <view class="cs__item-priceline">
                 <text class="cs__item-price">¥{{ formatYuan(it.subTotal) }}</text>
@@ -735,7 +750,7 @@ onUnmounted(() => {
 .store__loading {
   text-align: center;
   padding: 120rpx 0;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 /* ========== Header (sticky-feeling, no overlap hack) ========== */
@@ -745,7 +760,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 24rpx;
   padding: 32rpx 32rpx 36rpx;
-  background: linear-gradient(135deg, #ff7a45 0%, #ffb020 100%);
+  background: var(--brand-gradient);
   color: #fff;
 }
 .store__avatar {
@@ -753,7 +768,7 @@ onUnmounted(() => {
   height: 112rpx;
   border-radius: 24rpx;
   background: rgba(255, 255, 255, 0.96);
-  color: #ff6b35;
+  color: var(--brand-primary);
   font-size: 52rpx;
   font-weight: 800;
   display: flex;
@@ -855,11 +870,11 @@ onUnmounted(() => {
   padding: 28rpx 16rpx;
   text-align: center;
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .store__tab--active {
   background: #fff;
-  color: #172033;
+  color: var(--text-primary);
   font-weight: 600;
 }
 .store__tab-bar {
@@ -868,7 +883,7 @@ onUnmounted(() => {
   top: 28rpx;
   bottom: 28rpx;
   width: 6rpx;
-  background: #ff6b35;
+  background: var(--brand-primary);
   border-radius: 0 6rpx 6rpx 0;
 }
 .store__tab-text {
@@ -898,11 +913,11 @@ onUnmounted(() => {
 .store__section-name {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .store__section-count {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .store__section-empty {
   text-align: center;
@@ -981,7 +996,7 @@ onUnmounted(() => {
   flex: 1;
   font-size: 28rpx;
   font-weight: 600;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -999,7 +1014,7 @@ onUnmounted(() => {
 }
 .store__product-desc {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1010,7 +1025,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 8rpx;
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .store__product-stat-dot {
   opacity: 0.5;
@@ -1028,7 +1043,7 @@ onUnmounted(() => {
   min-width: 0;
 }
 .store__product-price {
-  color: #ff4d4f;
+  color: var(--price-color);
   font-size: 32rpx;
   font-weight: 700;
   line-height: 1;
@@ -1042,12 +1057,12 @@ onUnmounted(() => {
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 8rpx 18rpx rgba(255, 107, 53, 0.32);
+  box-shadow: 0 8rpx 18rpx rgba(46, 156, 93, 0.32);
 }
 .store__product-add--disabled {
   background: #c5c9d2;
@@ -1080,18 +1095,18 @@ onUnmounted(() => {
 }
 .store__qty-btn--minus {
   background: #fff;
-  color: #ff6b35;
-  border: 2rpx solid #ff7a45;
+  color: var(--brand-primary);
+  border: 2rpx solid var(--brand-primary);
 }
 .store__qty-btn--plus {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
-  box-shadow: 0 8rpx 18rpx rgba(255, 107, 53, 0.32);
+  box-shadow: 0 8rpx 18rpx rgba(46, 156, 93, 0.32);
 }
 .store__qty-num {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
   min-width: 36rpx;
   text-align: center;
 }
@@ -1132,7 +1147,7 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 .store__cart-icon--active {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
 }
 .store__cart-emoji {
   font-size: 38rpx;
@@ -1144,7 +1159,7 @@ onUnmounted(() => {
   min-width: 32rpx;
   height: 32rpx;
   border-radius: 999rpx;
-  background: #ff4d4f;
+  background: var(--price-color);
   color: #fff;
   font-size: 20rpx;
   display: flex;
@@ -1172,7 +1187,7 @@ onUnmounted(() => {
 }
 .store__cart-tip {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   margin-top: 4rpx;
 }
 .store__cart-go {
@@ -1185,7 +1200,7 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 .store__cart-go--active {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
 }
 
@@ -1245,16 +1260,16 @@ onUnmounted(() => {
 .sku__title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .sku__desc {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .sku__base-price {
   margin-top: 6rpx;
   font-size: 30rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-weight: 700;
 }
 .sku__close {
@@ -1284,19 +1299,19 @@ onUnmounted(() => {
 }
 .sku__row-spec {
   font-size: 26rpx;
-  color: #172033;
+  color: var(--text-primary);
 }
 .sku__row-stock {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .sku__row-price {
-  color: #ff4d4f;
+  color: var(--price-color);
   font-size: 28rpx;
   font-weight: 700;
 }
 .sku__row-add {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   border-radius: 999rpx;
   font-size: 22rpx;
@@ -1305,7 +1320,7 @@ onUnmounted(() => {
 .sku__empty {
   text-align: center;
   font-size: 24rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   padding: 40rpx 0;
 }
 
@@ -1316,7 +1331,7 @@ onUnmounted(() => {
 .sku__section-title {
   display: block;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-weight: 600;
   margin-bottom: 14rpx;
 }
@@ -1336,8 +1351,8 @@ onUnmounted(() => {
   border: 2rpx solid transparent;
 }
 .sku__spec--active {
-  background: rgba(255, 122, 69, 0.08);
-  border-color: #ff7a45;
+  background: rgba(46, 156, 93, 0.08);
+  border-color: var(--brand-primary);
 }
 .sku__spec--out {
   opacity: 0.4;
@@ -1373,11 +1388,11 @@ onUnmounted(() => {
 .sku__spec-name {
   font-size: 24rpx;
   font-weight: 600;
-  color: #172033;
+  color: var(--text-primary);
 }
 .sku__spec-price {
   font-size: 22rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-weight: 700;
 }
 
@@ -1391,7 +1406,7 @@ onUnmounted(() => {
   height: 64rpx;
   border-radius: 50%;
   background: #fff;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 36rpx;
   font-weight: 700;
   display: flex;
@@ -1416,7 +1431,7 @@ onUnmounted(() => {
   background: #fff;
   border-radius: 16rpx;
   font-size: 26rpx;
-  color: #172033;
+  color: var(--text-primary);
   box-sizing: border-box;
 }
 
@@ -1436,21 +1451,21 @@ onUnmounted(() => {
 }
 .sku__bar-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .sku__bar-amount {
   font-size: 36rpx;
   font-weight: 800;
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 .sku__bar-cta {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   font-size: 28rpx;
   font-weight: 700;
   border-radius: 999rpx;
   padding: 20rpx 48rpx;
-  box-shadow: 0 12rpx 28rpx rgba(255, 107, 53, 0.32);
+  box-shadow: 0 12rpx 28rpx rgba(46, 156, 93, 0.32);
 }
 .sku__bar-cta[disabled] {
   opacity: 0.6;
@@ -1498,11 +1513,11 @@ onUnmounted(() => {
 .cs__title {
   font-size: 32rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
 }
 .cs__count {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .cs__clear {
   display: flex;
@@ -1562,7 +1577,7 @@ onUnmounted(() => {
 .cs__item-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #172033;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1575,7 +1590,7 @@ onUnmounted(() => {
 }
 .cs__item-spec {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1598,7 +1613,7 @@ onUnmounted(() => {
 .cs__item-price {
   font-size: 28rpx;
   font-weight: 800;
-  color: #ff4d4f;
+  color: var(--price-color);
   line-height: 1;
 }
 .cs__item-unit {
@@ -1626,13 +1641,13 @@ onUnmounted(() => {
 }
 .cs__qty-btn--minus {
   background: #fff;
-  color: #ff6b35;
-  border: 2rpx solid #ff7a45;
+  color: var(--brand-primary);
+  border: 2rpx solid var(--brand-primary);
 }
 .cs__qty-btn--plus {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
-  box-shadow: 0 8rpx 18rpx rgba(255, 107, 53, 0.32);
+  box-shadow: 0 8rpx 18rpx rgba(46, 156, 93, 0.32);
 }
 .cs__qty-btn--disabled {
   opacity: 0.5;
@@ -1640,7 +1655,7 @@ onUnmounted(() => {
 .cs__qty-num {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
   min-width: 36rpx;
   text-align: center;
 }
@@ -1665,12 +1680,12 @@ onUnmounted(() => {
 }
 .cs__bar-label {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .cs__bar-amount {
   font-size: 36rpx;
   font-weight: 800;
-  color: #ff4d4f;
+  color: var(--price-color);
   line-height: 1.1;
 }
 .cs__bar-tip {
@@ -1678,13 +1693,13 @@ onUnmounted(() => {
   color: #c5c9d2;
 }
 .cs__bar-cta {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   border-radius: 999rpx;
   padding: 22rpx 44rpx;
   font-size: 28rpx;
   font-weight: 700;
   line-height: 1;
-  box-shadow: 0 14rpx 32rpx rgba(255, 107, 53, 0.34);
+  box-shadow: 0 14rpx 32rpx rgba(46, 156, 93, 0.34);
 }
 </style>

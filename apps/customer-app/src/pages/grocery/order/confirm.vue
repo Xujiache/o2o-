@@ -11,6 +11,7 @@ import { onLoad } from '@dcloudio/uni-app';
 import { listPickupPoints, type PickupPointVo } from '@/api/pickup-points';
 import { submitGroceryOrder } from '@/api/grocery-orders';
 import { useAuthStore } from '@/stores/auth';
+import NavBar from '@/components/common/NavBar.vue';
 
 interface OrderRow {
   productId: string;
@@ -143,6 +144,7 @@ onMounted(() => {
 
 <template>
   <view class="confirm">
+    <NavBar mode="float" color="#ffffff" />
     <view class="confirm__hero">
       <text class="confirm__title">确认订单</text>
       <text class="confirm__subtitle">下单后实重以拣货称重为准,多退少补</text>
@@ -217,7 +219,7 @@ onMounted(() => {
 }
 .confirm__hero {
   padding: 40rpx 32rpx;
-  background: linear-gradient(135deg, #5fbe7d 0%, #2e9c5d 100%);
+  background: var(--brand-gradient-reverse);
   color: #fff;
 }
 .confirm__title {
@@ -245,7 +247,7 @@ onMounted(() => {
 }
 .confirm__label {
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-weight: 700;
 }
 .confirm__arrow {
@@ -255,13 +257,13 @@ onMounted(() => {
 .confirm__pickup-name {
   font-size: 30rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
   display: block;
   margin-top: 8rpx;
 }
 .confirm__pickup-addr {
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   display: block;
   margin-top: 4rpx;
 }
@@ -280,7 +282,7 @@ onMounted(() => {
 .confirm__item-name {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
   display: block;
 }
 .confirm__item-row {
@@ -290,12 +292,12 @@ onMounted(() => {
 }
 .confirm__item-info {
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .confirm__item-price {
   font-size: 28rpx;
   font-weight: 800;
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 .confirm__item-tip {
   display: block;
@@ -346,7 +348,7 @@ onMounted(() => {
   width: 100%;
   height: 88rpx;
   line-height: 88rpx;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   font-weight: 700;
   border-radius: 999rpx;

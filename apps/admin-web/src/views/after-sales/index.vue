@@ -143,7 +143,7 @@ onMounted(load);
       </el-table-column>
     </DataTable>
 
-    <AfterSaleDetailDrawer v-model:visible="drawerVisible" :after-sale-id="drawerId" />
+    <AfterSaleDetailDrawer v-model:visible="drawerVisible" :after-sale-id="drawerId" @refresh="load" />
   </PageContainer>
 </template>
 

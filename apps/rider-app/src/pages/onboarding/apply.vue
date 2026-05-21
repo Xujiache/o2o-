@@ -80,8 +80,8 @@ function next(): void {
   padding: 34rpx;
   border-radius: 34rpx;
   color: #fff;
-  background: linear-gradient(135deg, #0f766e, #14b8a6);
-  box-shadow: 0 24rpx 64rpx rgba(20, 184, 166, 0.26);
+  background: var(--brand-gradient-reverse);
+  box-shadow: 0 24rpx 64rpx rgba(46, 156, 93, 0.26);
 }
 .apply__title {
   display: block;
@@ -105,12 +105,12 @@ function next(): void {
 }
 .apply__btn {
   margin-top: 32rpx;
-  background: linear-gradient(135deg, #14b8a6, #0f766e);
+  background: var(--brand-gradient);
   color: #fff;
   border-radius: 999rpx;
   font-weight: 700;
 }
 .apply__btn[disabled] {
-  background: #9de3dc;
+  background: var(--brand-primary-light);
 }
 </style>

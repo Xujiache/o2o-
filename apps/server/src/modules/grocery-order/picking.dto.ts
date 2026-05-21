@@ -3,12 +3,13 @@ import { Expose, Type } from 'class-transformer';
 import { IsArray, IsEnum, IsInt, IsOptional, IsString, Length, Max, Min } from 'class-validator';
 
 export class WeighItemDto {
-  @ApiProperty({ description: 'final weight in grams', example: 520 })
+  @ApiProperty({ required: false, description: 'final weight in grams; SKU/按件 商品不需要', example: 520 })
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(100000)
-  finalWeightGrams!: number;
+  finalWeightGrams?: number;
 
   @ApiProperty({ required: false, description: 'bound qrcode ids (GR-5)', type: [String] })
   @IsOptional()

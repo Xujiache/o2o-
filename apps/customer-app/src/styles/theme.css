@@ -1,0 +1,40 @@
+/**
+ * O2O 用户端 — 统一主题色 token
+ *
+ * 基准色:生鲜绿 #2E9C5D(与 pages.json tabBar.selectedColor 一致)
+ * 设计原则:外卖/跑腿/生鲜三个业务线全部统一用品牌主色,不再分色。
+ */
+:root,
+page {
+  /* 品牌色阶 */
+  --brand-primary: #2e9c5d;
+  --brand-primary-dark: #1f7a47;
+  --brand-primary-light: #5fbe7d;
+  --brand-primary-glow: rgba(46, 156, 93, 0.18);
+
+  /* 品牌渐变(hero / cta 用) */
+  --brand-gradient: linear-gradient(135deg, #5fbe7d 0%, #2e9c5d 100%);
+  --brand-gradient-reverse: linear-gradient(135deg, #2e9c5d 0%, #5fbe7d 100%);
+  --brand-gradient-soft: linear-gradient(135deg, #e8f5ee 0%, #d2ecde 100%);
+
+  /* 中性 */
+  --text-primary: #172033;
+  --text-secondary: #5a6275;
+  --text-muted: #8a94a6;
+  --text-disabled: #c5c9d2;
+
+  /* 背景 */
+  --bg-page: #f5f7fa;
+  --bg-card: #ffffff;
+  --bg-soft: #f5f6f8;
+  --bg-divider: #edf0f5;
+
+  /* 状态色(保留独立语义)*/
+  --status-success: #2e9c5d;
+  --status-warning: #f59e0b;
+  --status-danger: #ef4444;
+  --status-info: #0ea5e9;
+
+  /* 价格/强调(订单等场景仍用红橙突出)*/
+  --price-color: #ef4444;
+}

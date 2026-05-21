@@ -16,15 +16,15 @@ uni-tabbar,
 page {
   min-height: 100%;
   background:
-    radial-gradient(circle at 20% 0%, rgba(20, 184, 166, 0.22), transparent 34%),
+    radial-gradient(circle at 20% 0%, rgba(46, 156, 93, 0.22), transparent 34%),
     linear-gradient(180deg, #ecfeff 0%, #f6f8fb 38%, #eef2f7 100%);
-  color: #172033;
+  color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
 button {
   border-radius: 999rpx;
-  box-shadow: 0 16rpx 36rpx rgba(20, 184, 166, 0.16);
+  box-shadow: 0 16rpx 36rpx rgba(46, 156, 93, 0.16);
 }
 
 button::after {
@@ -67,12 +67,12 @@ button::after {
 
 .page__title {
   font-weight: 800 !important;
-  color: #172033;
+  color: var(--text-primary);
 }
 
 .page__btn {
   border-radius: 999rpx !important;
-  background: linear-gradient(135deg, #14b8a6, #0f766e) !important;
+  background: var(--brand-gradient) !important;
   font-weight: 700;
 }
 

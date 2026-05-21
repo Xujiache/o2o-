@@ -7,10 +7,32 @@ export interface PrepayReq {
   orderId: string;
   payChannel: 'wxpay' | 'alipay';
 }
+
+/**
+ * 真实拉起支付时,后端需在 payParams 中携带渠道侧签名信息。
+ * 后端 stage 11 后填充:wxpay 走 JSAPI/小程序,alipay 走 sdk orderInfo。
+ */
+export interface WxpayPrepayParams {
+  nonceStr: string;
+  timeStamp: string;
+  package: string;
+  signType: 'MD5' | 'HMAC-SHA256' | 'RSA';
+  paySign: string;
+}
+export interface AlipayPrepayParams {
+  /** alipay SDK 收到的完整支付串 */
+  orderInfo: string;
+}
+
 export interface PrepayVo {
   payOrderId: string;
   payOrderNo: string;
-  payParams: string;
+  /**
+   * 渠道 prepay 参数:
+   * - mock 模式 → string(后端占位 / 兼容历史)
+   * - real 模式 → 渠道签名对象,后端 stage 11 后填充
+   */
+  payParams: string | WxpayPrepayParams | AlipayPrepayParams;
   expireAt: number;
 }
 

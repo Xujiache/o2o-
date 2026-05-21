@@ -5,6 +5,7 @@ import { computed, ref } from 'vue';
 import SvgIcon from '@/components/common/SvgIcon.vue';
 import { useFoodCartStore } from '@/stores/food-cart';
 import { formatYuan } from '@/utils/format-price';
+import NavBar from '@/components/common/NavBar.vue';
 
 const cart = useFoodCartStore();
 const storeId = ref('');
@@ -43,6 +44,7 @@ onLoad((options) => {
 
 <template>
   <view class="cart">
+    <NavBar title="购物车" />
     <view class="cart__header">
       <text class="cart__title">购物车</text>
       <text v-if="totalCount > 0" class="cart__count">共 {{ totalCount }} 件</text>
@@ -104,11 +106,11 @@ onLoad((options) => {
 .cart__title {
   font-size: 38rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
 }
 .cart__count {
   font-size: 24rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .cart__empty {
   display: flex;
@@ -123,11 +125,11 @@ onLoad((options) => {
 }
 .cart__empty-text {
   font-size: 28rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   margin-bottom: 32rpx;
 }
 .cart__empty-btn {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   border-radius: 999rpx;
   padding: 0 56rpx;
@@ -153,7 +155,7 @@ onLoad((options) => {
 }
 .cart__name {
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -161,12 +163,12 @@ onLoad((options) => {
 }
 .cart__spec {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .cart__price {
   margin-top: 4rpx;
   font-size: 28rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-weight: 700;
 }
 .cart__qty {
@@ -186,12 +188,12 @@ onLoad((options) => {
   line-height: 1;
 }
 .cart__qty-btn--plus {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
 }
 .cart__qty-btn--minus {
   background: #fff;
-  color: #5a6275;
+  color: var(--text-secondary);
   border: 1rpx solid rgba(31, 41, 55, 0.08);
 }
 .cart__qty-btn--disabled {
@@ -221,15 +223,15 @@ onLoad((options) => {
 }
 .cart__total-label {
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .cart__total-amount {
   font-size: 38rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-weight: 700;
 }
 .cart__checkout {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   border-radius: 999rpx;
   padding: 0 56rpx;

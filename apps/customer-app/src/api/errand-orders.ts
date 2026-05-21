@@ -80,7 +80,7 @@ export function listErrandOrders(
   return request<ErrandOrderListVo>({
     url: '/api/v1/c/errand/orders',
     method: 'GET',
-    data: { status, page, pageSize },
+    params: { status, page, pageSize },
   });
 }
 

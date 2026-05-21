@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { onShow } from '@dcloudio/uni-app';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 
@@ -11,6 +11,9 @@ const store = useOrderStore();
 const POLL_INTERVAL_MS = 15000;
 const SOUND_ENABLED_KEY = 'o2o:merchant:new-order-sound-enabled';
 const SOUND_SRC_KEY = 'o2o:merchant:new-order-audio-src';
+/** 默认内置铃声；运营可替换 /static/sounds/new-order.mp3（见同目录 README.txt）。
+ *  若商家在设置页指定了远程 URL，仍由 localStorage 覆盖，保持向后兼容。 */
+const DEFAULT_SOUND_SRC = '/static/sounds/new-order.mp3';
 
 type TabKey = 'pending' | 'preparing' | 'ready' | 'all';
 interface TabDef {
@@ -105,6 +108,7 @@ async function refreshWithNotice(manual = false): Promise<void> {
 
 function startPolling(): void {
   if (pollTimer) clearInterval(pollTimer);
+  // TODO(WS): 订阅 merchant:store:${storeId}，替换轮询。W3 已建 ws-gateway，详见 docs/ARCHITECTURE.md
   pollTimer = setInterval(() => {
     if (isPendingTab.value && !store.loading) void refreshWithNotice();
   }, POLL_INTERVAL_MS);
@@ -126,8 +130,7 @@ function notifyNewOrder(count: number): void {
   uni.showToast({ title: `收到 ${count} 笔新订单`, icon: 'none' });
   if (!soundEnabled.value) return;
   uni.vibrateShort?.({});
-  const src = (uni.getStorageSync(SOUND_SRC_KEY) as string) || '';
-  if (!src) return;
+  const src = (uni.getStorageSync(SOUND_SRC_KEY) as string) || DEFAULT_SOUND_SRC;
   if (!audio) audio = uni.createInnerAudioContext();
   audio.src = src;
   audio.play();
@@ -208,7 +211,7 @@ async function onReady(orderId: string): Promise<void> {
           <text>刷新</text>
         </view>
         <view v-if="isPendingTab" class="orders__head-btn" @tap="toggleSound">
-          <SvgIcon name="bell" :size="20" :color="soundEnabled ? '#b7791f' : '#8a94a6'" />
+          <SvgIcon name="bell" :size="20" :color="soundEnabled ? '#2e9c5d' : '#8a94a6'" />
           <text>{{ soundEnabled ? '声音开' : '声音关' }}</text>
         </view>
       </view>
@@ -272,7 +275,7 @@ async function onReady(orderId: string): Promise<void> {
             >
           </view>
           <view v-if="o.userRemark" class="card__remark">
-            <SvgIcon name="file-edit" :size="18" color="#b7791f" />
+            <SvgIcon name="file-edit" :size="18" color="#2e9c5d" />
             <text class="card__remark-text">{{ o.userRemark }}</text>
           </view>
         </view>
@@ -336,12 +339,12 @@ async function onReady(orderId: string): Promise<void> {
 .orders__title {
   font-size: 36rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   letter-spacing: 0.5rpx;
 }
 .orders__sub {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .orders__head-r {
   display: flex;
@@ -356,7 +359,7 @@ async function onReady(orderId: string): Promise<void> {
   border-radius: 8rpx;
   background: #fff;
   font-size: 22rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   border: 1rpx solid #e6e9ee;
 }
 
@@ -398,10 +401,10 @@ async function onReady(orderId: string): Promise<void> {
 }
 .orders__tab-text {
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .orders__tab--active .orders__tab-text {
-  color: #b7791f;
+  color: var(--brand-primary);
   font-weight: 700;
 }
 .orders__tab-bar {
@@ -412,14 +415,14 @@ async function onReady(orderId: string): Promise<void> {
   width: 44rpx;
   height: 6rpx;
   border-radius: 3rpx 3rpx 0 0;
-  background: #b7791f;
+  background: var(--brand-primary);
 }
 
 /* empty / loading */
 .orders__msg {
   text-align: center;
   padding: 100rpx 0;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 24rpx;
 }
 .orders__empty {
@@ -431,7 +434,7 @@ async function onReady(orderId: string): Promise<void> {
 }
 .orders__empty-text {
   font-size: 24rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 /* 列表 */
@@ -465,7 +468,7 @@ async function onReady(orderId: string): Promise<void> {
 }
 .card__no {
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-feature-settings: 'tnum';
 }
 .card__status {
@@ -483,7 +486,7 @@ async function onReady(orderId: string): Promise<void> {
   background: #e6f0ff;
 }
 .card__status--primary {
-  color: #b7791f;
+  color: var(--brand-primary);
   background: #fff7e0;
 }
 .card__status--ok {
@@ -491,11 +494,11 @@ async function onReady(orderId: string): Promise<void> {
   background: #e9f7ef;
 }
 .card__status--mute {
-  color: #8a94a6;
+  color: var(--text-muted);
   background: #f0f1f3;
 }
 .card__status--default {
-  color: #5a6275;
+  color: var(--text-secondary);
   background: #f0f1f3;
 }
 
@@ -525,11 +528,11 @@ async function onReady(orderId: string): Promise<void> {
 }
 .card__body-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .card__body-val {
   font-size: 24rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-feature-settings: 'tnum';
 }
 .card__amount {
@@ -550,13 +553,13 @@ async function onReady(orderId: string): Promise<void> {
   margin-top: 10rpx;
   padding: 10rpx 12rpx;
   background: #fff7e0;
-  border-left: 4rpx solid #b7791f;
+  border-left: 4rpx solid var(--brand-primary);
   border-radius: 0 6rpx 6rpx 0;
 }
 .card__remark-text {
   flex: 1;
   font-size: 22rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
@@ -575,7 +578,7 @@ async function onReady(orderId: string): Promise<void> {
 }
 .card__act-btn--ghost {
   background: #fff;
-  color: #5a6275;
+  color: var(--text-secondary);
   border: 1rpx solid #d8dde4;
 }
 .card__act-btn--primary {
@@ -607,7 +610,7 @@ async function onReady(orderId: string): Promise<void> {
 .modal__title {
   font-size: 30rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
 }
 .modal__input {
   width: 100%;
@@ -617,7 +620,7 @@ async function onReady(orderId: string): Promise<void> {
   background: #f7f8fa;
   border-radius: 8rpx;
   font-size: 26rpx;
-  color: #172033;
+  color: var(--text-primary);
   box-sizing: border-box;
 }
 .modal__btns {
@@ -635,7 +638,7 @@ async function onReady(orderId: string): Promise<void> {
 }
 .modal__btn--ghost {
   background: #fff;
-  color: #5a6275;
+  color: var(--text-secondary);
   border: 1rpx solid #d8dde4;
 }
 .modal__btn--danger {

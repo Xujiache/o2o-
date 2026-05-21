@@ -148,7 +148,7 @@ function callSupport(): void {
         </view>
 
         <view v-if="i.deductCents && Number(i.deductCents) > 0" class="v__deduct">
-          <SvgIcon name="alert-triangle" :size="18" color="#c0392b" />
+          <SvgIcon name="alert-triangle" :size="18" color="#ef4444" />
           <text class="v__deduct-label">扣款</text>
           <text class="v__deduct-val">-¥{{ fmtCents(i.deductCents) }}</text>
         </view>
@@ -157,7 +157,7 @@ function callSupport(): void {
 
     <!-- 申诉提示 -->
     <view v-if="items.length > 0" class="v__hint" @tap="callSupport">
-      <SvgIcon name="life-buoy" :size="20" color="#0f766e" />
+      <SvgIcon name="life-buoy" :size="20" color="#2e9c5d" />
       <text class="v__hint-text">如对判定有异议,可联系客服申诉</text>
       <text class="v__hint-arrow">›</text>
     </view>
@@ -190,20 +190,20 @@ function callSupport(): void {
 .v__stat-val {
   font-size: 30rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1;
   font-feature-settings: 'tnum';
   letter-spacing: -0.5rpx;
 }
 .v__stat-val--warn {
-  color: #c0392b;
+  color: var(--price-color);
 }
 .v__stat-val--info {
   color: #b7791f;
 }
 .v__stat-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .v__stat-divider {
   width: 1rpx;
@@ -225,11 +225,11 @@ function callSupport(): void {
   text-align: center;
   padding: 14rpx 0;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   border-radius: 8rpx;
 }
 .v__tab--active {
-  background: #0f766e;
+  background: var(--brand-primary);
   color: #fff;
   font-weight: 700;
 }
@@ -238,7 +238,7 @@ function callSupport(): void {
 .v__msg {
   text-align: center;
   padding: 80rpx 0;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 24rpx;
 }
 .v__empty {
@@ -250,12 +250,12 @@ function callSupport(): void {
 }
 .v__empty-text {
   font-size: 26rpx;
-  color: #11865c;
+  color: var(--brand-primary);
   font-weight: 700;
 }
 .v__empty-sub {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 /* 卡 */
@@ -289,14 +289,14 @@ function callSupport(): void {
 .v__type-chip {
   padding: 4rpx 12rpx;
   background: rgba(192, 57, 43, 0.1);
-  color: #c0392b;
+  color: var(--price-color);
   font-size: 20rpx;
   font-weight: 700;
   border-radius: 4rpx;
 }
 .v__order-no {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-feature-settings: 'tnum';
   overflow: hidden;
   text-overflow: ellipsis;
@@ -309,11 +309,11 @@ function callSupport(): void {
   border-radius: 4rpx;
 }
 .v__status--fail {
-  color: #c0392b;
+  color: var(--price-color);
   background: #fdecea;
 }
 .v__status--ok {
-  color: #11865c;
+  color: var(--brand-primary);
   background: #e9f7ef;
 }
 .v__status--warn {
@@ -325,7 +325,7 @@ function callSupport(): void {
   display: block;
   padding: 16rpx 22rpx 12rpx;
   font-size: 26rpx;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1.5;
 }
 .v__card-meta {
@@ -339,11 +339,11 @@ function callSupport(): void {
 }
 .v__card-meta-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .v__card-meta-val {
   font-size: 22rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-feature-settings: 'tnum';
   max-width: 60%;
   text-align: right;
@@ -359,17 +359,17 @@ function callSupport(): void {
   margin: 0 22rpx 16rpx;
   padding: 12rpx 14rpx;
   background: #fdecea;
-  border-left: 4rpx solid #c0392b;
+  border-left: 4rpx solid #ef4444;
   border-radius: 0 8rpx 8rpx 0;
 }
 .v__deduct-label {
   font-size: 22rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .v__deduct-val {
   font-size: 26rpx;
   font-weight: 800;
-  color: #c0392b;
+  color: var(--price-color);
   margin-left: auto;
   font-feature-settings: 'tnum';
 }
@@ -388,7 +388,7 @@ function callSupport(): void {
 .v__hint-text {
   flex: 1;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .v__hint-arrow {
   color: #c5c9d2;

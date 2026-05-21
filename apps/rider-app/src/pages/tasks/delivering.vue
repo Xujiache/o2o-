@@ -30,7 +30,7 @@ onLoad((options) => {
       >
     </view>
     <button @tap="goNavigate">导航</button>
-    <button type="primary" @tap="goDelivered">送达确认</button>
+    <button class="d__btn--primary" @tap="goDelivered">送达确认</button>
   </view>
 </template>
 
@@ -49,5 +49,9 @@ onLoad((options) => {
   background: #fff;
   border-radius: 12rpx;
   padding: 24rpx;
+}
+.d__btn--primary {
+  background: var(--brand-primary);
+  color: #fff;
 }
 </style>

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { onMounted, ref } from 'vue';
 
 import { useAfterSaleStore } from '@/stores/after-sale';
@@ -67,7 +67,7 @@ onMounted(() => store.refresh());
   font-size: 24rpx;
 }
 .list__filter text.on {
-  background: #ffb400;
+  background: var(--brand-primary);
   color: #fff;
 }
 .list__msg {

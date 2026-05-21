@@ -49,12 +49,13 @@ describe('GetuiMockAdapter', () => {
 });
 
 describe('GetuiRealAdapter', () => {
-  it('凭证缺失时构造抛错', () => {
-    expect(() => new GetuiRealAdapter({ appId: '', appKey: '', masterSecret: '' })).toThrow(/credentials missing/);
+  it('凭证缺失 → MISCONFIGURED: GETUI_APP_ID', () => {
+    expect(() => new GetuiRealAdapter({ appId: '', appKey: '', masterSecret: '' })).toThrow(
+      /MISCONFIGURED: GETUI_APP_ID/,
+    );
   });
 
-  it('真实凭证占位时调 bindDevice 抛 not implemented', async () => {
-    const adapter = new GetuiRealAdapter({ appId: 'a', appKey: 'b', masterSecret: 'c' });
-    expect(() => adapter.bindDevice()).toThrow(/not implemented/);
+  it('凭证齐全可以构造(HTTP 调用不在单测范围)', () => {
+    expect(() => new GetuiRealAdapter({ appId: 'a', appKey: 'b', masterSecret: 'c' })).not.toThrow();
   });
 });

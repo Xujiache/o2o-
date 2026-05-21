@@ -4,11 +4,17 @@ import { ref, watch } from 'vue';
 import { type AdminAfterSaleDetailVo, getAfterSaleDetail } from '@/api/admin-after-sales';
 import { formatDateTime, formatYuan } from '@/utils/format';
 
+import ArbitrateDialog from './ArbitrateDialog.vue';
+
 const props = defineProps<{ visible: boolean; afterSaleId: string | null }>();
-const emit = defineEmits<{ 'update:visible': [boolean] }>();
+const emit = defineEmits<{
+  'update:visible': [boolean];
+  refresh: [];
+}>();
 
 const detail = ref<AdminAfterSaleDetailVo | null>(null);
 const loading = ref(false);
+const arbitrateDialogVisible = ref(false);
 
 async function load(): Promise<void> {
   if (!props.afterSaleId) return;
@@ -30,6 +36,16 @@ watch(
 
 function close(): void {
   emit('update:visible', false);
+}
+
+function onArbitrate(): void {
+  arbitrateDialogVisible.value = true;
+}
+
+function onArbitrateSubmitted(): void {
+  // 刷新当前详情 + 通知 list 刷新
+  void load();
+  emit('refresh');
 }
 </script>
 
@@ -57,6 +73,20 @@ function close(): void {
         <span v-for="f in detail.evidenceFileIds" :key="f" class="file-tag">{{ f }}</span>
       </el-descriptions-item>
     </el-descriptions>
+
+    <template #footer>
+      <div v-if="detail && detail.status === 'PENDING_PLATFORM'" class="footer-actions">
+        <el-button type="primary" @click="onArbitrate">平台仲裁</el-button>
+      </div>
+    </template>
+
+    <ArbitrateDialog
+      v-if="detail"
+      v-model="arbitrateDialogVisible"
+      :after-sale-id="detail.afterSaleId"
+      :default-refund-amount="detail.amountCents"
+      @submitted="onArbitrateSubmitted"
+    />
   </el-drawer>
 </template>
 
@@ -67,5 +97,11 @@ function close(): void {
   border-radius: 4px;
   padding: 2px 8px;
   margin-right: 8px;
+}
+
+.footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 </style>

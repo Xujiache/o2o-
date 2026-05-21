@@ -59,7 +59,7 @@ function isValidIdCard(id: string): boolean {
 }
 .id-card-input__hint {
   font-size: 22rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   margin-top: 8rpx;
   display: block;
 }

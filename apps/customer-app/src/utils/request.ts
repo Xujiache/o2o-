@@ -15,6 +15,15 @@ let refreshHandler: RefreshHandler | null = null;
 export function setRefreshHandler(h: RefreshHandler | null): void {
   refreshHandler = h;
 }
+/** 给非 request() 通道(如 SSE 流)复用 refresh 逻辑 */
+export async function tryRefresh(): Promise<boolean> {
+  if (!refreshHandler) return false;
+  try {
+    return await refreshHandler();
+  } catch {
+    return false;
+  }
+}
 
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://127.0.0.1:3000';
 
@@ -52,7 +61,16 @@ function rawRequest<T>(options: CustomerRequestOptions): Promise<ApiResponse<T>>
 
   if (options.authRequired !== false) {
     const token = getToken();
-    if (token) headers[Header.CustomerToken] = token;
+    if (!token) {
+      return Promise.resolve<ApiResponse<T>>({
+        code: ErrorCode.UNAUTHORIZED,
+        message: '请先登录',
+        data: null,
+        traceId: '',
+        timestamp: Date.now(),
+      });
+    }
+    headers[Header.CustomerToken] = token;
   }
   headers[Header.TraceId] = genTraceId();
   if (options.idempotent ?? isWrite) {

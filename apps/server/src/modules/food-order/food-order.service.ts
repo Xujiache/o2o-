@@ -17,6 +17,7 @@ import {
   PaymentOrder,
   Product,
   ProductSku,
+  RefundOrder,
   StockLock,
   Store,
 } from '../../database/entities';
@@ -60,6 +61,7 @@ export class FoodOrderService {
     @InjectRepository(OrderTimeline) private readonly timelineRepo: Repository<OrderTimeline>,
     @InjectRepository(OrderReview) private readonly reviewRepo: Repository<OrderReview>,
     @InjectRepository(PaymentOrder) private readonly paymentRepo: Repository<PaymentOrder>,
+    @InjectRepository(RefundOrder) private readonly refundRepo: Repository<RefundOrder>,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly dataSource: DataSource,
     private readonly eventBus: DomainEventBus,
@@ -542,6 +544,12 @@ export class FoodOrderService {
     const reason = dto.reason ?? 'CUSTOMER_CANCEL';
     const releasedItems: Array<{ skuId: string; quantity: number }> = [];
 
+    // 检测 race:status=WAIT_PAY 但 PaymentOrder 已 success(回调慢于取消)→ 需触发退款
+    const paidPayment = await this.paymentRepo.findOne({
+      where: { bizType: 'FOOD', bizId: orderId, status: 'success' },
+    });
+
+    let createdRefund: RefundOrder | null = null;
     await this.dataSource.transaction(async (em: EntityManager) => {
       await em.getRepository(FoodOrder).update(
         { foodOrderId: orderId },
@@ -574,6 +582,45 @@ export class FoodOrderService {
         reason,
         createdAt: String(now),
       });
+
+      // 已支付 → 生成 refund_order(mock 即时 SUCCESS;真退款由 W2 接 wxpay)
+      if (paidPayment) {
+        const amount = paidPayment.paidAmount ?? paidPayment.payableAmount;
+        const refundNo = `R${now}${orderId.padStart(8, '0').slice(-8)}`;
+        const insertRes = await em.getRepository(RefundOrder).insert({
+          refundNo,
+          bizType: 'FOOD',
+          bizOrderId: orderId,
+          paymentOrderId: paidPayment.paymentOrderId,
+          amount,
+          status: 'SUCCESS',
+          provider: paidPayment.payChannel,
+          providerRefundId: `mock_${refundNo}`,
+          errorMessage: null,
+          createdAt: String(now),
+          updatedAt: String(now),
+        });
+        createdRefund = {
+          refundOrderId: String(insertRes.identifiers[0]?.refundOrderId ?? ''),
+          refundNo,
+          bizType: 'FOOD',
+          bizOrderId: orderId,
+          paymentOrderId: paidPayment.paymentOrderId,
+          amount,
+          status: 'SUCCESS',
+          provider: paidPayment.payChannel,
+          providerRefundId: `mock_${refundNo}`,
+          errorMessage: null,
+          createdAt: String(now),
+          updatedAt: String(now),
+        } as RefundOrder;
+        await em
+          .getRepository(PaymentOrder)
+          .update({ paymentOrderId: paidPayment.paymentOrderId }, { status: 'refunded', updatedAt: String(now) });
+        await em
+          .getRepository(FoodOrder)
+          .update({ foodOrderId: orderId }, { payStatus: 'refunded', updatedAt: String(now) });
+      }
     });
 
     await this.eventBus.publish(
@@ -597,6 +644,22 @@ export class FoodOrderService {
           releasedAt: now,
         },
         { bizType: 'food-order', bizId: orderId },
+      );
+    }
+    if (createdRefund) {
+      const refund = createdRefund as RefundOrder;
+      await this.eventBus.publish(
+        EventName.RefundExecuted,
+        {
+          refundOrderId: refund.refundOrderId,
+          refundNo: refund.refundNo,
+          bizType: 'FOOD',
+          bizOrderId: orderId,
+          amount: refund.amount,
+          status: 'SUCCESS' as const,
+          executedAt: now,
+        },
+        { bizType: 'refund', bizId: refund.refundOrderId },
       );
     }
 

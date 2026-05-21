@@ -22,7 +22,7 @@ async function requestAll(): Promise<void> {
 
 <template>
   <view class="page">
-    <view class="page__icon"><SvgIcon name="radio-tower" :size="80" color="#0f766e" /></view>
+    <view class="page__icon"><SvgIcon name="radio-tower" :size="80" color="#2e9c5d" /></view>
     <view class="page__title">开启配送定位</view>
     <text class="page__desc">配送过程中需要前台与后台定位,以便上报轨迹给商家与顾客。</text>
     <text class="page__desc">Android: 系统会先弹「使用 APP 期间」,再弹「始终允许」。</text>
@@ -53,7 +53,7 @@ async function requestAll(): Promise<void> {
 }
 .page__btn {
   width: 80%;
-  background: #4c84ff;
+  background: var(--brand-primary);
   color: #fff;
   border-radius: 12rpx;
 }

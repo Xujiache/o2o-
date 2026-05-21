@@ -4,10 +4,14 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 import SvgIcon from '@/components/common/SvgIcon.vue';
 import { getOrderDetail, type OrderDetailVo } from '@/api/food-orders';
-import { prepay, simulatePayCallback } from '@/api/food-payments';
+import { prepay, simulatePayCallback, type AlipayPrepayParams, type WxpayPrepayParams } from '@/api/food-payments';
 import { formatYuan } from '@/utils/format-price';
 import { useFoodOrderStore } from '@/stores/food-order';
 import { useFoodPaymentStore } from '@/stores/food-payment';
+import NavBar from '@/components/common/NavBar.vue';
+
+/** mock = 走 simulatePayCallback;real = 调 uni.requestPayment 拉起渠道 SDK */
+const INTEGRATION_MODE = ((import.meta.env.VITE_INTEGRATION_MODE as string | undefined) ?? 'mock').toLowerCase();
 
 const orderStore = useFoodOrderStore();
 const payStore = useFoodPaymentStore();
@@ -49,6 +53,43 @@ async function loadOrder(): Promise<void> {
   }
 }
 
+function invokeRealPayment(
+  channel: 'wxpay' | 'alipay',
+  payParams: string | WxpayPrepayParams | AlipayPrepayParams,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    // 真实支付参数应为渠道签名对象;兼容后端早期把 JSON 字符串塞 payParams 的情况
+    const parsed = typeof payParams === 'string' ? safeJsonParse(payParams) : payParams;
+    if (!parsed || typeof parsed !== 'object') {
+      reject(new Error('支付参数缺失,请联系客服'));
+      return;
+    }
+    const provider = channel === 'wxpay' ? 'wxpay' : 'alipay';
+    // uni-app 类型在 H5 端无 requestPayment,运行期由各端 runtime 注入
+    const requestPayment = (uni as unknown as { requestPayment?: (opts: Record<string, unknown>) => void })
+      .requestPayment;
+    if (typeof requestPayment !== 'function') {
+      reject(new Error('当前环境不支持拉起支付'));
+      return;
+    }
+    const payArgs: Record<string, unknown> = { provider, ...(parsed as Record<string, unknown>) };
+    if (channel === 'alipay' && 'orderInfo' in (parsed as object)) {
+      payArgs.orderInfo = (parsed as AlipayPrepayParams).orderInfo;
+    }
+    payArgs.success = () => resolve();
+    payArgs.fail = (err: { errMsg?: string }) => reject(new Error(err?.errMsg ?? '支付被取消或失败'));
+    requestPayment(payArgs);
+  });
+}
+
+function safeJsonParse(s: string): unknown {
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
 async function startPay(): Promise<void> {
   if (!orderId.value || payableCents.value === 0) return;
   loading.value = true;
@@ -68,15 +109,21 @@ async function startPay(): Promise<void> {
     uni.showToast({ title: '支付处理中…', icon: 'loading' });
 
     try {
-      await simulatePayCallback(orderStore.payChannel, r.data.payOrderNo, payableCents.value);
+      if (INTEGRATION_MODE === 'real') {
+        await invokeRealPayment(orderStore.payChannel, r.data.payParams);
+      } else {
+        await simulatePayCallback(orderStore.payChannel, r.data.payOrderNo, payableCents.value);
+      }
       payStore.setResult('success');
+      uni.redirectTo({ url: '/pages/payment/result?orderId=' + orderId.value });
     } catch (err) {
       payStore.setResult('fail');
-      uni.showToast({ title: err instanceof Error ? err.message : '回调失败', icon: 'none' });
+      // 真实支付失败 → 留在收银台,允许用户重试切渠道
+      uni.showToast({ title: err instanceof Error ? err.message : '支付失败', icon: 'none' });
     }
-    uni.redirectTo({ url: '/pages/payment/result?orderId=' + orderId.value });
   } finally {
     loading.value = false;
+    payStore.setPaying(false);
   }
 }
 
@@ -105,6 +152,7 @@ onUnmounted(() => {
 
 <template>
   <view class="cashier">
+    <NavBar mode="float" color="#ffffff" />
     <view class="cashier__hero">
       <text class="cashier__hero-label">应付金额</text>
       <view class="cashier__amount">
@@ -172,13 +220,13 @@ onUnmounted(() => {
 }
 
 .cashier__hero {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   border-radius: 28rpx;
   padding: 56rpx 32rpx 36rpx;
   margin-bottom: 16rpx;
   text-align: center;
-  box-shadow: 0 18rpx 40rpx rgba(255, 107, 53, 0.24);
+  box-shadow: 0 18rpx 40rpx rgba(46, 156, 93, 0.24);
 }
 .cashier__hero-label {
   font-size: 24rpx;
@@ -225,10 +273,10 @@ onUnmounted(() => {
   border-bottom: 0;
 }
 .cashier__row-label {
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .cashier__row-value {
-  color: #172033;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -247,21 +295,21 @@ onUnmounted(() => {
   border-radius: 16rpx;
   background: #fff;
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   border: 2rpx solid transparent;
 }
 .cashier__channel-icon {
   font-size: 30rpx;
 }
 .cashier__channel--active {
-  border-color: #ff7a45;
-  background: rgba(255, 122, 69, 0.08);
-  color: #ff6b35;
+  border-color: var(--brand-primary);
+  background: rgba(46, 156, 93, 0.08);
+  color: var(--brand-primary);
   font-weight: 600;
 }
 
 .cashier__pay {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   border-radius: 999rpx;
   height: 96rpx;
@@ -269,7 +317,7 @@ onUnmounted(() => {
   font-size: 32rpx;
   font-weight: 700;
   margin-top: 32rpx;
-  box-shadow: 0 18rpx 40rpx rgba(255, 107, 53, 0.32);
+  box-shadow: 0 18rpx 40rpx rgba(46, 156, 93, 0.32);
 }
 .cashier__pay[disabled] {
   background: #c5c9d2;

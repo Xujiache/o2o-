@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue';
 import FloatTabBar from '@/components/common/FloatTabBar.vue';
 import SvgIcon from '@/components/common/SvgIcon.vue';
 import { listErrandTypes, type ErrandTypeVo } from '@/api/errand-types';
+import NavBar from '@/components/common/NavBar.vue';
 
 const types = ref<ErrandTypeVo[]>([]);
 
@@ -15,17 +16,17 @@ const FORM_PATH: Record<string, string> = {
 };
 
 const TYPE_META: Record<string, { icon: string; gradient: string }> = {
-  BUY: { icon: 'shopping-cart', gradient: 'linear-gradient(135deg, #FF7A45, #FFB020)' },
-  DELIVER: { icon: 'truck', gradient: 'linear-gradient(135deg, #5B5FF8, #00B8D9)' },
-  HELP: { icon: 'bell', gradient: 'linear-gradient(135deg, #11998E, #38EF7D)' },
-  CUSTOM: { icon: 'sparkles', gradient: 'linear-gradient(135deg, #FA709A, #FEE140)' },
+  BUY: { icon: 'shopping-cart', gradient: 'var(--brand-gradient)' },
+  DELIVER: { icon: 'truck', gradient: 'var(--brand-gradient)' },
+  HELP: { icon: 'bell', gradient: 'var(--brand-gradient)' },
+  CUSTOM: { icon: 'sparkles', gradient: 'var(--brand-gradient)' },
 };
 
 const decoratedTypes = computed(() =>
   types.value.map((t) => ({
     ...t,
     icon: TYPE_META[t.typeCode]?.icon ?? 'package',
-    gradient: TYPE_META[t.typeCode]?.gradient ?? 'linear-gradient(135deg, #5B5FF8, #00B8D9)',
+    gradient: TYPE_META[t.typeCode]?.gradient ?? 'var(--brand-gradient)',
   })),
 );
 
@@ -43,6 +44,7 @@ function goToForm(typeCode: string): void {
 
 <template>
   <view class="home">
+    <NavBar mode="float" color="#ffffff" />
     <view class="home__hero">
       <text class="home__eyebrow">Errand Express</text>
       <text class="home__title">跑腿服务</text>
@@ -75,7 +77,7 @@ function goToForm(typeCode: string): void {
 
 .home__hero {
   padding: 48rpx 32rpx 80rpx;
-  background: linear-gradient(135deg, #5b5ff8 0%, #00b8d9 100%);
+  background: var(--brand-gradient);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -113,7 +115,7 @@ function goToForm(typeCode: string): void {
   display: block;
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
   margin-bottom: 20rpx;
 }
 
@@ -146,11 +148,11 @@ function goToForm(typeCode: string): void {
 .home__card-title {
   font-size: 30rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .home__card-desc {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 </style>

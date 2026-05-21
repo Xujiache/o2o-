@@ -28,6 +28,8 @@ import {
   type GrocerySkuVo,
 } from '@/api/grocery-products';
 import { useAuthStore } from '@/stores/auth';
+import NavBar from '@/components/common/NavBar.vue';
+import SvgIcon from '@/components/common/SvgIcon.vue';
 
 const loading = ref(true);
 const product = ref<GroceryProductVo | null>(null);
@@ -214,6 +216,16 @@ function onSwiperChange(e: { detail: { current: number } }): void {
   swiperIndex.value = e.detail.current;
 }
 
+function gotoAiChat(): void {
+  if (!product.value) return;
+  const p = product.value;
+  const params = new URLSearchParams({
+    productId: p.productId,
+    productName: encodeURIComponent(p.name),
+  });
+  uni.navigateTo({ url: `/pages/grocery/ai-chat/index?${params.toString()}` });
+}
+
 async function loadProduct(productId: string): Promise<void> {
   loading.value = true;
   try {
@@ -244,6 +256,7 @@ onMounted(() => {});
 
 <template>
   <view class="detail">
+    <NavBar mode="float" color="#ffffff" />
     <view v-if="loading" class="detail__empty">加载中...</view>
 
     <template v-else-if="product">
@@ -357,6 +370,12 @@ onMounted(() => {});
       </view>
 
       <view class="detail__bar">
+        <view class="detail__ai" @click="gotoAiChat">
+          <view class="detail__ai-icon">
+            <SvgIcon name="sparkles" :size="36" color="#fff" />
+          </view>
+          <text class="detail__ai-label">问 AI</text>
+        </view>
         <button class="detail__cta" :disabled="ctaDisabled" @click="goConfirm">
           {{ ctaText }}
         </button>
@@ -417,14 +436,14 @@ onMounted(() => {});
 .detail__name {
   font-size: 40rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1.3;
   flex: 1;
 }
 .detail__badge {
   flex-shrink: 0;
   padding: 6rpx 16rpx;
-  background: linear-gradient(135deg, #5fbe7d, #2e9c5d);
+  background: var(--brand-gradient-reverse);
   color: #fff;
   border-radius: 999rpx;
   font-size: 20rpx;
@@ -459,12 +478,12 @@ onMounted(() => {});
 }
 .detail__currency {
   font-size: 28rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-weight: 700;
 }
 .detail__yuan {
   font-size: 56rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-weight: 900;
   line-height: 1;
 }
@@ -486,7 +505,7 @@ onMounted(() => {});
   border-radius: 24rpx;
   box-shadow: 0 18rpx 48rpx rgba(31, 41, 55, 0.05);
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   line-height: 1.6;
 }
 
@@ -494,7 +513,7 @@ onMounted(() => {});
   display: block;
   font-size: 26rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
   margin-bottom: 16rpx;
 }
 
@@ -523,7 +542,7 @@ onMounted(() => {});
 }
 .detail__delivery-text {
   font-size: 24rpx;
-  color: #172033;
+  color: var(--text-primary);
 }
 
 .detail__sku {
@@ -553,7 +572,7 @@ onMounted(() => {});
 }
 .detail__sku-chip.is-active {
   background: linear-gradient(135deg, #ffedd5, #fef3c7);
-  border-color: #ff7a45;
+  border-color: var(--brand-primary);
 }
 .detail__sku-chip.is-disabled {
   opacity: 0.4;
@@ -561,11 +580,11 @@ onMounted(() => {});
 .detail__sku-spec {
   font-size: 26rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .detail__sku-price {
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-weight: 600;
 }
 .detail__sku-sold {
@@ -586,7 +605,7 @@ onMounted(() => {});
 .detail__qty-label {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .detail__qty-ctrl {
   display: flex;
@@ -601,7 +620,7 @@ onMounted(() => {});
   background: #f1f5f9;
   border: none;
   border-radius: 16rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 36rpx;
   padding: 0;
 }
@@ -668,7 +687,7 @@ onMounted(() => {});
 .detail__gallery-text {
   font-size: 26rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
   letter-spacing: 4rpx;
 }
 .detail__gallery-img {
@@ -685,11 +704,43 @@ onMounted(() => {});
   background: #fff;
   box-shadow: 0 -10rpx 30rpx rgba(31, 41, 55, 0.05);
 }
+.detail__bar {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+.detail__ai {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  padding: 4rpx 8rpx;
+  flex-shrink: 0;
+}
+.detail__ai-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 999rpx;
+  background: var(--brand-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10rpx 24rpx var(--brand-primary-glow);
+}
+.detail__ai:active .detail__ai-icon {
+  transform: scale(0.94);
+}
+.detail__ai-label {
+  font-size: 20rpx;
+  color: var(--brand-primary-dark);
+  font-weight: 700;
+  letter-spacing: 1rpx;
+}
 .detail__cta {
-  width: 100%;
+  flex: 1;
   height: 88rpx;
   line-height: 88rpx;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   font-weight: 700;
   border-radius: 999rpx;

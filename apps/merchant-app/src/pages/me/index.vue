@@ -255,7 +255,7 @@ function firstChar(s: string | null | undefined): string {
       <view class="me__list">
         <view v-for="item in STORE_GROUP" :key="item.key" class="me__item" @tap="go(item)">
           <view class="me__item-icon">
-            <SvgIcon :name="item.icon" :size="24" color="#b7791f" />
+            <SvgIcon :name="item.icon" :size="24" color="#2e9c5d" />
           </view>
           <view class="me__item-main">
             <text class="me__item-label">{{ item.label }}</text>
@@ -275,7 +275,7 @@ function firstChar(s: string | null | undefined): string {
       <view class="me__list">
         <view v-for="item in FINANCE_GROUP" :key="item.key" class="me__item" @tap="go(item)">
           <view class="me__item-icon">
-            <SvgIcon :name="item.icon" :size="24" color="#b7791f" />
+            <SvgIcon :name="item.icon" :size="24" color="#2e9c5d" />
           </view>
           <view class="me__item-main">
             <text class="me__item-label">{{ item.label }}</text>
@@ -295,7 +295,7 @@ function firstChar(s: string | null | undefined): string {
       <view class="me__list">
         <view v-for="item in ACCOUNT_GROUP" :key="item.key" class="me__item" @tap="go(item)">
           <view class="me__item-icon">
-            <SvgIcon :name="item.icon" :size="24" color="#b7791f" />
+            <SvgIcon :name="item.icon" :size="24" color="#2e9c5d" />
           </view>
           <view class="me__item-main">
             <text class="me__item-label">{{ item.label }}</text>
@@ -305,7 +305,7 @@ function firstChar(s: string | null | undefined): string {
         </view>
         <view class="me__item" @tap="showContactSupport">
           <view class="me__item-icon">
-            <SvgIcon name="life-buoy" :size="24" color="#b7791f" />
+            <SvgIcon name="life-buoy" :size="24" color="#2e9c5d" />
           </view>
           <view class="me__item-main">
             <text class="me__item-label">联系客服</text>
@@ -315,7 +315,7 @@ function firstChar(s: string | null | undefined): string {
         </view>
         <view class="me__item" @tap="showAbout">
           <view class="me__item-icon">
-            <SvgIcon name="lightbulb" :size="24" color="#b7791f" />
+            <SvgIcon name="lightbulb" :size="24" color="#2e9c5d" />
           </view>
           <view class="me__item-main">
             <text class="me__item-label">关于</text>
@@ -350,7 +350,7 @@ function firstChar(s: string | null | undefined): string {
 /* Hero */
 .me__hero {
   padding: 40rpx 28rpx 64rpx;
-  background: linear-gradient(135deg, #1f2937 0%, #b7791f 100%);
+  background: var(--brand-gradient);
   color: #fff;
 }
 .me__hero-row {
@@ -432,7 +432,7 @@ function firstChar(s: string | null | undefined): string {
   box-shadow: 0 0 0 3rpx rgba(56, 239, 125, 0.32);
 }
 .me__hero-tag-dot--paused {
-  background: #ff4d4f;
+  background: var(--price-color);
 }
 .me__hero-tag-dot--offline {
   background: rgba(255, 255, 255, 0.6);
@@ -486,7 +486,7 @@ function firstChar(s: string | null | undefined): string {
 .me__stat-val {
   font-size: 34rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1;
   font-feature-settings: 'tnum';
   letter-spacing: -0.5rpx;
@@ -497,7 +497,7 @@ function firstChar(s: string | null | undefined): string {
 }
 .me__stat-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .me__stat-divider {
   width: 1rpx;
@@ -522,17 +522,17 @@ function firstChar(s: string | null | undefined): string {
 .me__section-bar {
   width: 6rpx;
   height: 24rpx;
-  background: #b7791f;
+  background: var(--brand-primary);
   border-radius: 2rpx;
 }
 .me__section-title {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .me__section-tip {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   margin-left: auto;
 }
 
@@ -552,11 +552,11 @@ function firstChar(s: string | null | undefined): string {
 }
 .me__info-label {
   font-size: 24rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .me__info-val {
   font-size: 26rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-weight: 600;
   font-feature-settings: 'tnum';
   max-width: 60%;
@@ -587,7 +587,7 @@ function firstChar(s: string | null | undefined): string {
   width: 56rpx;
   height: 56rpx;
   border-radius: 10rpx;
-  background: rgba(183, 121, 31, 0.08);
+  background: rgba(46, 156, 93, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -603,11 +603,11 @@ function firstChar(s: string | null | undefined): string {
 .me__item-label {
   font-size: 26rpx;
   font-weight: 600;
-  color: #172033;
+  color: var(--text-primary);
 }
 .me__item-desc {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 .me__item-arrow {

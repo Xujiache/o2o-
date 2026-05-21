@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 /**
  * GR-4 拣货+称重+结算+核销一体页(运营员侧)
  */
@@ -256,7 +256,7 @@ onShow(() => void loadDetail());
 }
 .detail__hero {
   padding: 40rpx 32rpx;
-  background: linear-gradient(135deg, #b7791f, #d97706);
+  background: var(--brand-gradient);
   color: #fff;
 }
 .detail__status {
@@ -283,7 +283,7 @@ onShow(() => void loadDetail());
 }
 .detail__card-val {
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
 }
 .detail__item {
   padding: 16rpx 0;
@@ -312,7 +312,7 @@ onShow(() => void loadDetail());
 .detail__item-info {
   display: block;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   margin-top: 4rpx;
 }
 .detail__weigh {
@@ -355,10 +355,10 @@ onShow(() => void loadDetail());
   justify-content: space-between;
   padding: 6rpx 0;
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
 }
 .detail__delta--up {
-  color: #ff4d4f;
+  color: var(--price-color);
   font-weight: 800;
 }
 .detail__delta--down {
@@ -368,7 +368,7 @@ onShow(() => void loadDetail());
 .detail__code-card {
   margin: 16rpx 24rpx;
   padding: 28rpx;
-  background: linear-gradient(135deg, #fff7ed, #fef3c7);
+  background: var(--brand-gradient-soft);
   border-radius: 24rpx;
   display: flex;
   flex-direction: column;
@@ -399,7 +399,7 @@ onShow(() => void loadDetail());
   flex: 1;
   height: 88rpx;
   line-height: 88rpx;
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
   font-weight: 700;
   border-radius: 999rpx;
@@ -407,8 +407,8 @@ onShow(() => void loadDetail());
 }
 .detail__cta--alt {
   background: #fff;
-  color: #ff4d4f;
-  border: 1rpx solid #ff4d4f;
+  color: var(--price-color);
+  border: 1rpx solid var(--price-color);
 }
 .detail__verify {
   position: fixed;

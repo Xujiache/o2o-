@@ -6,6 +6,7 @@ import { type FoodStoreItem, listFoodStores, type ListStoresQuery } from '@/api/
 import SvgIcon from '@/components/common/SvgIcon.vue';
 import { readStoredFoodCity, resolveFoodCityName } from '@/utils/food-city';
 import { formatYuan } from '@/utils/format-price';
+import NavBar from '@/components/common/NavBar.vue';
 
 type StoreSort = NonNullable<ListStoresQuery['sort']>;
 type StatusFilter = 'all' | 'online' | 'resting';
@@ -107,7 +108,7 @@ function markImageError(storeId: string): void {
 
 function storeCoverStyle(storeId: string): string {
   const palettes = [
-    ['#ff7a45', '#ffd7bd'],
+    ['var(--brand-primary)', '#ffd7bd'],
     ['#14b8a6', '#c7f6ed'],
     ['#4776e6', '#d9e5ff'],
     ['#f59e0b', '#fff0c2'],
@@ -242,12 +243,13 @@ onPullDownRefresh(async () => {
 
 <template>
   <view class="result-page">
+    <NavBar title="搜索结果" />
     <view class="search-head">
       <view class="search-head__back" @tap="goBack">
-        <SvgIcon name="chevron-left" :size="42" color="#172033" />
+        <SvgIcon name="chevron-left" :size="42" color="var(--text-primary)" />
       </view>
       <view class="search-shell__box">
-        <SvgIcon name="search" :size="30" color="#8a94a6" />
+        <SvgIcon name="search" :size="30" color="var(--text-muted)" />
         <input
           v-model="keyword"
           class="search-shell__input"
@@ -270,9 +272,9 @@ onPullDownRefresh(async () => {
     <view class="filter-panel">
       <view class="filter-panel__top">
         <view class="filter-panel__city" @tap="goCity">
-          <SvgIcon name="location-pin" :size="31" color="#5a6275" />
+          <SvgIcon name="location-pin" :size="31" color="var(--text-secondary)" />
           <text class="filter-panel__city-text">{{ cityName }}</text>
-          <SvgIcon name="chevron-down" :size="22" color="#8a94a6" />
+          <SvgIcon name="chevron-down" :size="22" color="var(--text-muted)" />
         </view>
         <view
           v-for="item in topSortOptions"
@@ -416,7 +418,7 @@ onPullDownRefresh(async () => {
 .search-shell__input {
   flex: 1;
   height: 74rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 27rpx;
   min-width: 0;
 }
@@ -426,7 +428,7 @@ onPullDownRefresh(async () => {
   height: 74rpx;
   line-height: 74rpx;
   border-radius: 999rpx;
-  background: #ff6b35;
+  background: var(--brand-primary);
   color: #fff;
   font-size: 27rpx;
   font-weight: 700;
@@ -451,13 +453,13 @@ onPullDownRefresh(async () => {
 }
 
 .summary__title {
-  color: #172033;
+  color: var(--text-primary);
   font-size: 34rpx;
   font-weight: 900;
 }
 
 .summary__sub {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 23rpx;
   margin-top: 6rpx;
 }
@@ -497,7 +499,7 @@ onPullDownRefresh(async () => {
   align-items: center;
   justify-content: center;
   gap: 8rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-size: 27rpx;
   font-weight: 800;
   min-width: 0;
@@ -514,7 +516,7 @@ onPullDownRefresh(async () => {
 }
 
 .filter-panel__sort--active {
-  color: #172033;
+  color: var(--text-primary);
 }
 
 .filter-panel__chips {
@@ -533,13 +535,13 @@ onPullDownRefresh(async () => {
   padding: 14rpx 22rpx;
   border-radius: 12rpx;
   background: #f5f6f8;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 25rpx;
   font-weight: 800;
 }
 
 .filter-chip--active {
-  background: #ff6b35;
+  background: var(--brand-primary);
   color: #fff;
 }
 
@@ -607,7 +609,7 @@ onPullDownRefresh(async () => {
 
 .store-card__name {
   display: block;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 27rpx;
   font-weight: 900;
   line-height: 1.35;
@@ -616,7 +618,7 @@ onPullDownRefresh(async () => {
 .store-card__intro {
   display: block;
   margin-top: 6rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 21rpx;
   line-height: 1.35;
 }
@@ -633,7 +635,7 @@ onPullDownRefresh(async () => {
 .store-card__price {
   display: block;
   margin-top: 12rpx;
-  color: #ff6b35;
+  color: var(--brand-primary);
   font-size: 23rpx;
   font-weight: 800;
 }
@@ -641,7 +643,7 @@ onPullDownRefresh(async () => {
 .state {
   padding: 80rpx 0;
   text-align: center;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 26rpx;
 }
 

@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 
 import { type CityItem, getCities } from '@/api';
+import NavBar from '@/components/common/NavBar.vue';
 
 const list = ref<CityItem[]>([]);
 const keyword = ref('');
@@ -32,6 +33,7 @@ function pick(city: CityItem): void {
 
 <template>
   <view class="city">
+    <NavBar title="选择城市" />
     <input class="city__search" placeholder="搜索城市" v-model="keyword" />
     <view v-if="loading" class="city__loading">加载中...</view>
     <view v-else>

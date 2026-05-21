@@ -2,6 +2,7 @@ import { createPinia } from 'pinia';
 import { createSSRApp } from 'vue';
 
 import App from './App.vue';
+import './styles/theme.css';
 import { useAuthStore } from './stores/auth';
 import { setRefreshHandler } from './utils/request';
 

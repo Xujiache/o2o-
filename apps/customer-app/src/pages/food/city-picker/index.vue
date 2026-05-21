@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 
 import SvgIcon from '@/components/common/SvgIcon.vue';
 import { FOOD_CITIES, readStoredFoodCity, type FoodCity, writeStoredFoodCity } from '@/utils/food-city';
+import NavBar from '@/components/common/NavBar.vue';
 
 const keyword = ref('');
 const currentCity = ref(readStoredFoodCity());
@@ -48,23 +49,24 @@ function pick(city: FoodCity): void {
 
 <template>
   <view class="city-page">
+    <NavBar title="选择城市" />
     <view class="city-head">
       <view class="city-head__back" @tap="goBack">
-        <SvgIcon name="chevron-left" :size="42" color="#172033" />
+        <SvgIcon name="chevron-left" :size="42" color="var(--text-primary)" />
       </view>
       <text class="city-head__title">选择城市</text>
       <view class="city-head__spacer" />
     </view>
 
     <view class="city-search">
-      <SvgIcon name="search" :size="30" color="#8a94a6" />
+      <SvgIcon name="search" :size="30" color="var(--text-muted)" />
       <input v-model="keyword" class="city-search__input" placeholder="输入城市名或拼音首字母" />
     </view>
 
     <view class="current-card">
       <view class="current-card__main">
         <view class="current-card__icon">
-          <SvgIcon name="location-pin" :size="34" color="#ff6b35" />
+          <SvgIcon name="location-pin" :size="34" color="var(--brand-primary)" />
         </view>
         <view class="current-card__text">
           <text class="current-card__label">当前城市</text>
@@ -110,7 +112,7 @@ function pick(city: FoodCity): void {
             <text class="city-row__name">{{ city.name }}</text>
             <view class="city-row__right">
               <text class="city-row__code">{{ city.code }}</text>
-              <SvgIcon v-if="city.code === currentCity.code" name="check" :size="28" color="#ff6b35" />
+              <SvgIcon v-if="city.code === currentCity.code" name="check" :size="28" color="var(--brand-primary)" />
             </view>
           </view>
         </view>
@@ -146,7 +148,7 @@ function pick(city: FoodCity): void {
 }
 
 .city-head__title {
-  color: #172033;
+  color: var(--text-primary);
   font-size: 32rpx;
   font-weight: 900;
 }
@@ -166,7 +168,7 @@ function pick(city: FoodCity): void {
 .city-search__input {
   flex: 1;
   height: 76rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 27rpx;
   min-width: 0;
 }
@@ -206,12 +208,12 @@ function pick(city: FoodCity): void {
 }
 
 .current-card__label {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 22rpx;
 }
 
 .current-card__name {
-  color: #172033;
+  color: var(--text-primary);
   font-size: 32rpx;
   font-weight: 900;
 }
@@ -219,7 +221,7 @@ function pick(city: FoodCity): void {
 .current-card__btn {
   padding: 12rpx 24rpx;
   border-radius: 999rpx;
-  background: #ff6b35;
+  background: var(--brand-primary);
   color: #fff;
   font-size: 24rpx;
   font-weight: 800;
@@ -237,13 +239,13 @@ function pick(city: FoodCity): void {
 }
 
 .section__title {
-  color: #172033;
+  color: var(--text-primary);
   font-size: 30rpx;
   font-weight: 900;
 }
 
 .section__count {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 23rpx;
 }
 
@@ -257,7 +259,7 @@ function pick(city: FoodCity): void {
   height: 68rpx;
   border-radius: 16rpx;
   background: #f5f6f8;
-  color: #172033;
+  color: var(--text-primary);
   font-size: 26rpx;
   font-weight: 800;
   display: flex;
@@ -267,7 +269,7 @@ function pick(city: FoodCity): void {
 
 .hot-grid__item--active {
   background: #fff1e8;
-  color: #ff6b35;
+  color: var(--brand-primary);
 }
 
 .city-list {
@@ -281,7 +283,7 @@ function pick(city: FoodCity): void {
   display: block;
   padding: 16rpx 24rpx 12rpx;
   background: #f8fafc;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 23rpx;
   font-weight: 900;
 }
@@ -300,7 +302,7 @@ function pick(city: FoodCity): void {
 }
 
 .city-row__name {
-  color: #172033;
+  color: var(--text-primary);
   font-size: 29rpx;
   font-weight: 800;
 }
@@ -312,7 +314,7 @@ function pick(city: FoodCity): void {
 }
 
 .city-row__code {
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 23rpx;
   font-weight: 700;
 }
@@ -320,7 +322,7 @@ function pick(city: FoodCity): void {
 .empty {
   padding: 72rpx 0;
   text-align: center;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 26rpx;
 }
 </style>

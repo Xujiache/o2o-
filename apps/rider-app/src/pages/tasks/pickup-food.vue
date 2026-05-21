@@ -36,7 +36,7 @@ onLoad((options) => {
       <text>核验结果</text>
       <input v-model="itemCheckResult" />
     </view>
-    <button type="primary" :loading="submitting" @tap="submit">确认取餐</button>
+    <button class="p__btn--primary" :loading="submitting" @tap="submit">确认取餐</button>
   </view>
 </template>
 
@@ -61,5 +61,9 @@ onLoad((options) => {
   border-radius: 10rpx;
   flex: 1;
   margin-left: 16rpx;
+}
+.p__btn--primary {
+  background: var(--brand-primary);
+  color: #fff;
 }
 </style>

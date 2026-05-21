@@ -19,8 +19,8 @@ const TABS: Tab[] = [
   { key: 'me', icon: 'user', label: '我的', path: '/pages/me/index' },
 ];
 
-const ACTIVE_COLOR = '#2e9c5d';
-const INACTIVE_COLOR = '#8a94a6';
+const ACTIVE_COLOR = 'var(--brand-primary)';
+const INACTIVE_COLOR = 'var(--text-muted)';
 
 function onTap(t: Tab): void {
   uni.switchTab({ url: t.path });
@@ -84,10 +84,10 @@ function onTap(t: Tab): void {
 }
 .ftb__label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .ftb__label--active {
-  color: #2e9c5d;
+  color: var(--brand-primary);
   font-weight: 700;
 }
 </style>

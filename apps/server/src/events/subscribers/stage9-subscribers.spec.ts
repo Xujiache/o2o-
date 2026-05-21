@@ -8,7 +8,12 @@ import { ReportGeneratedSubscriber } from './report-generated.subscriber';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const auditLog: any = { writeAudit: jest.fn(async () => undefined) };
-const gateway: any = { getui: { pushOne: jest.fn(async () => undefined) } };
+const gateway: any = {
+  getui: { pushOne: jest.fn(async () => undefined) },
+  sms: { send: jest.fn(async () => undefined) },
+};
+const orderTimelineRepo: any = { insert: jest.fn(async () => undefined) };
+const errandTimelineRepo: any = { insert: jest.fn(async () => undefined) };
 
 describe('Stage 9 Subscribers', () => {
   beforeEach(() => {
@@ -83,8 +88,8 @@ describe('Stage 9 Subscribers', () => {
     expect(auditLog.writeAudit).toHaveBeenCalledWith(expect.objectContaining({ afterStatus: 'COMPLETED' }));
   });
 
-  it('RefundExecutedSubscriber: 写审计日志', async () => {
-    const sub = new RefundExecutedSubscriber(auditLog);
+  it('RefundExecutedSubscriber: 写审计日志 + sms + getui + timeline(SUCCESS)', async () => {
+    const sub = new RefundExecutedSubscriber(auditLog, gateway, orderTimelineRepo, errandTimelineRepo);
     await sub.handle({
       refundOrderId: 'RF1',
       refundNo: 'RF20260506001',
@@ -95,6 +100,40 @@ describe('Stage 9 Subscribers', () => {
       executedAt: 1,
     });
     expect(auditLog.writeAudit).toHaveBeenCalled();
+    expect(gateway.sms.send).toHaveBeenCalled();
+    expect(gateway.getui.pushOne).toHaveBeenCalled();
+    expect(orderTimelineRepo.insert).toHaveBeenCalledWith(expect.objectContaining({ toStatus: 'REFUNDED' }));
+  });
+
+  it('RefundExecutedSubscriber: ERRAND SUCCESS → errand timeline', async () => {
+    const sub = new RefundExecutedSubscriber(auditLog, gateway, orderTimelineRepo, errandTimelineRepo);
+    await sub.handle({
+      refundOrderId: 'RF2',
+      refundNo: 'RF20260506002',
+      bizType: 'ERRAND',
+      bizOrderId: '620001',
+      amount: '500',
+      status: 'SUCCESS',
+      executedAt: 2,
+    });
+    expect(errandTimelineRepo.insert).toHaveBeenCalledWith(expect.objectContaining({ eventType: 'REFUNDED' }));
+  });
+
+  it('RefundExecutedSubscriber: FAILED 不写 timeline', async () => {
+    (orderTimelineRepo.insert as jest.Mock).mockClear();
+    (errandTimelineRepo.insert as jest.Mock).mockClear();
+    const sub = new RefundExecutedSubscriber(auditLog, gateway, orderTimelineRepo, errandTimelineRepo);
+    await sub.handle({
+      refundOrderId: 'RF3',
+      refundNo: 'RF20260506003',
+      bizType: 'FOOD',
+      bizOrderId: '510002',
+      amount: '1000',
+      status: 'FAILED',
+      executedAt: 3,
+    });
+    expect(orderTimelineRepo.insert).not.toHaveBeenCalled();
+    expect(errandTimelineRepo.insert).not.toHaveBeenCalled();
   });
 
   it('CouponPublishedSubscriber: 写审计日志', async () => {

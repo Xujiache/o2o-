@@ -9,7 +9,7 @@ function home(): void {
 <template>
   <view class="page">
     <view class="page__icon page__icon--err">
-      <SvgIcon name="alert-triangle" :size="100" color="#ffb020" />
+      <SvgIcon name="alert-triangle" :size="100" color="var(--brand-primary-light)" />
     </view>
     <view class="page__title">页面错误</view>
     <text class="page__desc">出错了,你可以返回首页继续浏览。</text>

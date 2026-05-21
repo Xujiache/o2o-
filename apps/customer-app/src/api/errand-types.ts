@@ -19,6 +19,6 @@ export function listErrandTypes(cityCode?: string): Promise<ApiResponse<ErrandTy
   return request<ErrandTypeListVo>({
     url: '/api/v1/c/errand/service-types',
     method: 'GET',
-    data: cityCode ? { cityCode } : undefined,
+    params: cityCode ? { cityCode } : undefined,
   });
 }

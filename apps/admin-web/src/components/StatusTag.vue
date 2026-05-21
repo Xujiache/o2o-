@@ -101,8 +101,8 @@ const computedTone = computed<NonNullable<typeof props.tone>>(() => {
 }
 .status-tag[data-tone='brand'] {
   color: var(--brand-500);
-  background: rgba(59, 130, 246, 0.12);
-  border-color: rgba(59, 130, 246, 0.32);
+  background: rgba(46, 156, 93, 0.12);
+  border-color: rgba(46, 156, 93, 0.32);
 }
 .status-tag[data-tone='neutral'] {
   color: var(--fg-secondary);

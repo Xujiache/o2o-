@@ -55,12 +55,6 @@
         "navigationBarTitleText": "骑手工作台"
       }
     },
-    {
-      "path": "pages/tasks/available",
-      "style": {
-        "navigationBarTitleText": "可接任务列表"
-      }
-    },
     { "path": "pages/tasks/hall", "style": { "navigationBarTitleText": "接单大厅" } },
     { "path": "pages/tasks/current", "style": { "navigationBarTitleText": "当前任务" } },
     { "path": "pages/tasks/pickup-food", "style": { "navigationBarTitleText": "外卖取餐" } },

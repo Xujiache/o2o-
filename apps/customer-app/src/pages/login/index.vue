@@ -134,7 +134,7 @@ function onWechat(): void {
 }
 .login__hero {
   padding: 120rpx 56rpx 200rpx;
-  background: linear-gradient(160deg, #ff7a45 0%, #ffb020 100%);
+  background: linear-gradient(160deg, var(--brand-primary) 0%, var(--brand-primary-light) 100%);
   color: #fff;
 }
 .login__greet {
@@ -153,7 +153,7 @@ function onWechat(): void {
   padding: 48rpx 40rpx 56rpx;
   background: #fff;
   border-radius: 32rpx;
-  box-shadow: 0 20rpx 60rpx rgba(255, 107, 53, 0.14);
+  box-shadow: 0 20rpx 60rpx rgba(46, 156, 93, 0.14);
 }
 .login__field {
   margin-bottom: 32rpx;
@@ -187,7 +187,7 @@ function onWechat(): void {
 }
 .login__sms {
   font-size: 26rpx;
-  color: #ff7a45;
+  color: var(--brand-primary);
   padding-left: 16rpx;
   white-space: nowrap;
 }
@@ -198,7 +198,7 @@ function onWechat(): void {
   display: block;
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 .login__btn {
   margin-top: 40rpx;
@@ -210,7 +210,7 @@ function onWechat(): void {
   text-align: center;
 }
 .login__btn--primary {
-  background: linear-gradient(135deg, #ff7a45, #ffb020);
+  background: var(--brand-gradient);
   color: #fff;
 }
 .login__btn--primary.login__btn--disabled {

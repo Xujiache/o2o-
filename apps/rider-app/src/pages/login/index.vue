@@ -124,7 +124,7 @@ async function onLogin(): Promise<void> {
 }
 .login__hero {
   padding: 120rpx 56rpx 200rpx;
-  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  background: var(--brand-gradient-reverse);
   color: #fff;
 }
 .login__greet {
@@ -142,7 +142,7 @@ async function onLogin(): Promise<void> {
   padding: 48rpx 40rpx 56rpx;
   background: #fff;
   border-radius: 32rpx;
-  box-shadow: 0 20rpx 60rpx rgba(20, 184, 166, 0.16);
+  box-shadow: 0 20rpx 60rpx rgba(46, 156, 93, 0.16);
 }
 .login__field {
   margin-bottom: 32rpx;
@@ -176,7 +176,7 @@ async function onLogin(): Promise<void> {
 }
 .login__sms {
   font-size: 26rpx;
-  color: #0f766e;
+  color: var(--brand-primary);
   padding-left: 16rpx;
   white-space: nowrap;
 }
@@ -187,7 +187,7 @@ async function onLogin(): Promise<void> {
   display: block;
   margin-top: 8rpx;
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 .login__btn {
   height: 88rpx;
@@ -199,11 +199,11 @@ async function onLogin(): Promise<void> {
 }
 .login__btn--primary {
   margin-top: 40rpx;
-  background: linear-gradient(135deg, #14b8a6, #0f766e);
+  background: var(--brand-gradient);
   color: #fff;
 }
 .login__btn--primary.login__btn--disabled {
-  background: #9de3dc;
+  background: var(--brand-primary-light);
   color: #fff;
 }
 </style>

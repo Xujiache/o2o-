@@ -98,34 +98,13 @@ describe('RealnameMockAdapter', () => {
 });
 
 describe('RealnameRealAdapter', () => {
-  it('凭证缺失时构造抛错', () => {
-    expect(() => new RealnameRealAdapter({ accessKeyId: '', accessKeySecret: '' })).toThrow(/credentials missing/);
+  it('凭证缺失 → MISCONFIGURED: ALI_REALNAME_AK', () => {
+    expect(() => new RealnameRealAdapter({ accessKeyId: '', accessKeySecret: '' })).toThrow(
+      /MISCONFIGURED: ALI_REALNAME_AK/,
+    );
   });
 
-  it('真实凭证占位时调 verify 抛 not configured', async () => {
-    const adapter = new RealnameRealAdapter({ accessKeyId: 'ak', accessKeySecret: 'sk' });
-    await expect(adapter.verify('张三', '110101199001011234')).rejects.toThrow(/not configured/);
-  });
-
-  it('真实凭证占位时调 verifyEnterprise 抛 enterprise not configured', async () => {
-    const adapter = new RealnameRealAdapter({ accessKeyId: 'ak', accessKeySecret: 'sk' });
-    await expect(
-      adapter.verifyEnterprise({
-        licenseNo: '91110000MA001ABCD1',
-        legalName: '张总',
-        legalIdCardNo: '110101199001011234',
-      }),
-    ).rejects.toThrow(/enterprise not configured/);
-  });
-
-  it('真实凭证占位时调 verifyFace 抛 face not configured', async () => {
-    const adapter = new RealnameRealAdapter({ accessKeyId: 'ak', accessKeySecret: 'sk' });
-    await expect(
-      adapter.verifyFace({
-        idCardNo: '110101199001011234',
-        realName: '张三',
-        faceFileId: 'file-1',
-      }),
-    ).rejects.toThrow(/face not configured/);
+  it('凭证齐全可以构造(HTTP 调用不在单测范围)', () => {
+    expect(() => new RealnameRealAdapter({ accessKeyId: 'ak', accessKeySecret: 'sk' })).not.toThrow();
   });
 });

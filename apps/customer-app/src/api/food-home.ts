@@ -33,8 +33,8 @@ export interface FoodHomeVo {
 }
 
 export function getFoodHome(cityCode: string, lng?: number, lat?: number): Promise<ApiResponse<FoodHomeVo>> {
-  const data: Record<string, unknown> = { cityCode };
-  if (lng != null) data.lng = lng;
-  if (lat != null) data.lat = lat;
-  return request<FoodHomeVo>({ url: '/api/v1/c/food/home', method: 'GET', data });
+  const params: Record<string, unknown> = { cityCode };
+  if (lng != null) params.lng = lng;
+  if (lat != null) params.lat = lat;
+  return request<FoodHomeVo>({ url: '/api/v1/c/food/home', method: 'GET', params });
 }

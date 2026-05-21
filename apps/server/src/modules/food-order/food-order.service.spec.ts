@@ -11,6 +11,7 @@ import type {
   PaymentOrder,
   Product,
   ProductSku,
+  RefundOrder,
   StockLock,
   Store,
 } from '../../database/entities';
@@ -48,6 +49,7 @@ interface World {
   timelines: OrderTimeline[];
   reviews: OrderReview[];
   payments: PaymentOrder[];
+  refunds: RefundOrder[];
   publishedEvents: Array<{ name: string; payload: unknown }>;
   redis: FakeRedis;
 }
@@ -153,9 +155,14 @@ function buildService(w: World): FoodOrderService {
   } as unknown as jest.Mocked<Repository<OrderReview>>;
   const paymentRepo = {
     findOne: jest.fn(({ where }: { where: Partial<PaymentOrder> }) =>
-      Promise.resolve(w.payments.find((p) => p.bizType === where.bizType && p.bizId === where.bizId) ?? null),
+      Promise.resolve(
+        w.payments.find(
+          (p) => p.bizType === where.bizType && p.bizId === where.bizId && (!where.status || p.status === where.status),
+        ) ?? null,
+      ),
     ),
   } as unknown as jest.Mocked<Repository<PaymentOrder>>;
+  const refundRepo = {} as unknown as jest.Mocked<Repository<RefundOrder>>;
 
   const fakeEm: Partial<EntityManager> = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -238,6 +245,24 @@ function buildService(w: World): FoodOrderService {
           }),
         };
       }
+      if (name === 'RefundOrder') {
+        return {
+          insert: jest.fn(async (rec: Partial<RefundOrder>) => {
+            const refundId = `RF${Date.now()}`;
+            w.refunds.push({ ...(rec as RefundOrder), refundOrderId: refundId });
+            return { identifiers: [{ refundOrderId: refundId }], generatedMaps: [], raw: [] };
+          }),
+        };
+      }
+      if (name === 'PaymentOrder') {
+        return {
+          update: jest.fn(async (criteria: Partial<PaymentOrder>, patch: Partial<PaymentOrder>) => {
+            const idx = w.payments.findIndex((p) => p.paymentOrderId === criteria.paymentOrderId);
+            if (idx >= 0) w.payments[idx] = { ...w.payments[idx]!, ...patch };
+            return { affected: 1, raw: [] };
+          }),
+        };
+      }
       return {};
     }),
   };
@@ -273,6 +298,7 @@ function buildService(w: World): FoodOrderService {
     timelineRepo,
     reviewRepo,
     paymentRepo,
+    refundRepo,
     w.redis as unknown as never,
     dataSource,
     eventBus,
@@ -395,6 +421,7 @@ function makeWorld(): World {
     timelines: [],
     reviews: [],
     payments: [],
+    refunds: [],
     publishedEvents: [],
     redis: new FakeRedis(),
   };

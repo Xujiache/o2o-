@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CircleCheckFilled } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { onMounted, reactive, ref } from 'vue';
 
@@ -340,7 +341,10 @@ onMounted(() => {
         </el-form-item>
       </el-form>
       <div v-if="lastGen" style="margin-top: 16px; padding: 12px; background: #f0fdf4; border-radius: 8px">
-        <p style="margin: 0 0 8px; color: #16a34a; font-weight: 700">✅ 已生成 batchId={{ lastGen.batchId }}</p>
+        <p style="margin: 0 0 8px; color: #16a34a; font-weight: 700; display: flex; align-items: center; gap: 6px">
+          <el-icon :size="16"><CircleCheckFilled /></el-icon>
+          <span>已生成 batchId={{ lastGen.batchId }}</span>
+        </p>
         <p style="margin: 0; font-size: 12px; color: #5a6275">前 3 个 code 示例:</p>
         <pre style="margin: 4px 0; font-size: 12px">{{ lastGen.codes.slice(0, 3).join('\n') }}</pre>
       </div>

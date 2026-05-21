@@ -17,7 +17,7 @@ import {
   type SmsScene,
   type WechatLoginReq,
 } from '@/api';
-import { clearToken, setPrincipal, setToken } from '@/utils/token';
+import { clearToken, getToken, setPrincipal, setToken } from '@/utils/token';
 
 export type { CustomerGender, CustomerRealnameStatus } from '@/api';
 
@@ -153,7 +153,7 @@ export const useAuthStore = defineStore('auth', {
     };
   },
   getters: {
-    isLoggedIn: (s): boolean => Boolean(s.refreshToken),
+    isLoggedIn: (s): boolean => Boolean(s.refreshToken) && Boolean(getToken()),
     smsRemainingSeconds(): number {
       if (!this.smsCountdown) return 0;
       const elapsed = Math.floor((Date.now() - this.smsCountdown.startedAt) / 1000);

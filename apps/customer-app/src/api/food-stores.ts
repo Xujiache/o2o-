@@ -34,7 +34,11 @@ export interface ListStoresQuery {
 }
 
 export function listFoodStores(q: ListStoresQuery): Promise<ApiResponse<FoodStoreListPageVo>> {
-  return request<FoodStoreListPageVo>({ url: '/api/v1/c/food/stores', method: 'GET', data: q });
+  return request<FoodStoreListPageVo>({
+    url: '/api/v1/c/food/stores',
+    method: 'GET',
+    params: q as unknown as Record<string, unknown>,
+  });
 }
 
 export interface PublicStoreDetailVo {

@@ -1,11 +1,14 @@
-import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Optional, UnprocessableEntityException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ErrorCode } from '@o2o/contracts';
 import { In, Repository } from 'typeorm';
 
+import type { AppConfig } from '../../config/configuration';
 import { PaymentOrder, RefundOrder, type RefundOrderBizType } from '../../database/entities';
 import { DomainEventBus } from '../../events/domain-event-bus';
 import { EventName } from '../../events/events';
+import { IntegrationGatewayService } from '../integration-gateway/integration-gateway.service';
 
 import type { AdminRefundItemVo, AdminRefundsListVo, AdminRefundsQueryDto } from './admin-refund.dto';
 
@@ -19,11 +22,20 @@ export interface CreateRefundInput {
 
 @Injectable()
 export class AdminRefundService {
+  private readonly logger = new Logger(AdminRefundService.name);
+
   constructor(
     @InjectRepository(RefundOrder) private readonly repo: Repository<RefundOrder>,
     @InjectRepository(PaymentOrder) private readonly paymentRepo: Repository<PaymentOrder>,
     private readonly eventBus: DomainEventBus,
+    @Optional() private readonly gateway?: IntegrationGatewayService,
+    @Optional() private readonly config?: ConfigService,
   ) {}
+
+  private isRealMode(): boolean {
+    const mode = this.config?.get<AppConfig['integration']>('integration')?.mode;
+    return mode === 'real';
+  }
 
   /**
    * 由仲裁触发,创建退款单 + mock 执行 + emit RefundExecuted。
@@ -69,6 +81,7 @@ export class AdminRefundService {
 
     const now = Date.now();
     const refundNo = this.genRefundNo(now);
+    const provider = input.provider ?? 'wxpay';
     const order = this.repo.create({
       refundNo,
       bizType: input.bizType,
@@ -76,7 +89,7 @@ export class AdminRefundService {
       paymentOrderId: input.paymentOrderId,
       amount: input.amount,
       status: 'PENDING',
-      provider: input.provider ?? 'wxpay',
+      provider,
       providerRefundId: null,
       errorMessage: null,
       createdAt: String(now),
@@ -84,7 +97,14 @@ export class AdminRefundService {
     });
     const saved = await this.repo.save(order);
 
-    // mock 执行(同步成功)
+    if (this.isRealMode() && this.gateway && input.paymentOrderId) {
+      // 真实模式:发起异步退款请求,保持 PENDING,等三方回调
+      // 实际错误兜底:HTTP 抛错 → 标 FAILED 但不阻塞调用方,等运维介入
+      void this.invokeProviderRefund(saved, provider, input.paymentOrderId);
+      return saved;
+    }
+
+    // mock 模式:即时成功
     saved.status = 'SUCCESS';
     saved.providerRefundId = `mock_${saved.refundOrderId}`;
     saved.updatedAt = String(Date.now());
@@ -104,6 +124,51 @@ export class AdminRefundService {
       { bizType: 'refund', bizId: saved.refundOrderId },
     );
     return saved;
+  }
+
+  /**
+   * 真模式异步发起三方退款。结果通过 refund-callback.controller 写回。
+   * 若三方 HTTP 立即失败,本方法把单子标 FAILED + errorMessage,等后续人工或重试。
+   */
+  private async invokeProviderRefund(saved: RefundOrder, provider: string, paymentOrderId: string): Promise<void> {
+    try {
+      const payment = await this.paymentRepo.findOne({ where: { paymentOrderId } });
+      if (!payment) throw new Error(`payment not found: ${paymentOrderId}`);
+      const totalCents = Number(payment.paidAmount ?? payment.payableAmount);
+      const refundCents = Number(saved.amount);
+      const notifyUrl =
+        process.env.REFUND_NOTIFY_URL ?? `${process.env.APP_BASE_URL ?? ''}/api/v1/callback/refunds/${provider}`;
+      const refundInput = {
+        outTradeNo: payment.payOrderNo ?? payment.paymentOrderId,
+        outRefundNo: saved.refundNo,
+        totalCents,
+        refundCents,
+        notifyUrl,
+      };
+      if (provider === 'wxpay' && this.gateway) {
+        await this.gateway.wxpay.refund(refundInput);
+      } else if (provider === 'alipay' && this.gateway) {
+        await this.gateway.alipay.refund(refundInput);
+      } else {
+        throw new Error(`unsupported provider: ${provider}`);
+      }
+      // 真模式下,SUCCESS 由 refund-callback.controller 异步置位;此处仅日志
+      this.logger.log(`refund dispatched provider=${provider} refundNo=${saved.refundNo}`);
+    } catch (err) {
+      const msg = (err as Error).message;
+      this.logger.error(`refund dispatch failed provider=${provider} refundNo=${saved.refundNo}: ${msg}`);
+      try {
+        const r = await this.repo.findOne({ where: { refundOrderId: saved.refundOrderId } });
+        if (r && r.status === 'PENDING') {
+          r.status = 'FAILED';
+          r.errorMessage = msg.slice(0, 200);
+          r.updatedAt = String(Date.now());
+          await this.repo.save(r);
+        }
+      } catch (e2) {
+        this.logger.error(`refund mark FAILED failed: ${(e2 as Error).message}`);
+      }
+    }
   }
 
   async list(query: AdminRefundsQueryDto): Promise<AdminRefundsListVo> {
@@ -171,6 +236,21 @@ export class AdminRefundService {
     r.provider = channel;
     r.updatedAt = String(Date.now());
     await this.repo.save(r);
+    if (succeeded) {
+      await this.eventBus.publish(
+        EventName.RefundExecuted,
+        {
+          refundOrderId: r.refundOrderId,
+          refundNo: r.refundNo,
+          bizType: r.bizType,
+          bizOrderId: r.bizOrderId,
+          amount: r.amount,
+          status: 'SUCCESS' as const,
+          executedAt: Date.now(),
+        },
+        { bizType: 'refund', bizId: r.refundOrderId },
+      );
+    }
     return { ok: true };
   }
 

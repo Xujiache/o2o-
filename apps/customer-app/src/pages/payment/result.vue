@@ -4,6 +4,7 @@ import { onMounted, ref } from 'vue';
 
 import SvgIcon from '@/components/common/SvgIcon.vue';
 import { useFoodPaymentStore } from '@/stores/food-payment';
+import NavBar from '@/components/common/NavBar.vue';
 
 const payStore = useFoodPaymentStore();
 const orderId = ref('');
@@ -27,6 +28,7 @@ onMounted(() => {
 
 <template>
   <view class="result">
+    <NavBar title="支付结果" />
     <view class="result__icon" :class="result === 'success' ? 'result__icon--ok' : 'result__icon--err'">
       <SvgIcon :name="result === 'success' ? 'check-circle' : 'close'" :size="200" />
     </view>

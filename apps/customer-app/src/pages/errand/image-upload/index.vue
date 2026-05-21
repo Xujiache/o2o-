@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 
 import SvgIcon from '@/components/common/SvgIcon.vue';
+import NavBar from '@/components/common/NavBar.vue';
 
 const files = ref<string[]>([]);
 
@@ -34,6 +35,7 @@ function done(): void {
 
 <template>
   <view class="upload">
+    <NavBar title="上传图片" />
     <view class="upload__hero">
       <text class="upload__eyebrow">图片上传</text>
       <text class="upload__title">添加任务相关图片</text>
@@ -73,7 +75,7 @@ function done(): void {
 }
 .upload__hero {
   padding: 40rpx 32rpx 56rpx;
-  background: linear-gradient(135deg, #5b5ff8 0%, #00b8d9 100%);
+  background: var(--brand-gradient);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -144,7 +146,7 @@ function done(): void {
   align-items: center;
   justify-content: center;
   gap: 8rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .upload__add-icon {
   font-size: 56rpx;
@@ -160,13 +162,13 @@ function done(): void {
   margin-top: 16rpx;
   text-align: center;
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 .upload__hint {
   margin: 24rpx;
   padding: 20rpx 24rpx;
-  background: rgba(91, 95, 248, 0.06);
+  background: rgba(46, 156, 93, 0.06);
   border-radius: 16rpx;
   display: flex;
   align-items: center;
@@ -177,7 +179,7 @@ function done(): void {
 }
 .upload__hint-text {
   font-size: 22rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   flex: 1;
   line-height: 1.5;
 }
@@ -193,13 +195,13 @@ function done(): void {
   z-index: 50;
 }
 .upload__cta {
-  background: linear-gradient(135deg, #5b5ff8, #00b8d9);
+  background: var(--brand-gradient);
   color: #fff;
   font-size: 30rpx;
   font-weight: 700;
   border-radius: 999rpx;
   padding: 24rpx 0;
-  box-shadow: 0 16rpx 40rpx rgba(91, 95, 248, 0.32);
+  box-shadow: 0 16rpx 40rpx rgba(46, 156, 93, 0.32);
 }
 .upload__cta[disabled] {
   opacity: 0.5;

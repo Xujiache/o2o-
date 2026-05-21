@@ -7,6 +7,7 @@ import { onShow } from '@dcloudio/uni-app';
 
 import { isOk } from '@o2o/contracts';
 
+import SvgIcon from '@/components/common/SvgIcon.vue';
 import { type GroceryStatus, type PickingOrderListItemVo, listPickingOrders, statusLabel } from '@/api/grocery-orders';
 
 const loading = ref(true);
@@ -88,7 +89,10 @@ onShow(() => void loadData());
           <text class="pool__card-status">{{ statusLabel(o.status) }}</text>
         </view>
         <view class="pool__card-row">
-          <text class="pool__card-pickup">📍 {{ o.pickupPointName }}</text>
+          <view class="pool__card-pickup" style="display: flex; align-items: center; gap: 8rpx">
+            <SvgIcon name="location-pin" :size="24" color="#5a6275" />
+            <text>{{ o.pickupPointName }}</text>
+          </view>
         </view>
         <view class="pool__card-row">
           <text class="pool__card-item">{{ o.itemCount }} 件商品</text>
@@ -108,7 +112,7 @@ onShow(() => void loadData());
 }
 .pool__hero {
   padding: 40rpx 32rpx;
-  background: linear-gradient(135deg, #b7791f, #d97706);
+  background: var(--brand-gradient);
   color: #fff;
 }
 .pool__title {
@@ -132,13 +136,13 @@ onShow(() => void loadData());
   background: #fff;
   border-radius: 999rpx;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   border: 1rpx solid rgba(23, 32, 51, 0.08);
 }
 .pool__filter-chip--active {
-  background: #b7791f;
+  background: var(--brand-primary);
   color: #fff;
-  border-color: #b7791f;
+  border-color: var(--brand-primary);
 }
 .pool__empty {
   padding: 120rpx 0;
@@ -182,7 +186,7 @@ onShow(() => void loadData());
 .pool__card-status {
   font-size: 24rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .pool__card-row {
   display: flex;
@@ -191,16 +195,16 @@ onShow(() => void loadData());
 }
 .pool__card-pickup {
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .pool__card-item {
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .pool__card-amount {
   font-size: 30rpx;
   font-weight: 800;
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 .pool__card-code {
   display: inline-block;

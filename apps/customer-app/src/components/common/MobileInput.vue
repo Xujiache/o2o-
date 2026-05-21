@@ -50,7 +50,7 @@ function onInput(e: Event & { detail?: { value?: string } }): void {
 }
 .mobile-input__hint {
   font-size: 22rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   margin-left: 16rpx;
 }
 </style>

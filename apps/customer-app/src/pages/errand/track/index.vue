@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import SvgIcon from '@/components/common/SvgIcon.vue';
 import { onMounted, ref } from 'vue';
 
 import { getErrandTrack, type ErrandTrackVo } from '@/api/errand-track';
 import { statusLabel } from '@/utils/errand-status';
+import NavBar from '@/components/common/NavBar.vue';
 
 const track = ref<ErrandTrackVo | null>(null);
 
@@ -24,11 +26,13 @@ onMounted(async () => {
   if (!orderId) return;
   const r = await getErrandTrack(orderId);
   if (r.code === '0' && r.data) track.value = r.data;
+  // TODO(WS): 替换轮询为 WebSocket 订阅 customer:order:${orderId},W3 agent 已建 ws-gateway 模块,接入约定见 docs/ARCHITECTURE.md
 });
 </script>
 
 <template>
   <view class="track">
+    <NavBar mode="float" color="#ffffff" />
     <view v-if="!track" class="track__empty">加载中…</view>
 
     <template v-else>
@@ -42,7 +46,7 @@ onMounted(async () => {
       </view>
 
       <view v-if="track.eta == null" class="track__hint">
-        <text class="track__hint-icon">⏳</text>
+        <SvgIcon name="clock" :size="32" class="track__hint-icon" />
         <text class="track__hint-text">骑手未接单或位置未知,请耐心等待派单</text>
       </view>
 
@@ -81,13 +85,13 @@ onMounted(async () => {
 .track__empty {
   padding: 160rpx 0;
   text-align: center;
-  color: #8a94a6;
+  color: var(--text-muted);
   font-size: 26rpx;
 }
 
 .track__hero {
   padding: 56rpx 32rpx 72rpx;
-  background: linear-gradient(135deg, #5b5ff8 0%, #00b8d9 100%);
+  background: var(--brand-gradient);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -153,11 +157,11 @@ onMounted(async () => {
 .track__card-title {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .track__card-count {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 .track__points {
@@ -174,17 +178,17 @@ onMounted(async () => {
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: #5b5ff8;
+  background: var(--brand-primary);
   border: 3rpx solid #fff;
-  box-shadow: 0 0 0 1rpx rgba(91, 95, 248, 0.3);
+  box-shadow: 0 0 0 1rpx rgba(46, 156, 93, 0.3);
 }
 .track__point-dot--start {
   background: #11998e;
   box-shadow: 0 0 0 4rpx rgba(17, 153, 142, 0.18);
 }
 .track__point-dot--end {
-  background: #ff7a45;
-  box-shadow: 0 0 0 4rpx rgba(255, 122, 69, 0.2);
+  background: var(--brand-primary);
+  box-shadow: 0 0 0 4rpx rgba(46, 156, 93, 0.2);
 }
 .track__point-line {
   position: absolute;
@@ -192,7 +196,7 @@ onMounted(async () => {
   top: 38rpx;
   bottom: -14rpx;
   width: 2rpx;
-  background: rgba(91, 95, 248, 0.18);
+  background: rgba(46, 156, 93, 0.18);
 }
 .track__point-main {
   display: flex;
@@ -201,11 +205,11 @@ onMounted(async () => {
 }
 .track__point-coord {
   font-size: 24rpx;
-  color: #172033;
+  color: var(--text-primary);
   font-weight: 600;
 }
 .track__point-dist {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 </style>

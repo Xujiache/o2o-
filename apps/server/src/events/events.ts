@@ -75,6 +75,8 @@ export const EventName = {
   CouponPublished: 'domain.coupon.published',
   RateRuleChanged: 'domain.rate-rule.changed',
   ReportGenerated: 'domain.dashboard.report-generated',
+  // Stage 9+ — DELIVERED → COMPLETED 自动完结
+  OrderCompleted: 'domain.order.completed',
 } as const;
 
 export type EventName = (typeof EventName)[keyof typeof EventName];
@@ -604,6 +606,13 @@ export interface ReportGeneratedPayload {
   generatedAt: number;
 }
 
+export interface OrderCompletedPayload {
+  orderId: string;
+  bizType: 'FOOD' | 'ERRAND';
+  completedAt: number;
+  storeId?: string;
+}
+
 export type EventPayloadMap = {
   [EventName.ConfigChanged]: ConfigChangedPayload;
   [EventName.PermissionChanged]: PermissionChangedPayload;
@@ -667,4 +676,5 @@ export type EventPayloadMap = {
   [EventName.CouponPublished]: CouponPublishedPayload;
   [EventName.RateRuleChanged]: RateRuleChangedPayload;
   [EventName.ReportGenerated]: ReportGeneratedPayload;
+  [EventName.OrderCompleted]: OrderCompletedPayload;
 };

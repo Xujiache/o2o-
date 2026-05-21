@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 /**
  * 商家经营统计 — 数据全部来自 GET /api/v1/m/statistics
  * 后端 StatisticsVo 真实字段:
@@ -167,7 +167,7 @@ onShow(() => {
       <view class="stat__card">
         <view class="stat__card-row">
           <view class="stat__card-icon stat__card-icon--info">
-            <SvgIcon name="shopping-bag" :size="28" color="#5b5ff8" />
+            <SvgIcon name="shopping-bag" :size="28" color="#2e9c5d" />
           </view>
           <text class="stat__card-label">订单数</text>
         </view>
@@ -258,15 +258,15 @@ onShow(() => {
 .stat__head-tag {
   padding: 4rpx 14rpx;
   border-radius: 6rpx;
-  background: rgba(183, 121, 31, 0.1);
-  color: #b7791f;
+  background: rgba(46, 156, 93, 0.1);
+  color: var(--brand-primary);
   font-size: 22rpx;
   font-weight: 700;
 }
 .stat__head-title {
   font-size: 34rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   letter-spacing: 0.5rpx;
 }
 .stat__refresh {
@@ -277,7 +277,7 @@ onShow(() => {
   border-radius: 8rpx;
   background: #fff;
   font-size: 22rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   border: 1rpx solid #e6e9ee;
 }
 
@@ -295,7 +295,7 @@ onShow(() => {
   text-align: center;
   padding: 16rpx 0;
   font-size: 26rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   border-radius: 8rpx;
 }
 .stat__tab--active {
@@ -314,7 +314,7 @@ onShow(() => {
 }
 .stat__primary-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   letter-spacing: 0.5rpx;
 }
 .stat__primary-row {
@@ -326,12 +326,12 @@ onShow(() => {
 .stat__primary-symbol {
   font-size: 32rpx;
   font-weight: 600;
-  color: #172033;
+  color: var(--text-primary);
 }
 .stat__primary-num {
   font-size: 64rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1;
   letter-spacing: -1rpx;
   font-feature-settings: 'tnum';
@@ -352,12 +352,12 @@ onShow(() => {
 }
 .stat__primary-item-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .stat__primary-item-val {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
   font-feature-settings: 'tnum';
 }
 .stat__primary-divider {
@@ -410,20 +410,20 @@ onShow(() => {
 }
 .stat__card-label {
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 .stat__card-val {
   font-size: 36rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1.1;
   letter-spacing: -0.5rpx;
   font-feature-settings: 'tnum';
 }
 .stat__card-tip {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   margin-top: auto;
 }
 .stat__card-stars {
@@ -450,17 +450,17 @@ onShow(() => {
 .stat__section-bar {
   width: 6rpx;
   height: 24rpx;
-  background: #b7791f;
+  background: var(--brand-primary);
   border-radius: 2rpx;
 }
 .stat__section-title {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .stat__section-tip {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   margin-left: auto;
 }
 
@@ -473,7 +473,7 @@ onShow(() => {
 }
 .stat__empty-text {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 .stat__top {
@@ -497,12 +497,12 @@ onShow(() => {
   font-size: 22rpx;
   font-weight: 800;
   background: #f0f1f3;
-  color: #5a6275;
+  color: var(--text-secondary);
   flex-shrink: 0;
   margin-top: 4rpx;
 }
 .stat__top-rank--1 {
-  background: #b7791f;
+  background: var(--brand-primary);
   color: #fff;
 }
 .stat__top-rank--2 {
@@ -530,7 +530,7 @@ onShow(() => {
   flex: 1;
   font-size: 26rpx;
   font-weight: 600;
-  color: #172033;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -538,7 +538,7 @@ onShow(() => {
 .stat__top-amount {
   font-size: 24rpx;
   font-weight: 700;
-  color: #b7791f;
+  color: var(--brand-primary);
   flex-shrink: 0;
   font-feature-settings: 'tnum';
 }
@@ -550,13 +550,13 @@ onShow(() => {
 }
 .stat__top-bar-fill {
   height: 100%;
-  background: #b7791f;
+  background: var(--brand-primary);
   border-radius: 999rpx;
   transition: width 0.3s;
 }
 .stat__top-qty {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 /* hint */
@@ -573,7 +573,7 @@ onShow(() => {
 .stat__hint-text {
   flex: 1;
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   line-height: 1.5;
 }
 </style>

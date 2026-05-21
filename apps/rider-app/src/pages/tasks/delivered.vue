@@ -122,7 +122,7 @@ onMounted(async () => {
 }
 .d__hero {
   padding: 40rpx 32rpx 56rpx;
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  background: var(--brand-gradient-reverse);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -165,11 +165,11 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   font-size: 24rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   margin-bottom: 12rpx;
 }
 .d__required {
-  color: #ff4d4f;
+  color: var(--price-color);
   margin-left: 4rpx;
 }
 .d__input {
@@ -179,7 +179,7 @@ onMounted(async () => {
   background: #f7f8fa;
   border-radius: 16rpx;
   font-size: 28rpx;
-  color: #172033;
+  color: var(--text-primary);
   box-sizing: border-box;
   letter-spacing: 4rpx;
 }
@@ -189,7 +189,7 @@ onMounted(async () => {
   padding: 16rpx 24rpx;
   background: rgba(255, 77, 79, 0.08);
   border-radius: 16rpx;
-  color: #ff4d4f;
+  color: var(--price-color);
   font-size: 24rpx;
 }
 
@@ -204,7 +204,7 @@ onMounted(async () => {
   z-index: 50;
 }
 .d__cta {
-  background: linear-gradient(135deg, #11998e, #38ef7d);
+  background: var(--brand-gradient-reverse);
   color: #fff;
   font-size: 30rpx;
   font-weight: 700;

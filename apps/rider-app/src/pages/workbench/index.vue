@@ -289,19 +289,19 @@ function fmtETA(ms: number | null): string {
       </view>
       <view class="wb__quicks">
         <view class="wb__quick" @tap="go('/pages/withdrawals/form')">
-          <view class="wb__quick-icon"><SvgIcon name="credit-card" :size="26" color="#0f766e" /></view>
+          <view class="wb__quick-icon"><SvgIcon name="credit-card" :size="26" color="#2e9c5d" /></view>
           <text class="wb__quick-label">申请提现</text>
         </view>
         <view class="wb__quick" @tap="go('/pages/assessment/index')">
-          <view class="wb__quick-icon"><SvgIcon name="chart-bar" :size="26" color="#0f766e" /></view>
+          <view class="wb__quick-icon"><SvgIcon name="chart-bar" :size="26" color="#2e9c5d" /></view>
           <text class="wb__quick-label">考核中心</text>
         </view>
         <view class="wb__quick" @tap="go('/pages/violations/index')">
-          <view class="wb__quick-icon"><SvgIcon name="alert-triangle" :size="26" color="#0f766e" /></view>
+          <view class="wb__quick-icon"><SvgIcon name="alert-triangle" :size="26" color="#2e9c5d" /></view>
           <text class="wb__quick-label">违规记录</text>
         </view>
         <view class="wb__quick" @tap="go('/pages/onboarding/progress')">
-          <view class="wb__quick-icon"><SvgIcon name="file-edit" :size="26" color="#0f766e" /></view>
+          <view class="wb__quick-icon"><SvgIcon name="file-edit" :size="26" color="#2e9c5d" /></view>
           <text class="wb__quick-label">入驻进度</text>
         </view>
       </view>
@@ -326,7 +326,7 @@ function fmtETA(ms: number | null): string {
   position: relative;
   overflow: hidden;
   padding: 36rpx 28rpx 28rpx;
-  background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+  background: var(--brand-gradient-reverse);
   color: #fff;
 }
 .wb__hero-deco {
@@ -380,7 +380,7 @@ function fmtETA(ms: number | null): string {
   height: 22rpx;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.45);
-  border: 4rpx solid #14b8a6;
+  border: 4rpx solid #5fbe7d;
 }
 .wb__avatar-dot--online {
   background: #4ade80;
@@ -513,17 +513,17 @@ function fmtETA(ms: number | null): string {
 .wb__section-bar {
   width: 6rpx;
   height: 24rpx;
-  background: #0f766e;
+  background: var(--brand-primary);
   border-radius: 2rpx;
 }
 .wb__section-title {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .wb__section-tip {
   font-size: 22rpx;
-  color: #0f766e;
+  color: var(--brand-primary);
   font-weight: 600;
   margin-left: auto;
 }
@@ -547,16 +547,16 @@ function fmtETA(ms: number | null): string {
 }
 .wb__task-biz--FOOD {
   background: #fff1e6;
-  color: #c0392b;
+  color: var(--price-color);
 }
 .wb__task-biz--ERRAND {
-  background: rgba(15, 118, 110, 0.1);
-  color: #0f766e;
+  background: rgba(46, 156, 93, 0.1);
+  color: var(--brand-primary);
 }
 .wb__task-status {
   font-size: 22rpx;
   font-weight: 700;
-  color: #0f766e;
+  color: var(--brand-primary);
 }
 .wb__task-loc {
   display: flex;
@@ -575,17 +575,17 @@ function fmtETA(ms: number | null): string {
   background: #f7971e;
 }
 .wb__task-loc-dot--delivery {
-  background: #0f766e;
+  background: var(--brand-primary);
 }
 .wb__task-loc-text {
   flex: 1;
   font-size: 24rpx;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1.5;
 }
 .wb__task-eta {
   font-size: 22rpx;
-  color: #c0392b;
+  color: var(--price-color);
   font-weight: 600;
   background: rgba(192, 57, 43, 0.06);
   padding: 6rpx 12rpx;
@@ -608,14 +608,14 @@ function fmtETA(ms: number | null): string {
 .wb__stat-val {
   font-size: 36rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1;
   font-feature-settings: 'tnum';
   letter-spacing: -0.5rpx;
 }
 .wb__stat-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .wb__stat-divider {
   width: 1rpx;
@@ -640,14 +640,14 @@ function fmtETA(ms: number | null): string {
   width: 64rpx;
   height: 64rpx;
   border-radius: 12rpx;
-  background: rgba(15, 118, 110, 0.1);
+  background: rgba(46, 156, 93, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .wb__quick-label {
   font-size: 22rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 

@@ -114,6 +114,11 @@ export const ICONS: Record<string, string> = {
     '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
   lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
 
+  /* AI / 对话 */
+  send: '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+  'chevrons-down': '<polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/>',
+  square: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
+
   /* 支付方式字母图标 */
   wechat:
     '<path d="M8 2C4.7 2 2 4.5 2 7.5c0 1.7.9 3.2 2.3 4.2L4 14l2.5-1.4c.5.1.9.2 1.5.2 3.3 0 6-2.5 6-5.5S11.3 2 8 2Z"/><circle cx="6" cy="7" r="0.5"/><circle cx="10" cy="7" r="0.5"/><path d="M22 15.5c0 1.5-.7 2.8-1.9 3.7l.4 1.8-2.1-1.2c-.4.1-.9.1-1.4.1-3 0-5.5-2.2-5.5-4.9s2.5-4.9 5.5-4.9 5 2.2 5 4.9Z"/><circle cx="15" cy="15" r="0.5"/><circle cx="19" cy="15" r="0.5"/>',

@@ -196,8 +196,8 @@ const todos = computed<TodoRow[]>(() => {
     rows.push({
       key: 'stock',
       icon: 'alert-triangle',
-      iconColor: '#b7791f',
-      iconBg: 'rgba(183, 121, 31, 0.1)',
+      iconColor: '#2e9c5d',
+      iconBg: 'rgba(46, 156, 93, 0.1)',
       label: '库存预警',
       desc: '商品库存低于阈值',
       count: stockAlertCount.value,
@@ -386,7 +386,7 @@ function fmtTime(ms: number): string {
       <view class="wb__quicks">
         <view v-for="q in QUICKS" :key="q.key" class="wb__quick" @tap="go(q.url)">
           <view class="wb__quick-icon">
-            <SvgIcon :name="q.icon" :size="26" color="#b7791f" />
+            <SvgIcon :name="q.icon" :size="26" color="#2e9c5d" />
           </view>
           <text class="wb__quick-label">{{ q.label }}</text>
         </view>
@@ -410,7 +410,7 @@ function fmtTime(ms: number): string {
 /* Hero */
 .wb__hero {
   padding: 40rpx 28rpx 60rpx;
-  background: linear-gradient(135deg, #1f2937 0%, #b7791f 100%);
+  background: var(--brand-gradient);
   color: #fff;
 }
 .wb__hero-row {
@@ -502,12 +502,12 @@ function fmtTime(ms: number): string {
 }
 .wb__overview-label {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   letter-spacing: 0.5rpx;
 }
 .wb__overview-link {
   font-size: 22rpx;
-  color: #b7791f;
+  color: var(--brand-primary);
   font-weight: 600;
 }
 .wb__overview-row {
@@ -519,12 +519,12 @@ function fmtTime(ms: number): string {
 .wb__overview-symbol {
   font-size: 30rpx;
   font-weight: 600;
-  color: #172033;
+  color: var(--text-primary);
 }
 .wb__overview-num {
   font-size: 64rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1;
   letter-spacing: -1rpx;
   font-feature-settings: 'tnum';
@@ -548,7 +548,7 @@ function fmtTime(ms: number): string {
   display: block;
   margin-top: 6rpx;
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .wb__overview-grid {
   margin-top: 22rpx;
@@ -567,13 +567,13 @@ function fmtTime(ms: number): string {
 .wb__overview-item-val {
   font-size: 26rpx;
   font-weight: 800;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1.1;
   font-feature-settings: 'tnum';
 }
 .wb__overview-item-label {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 /* Section */
@@ -593,17 +593,17 @@ function fmtTime(ms: number): string {
 .wb__section-bar {
   width: 6rpx;
   height: 24rpx;
-  background: #b7791f;
+  background: var(--brand-primary);
   border-radius: 2rpx;
 }
 .wb__section-title {
   font-size: 28rpx;
   font-weight: 700;
-  color: #172033;
+  color: var(--text-primary);
 }
 .wb__section-tip {
   font-size: 22rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
   margin-left: auto;
 }
 
@@ -641,16 +641,16 @@ function fmtTime(ms: number): string {
 .wb__todo-label {
   font-size: 26rpx;
   font-weight: 600;
-  color: #172033;
+  color: var(--text-primary);
 }
 .wb__todo-desc {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 .wb__todo-count {
   font-size: 24rpx;
   font-weight: 700;
-  color: #c0392b;
+  color: var(--price-color);
   flex-shrink: 0;
   font-feature-settings: 'tnum';
 }
@@ -695,7 +695,7 @@ function fmtTime(ms: number): string {
 }
 .wb__allgood-sub {
   font-size: 20rpx;
-  color: #8a94a6;
+  color: var(--text-muted);
 }
 
 /* 最新评价 */
@@ -721,7 +721,7 @@ function fmtTime(ms: number): string {
 }
 .wb__rv-user {
   font-size: 22rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
 }
 .wb__rv-time {
   font-size: 18rpx;
@@ -732,7 +732,7 @@ function fmtTime(ms: number): string {
   display: block;
   margin-top: 6rpx;
   font-size: 24rpx;
-  color: #172033;
+  color: var(--text-primary);
   line-height: 1.5;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -748,8 +748,8 @@ function fmtTime(ms: number): string {
   top: 14rpx;
   right: 14rpx;
   padding: 4rpx 10rpx;
-  background: #fff7e0;
-  color: #b7791f;
+  background: var(--brand-primary-glow);
+  color: var(--brand-primary);
   font-size: 18rpx;
   font-weight: 700;
   border-radius: 4rpx;
@@ -776,14 +776,14 @@ function fmtTime(ms: number): string {
   width: 64rpx;
   height: 64rpx;
   border-radius: 12rpx;
-  background: rgba(183, 121, 31, 0.1);
+  background: var(--brand-primary-glow);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .wb__quick-label {
   font-size: 22rpx;
-  color: #5a6275;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 

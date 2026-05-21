@@ -6,6 +6,7 @@ import { ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 
 import { type PublicTraceVo, publicLookupTrace } from '@/api/traceability';
+import NavBar from '@/components/common/NavBar.vue';
 
 const code = ref('');
 const data = ref<PublicTraceVo | null>(null);
@@ -43,6 +44,7 @@ onLoad(async (q: Record<string, string | undefined>) => {
 
 <template>
   <view class="trace">
+    <NavBar mode="float" color="#ffffff" />
     <view v-if="loading" class="trace__empty">加载中...</view>
     <view v-else-if="errMsg" class="trace__empty trace__empty--err">{{ errMsg }}</view>
     <template v-else-if="data && data.archive">
@@ -135,11 +137,11 @@ onLoad(async (q: Record<string, string | undefined>) => {
   font-size: 28rpx;
 }
 .trace__empty--err {
-  color: #ff4d4f;
+  color: var(--price-color);
 }
 .trace__hero {
   padding: 56rpx 32rpx;
-  background: linear-gradient(135deg, #5fbe7d, #2e9c5d);
+  background: var(--brand-gradient-reverse);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -168,7 +170,7 @@ onLoad(async (q: Record<string, string | undefined>) => {
   display: block;
   font-size: 24rpx;
   font-weight: 700;
-  color: #2e9c5d;
+  color: var(--brand-primary);
   padding-bottom: 12rpx;
   border-bottom: 1rpx solid rgba(23, 32, 51, 0.06);
   margin-bottom: 8rpx;
@@ -185,7 +187,7 @@ onLoad(async (q: Record<string, string | undefined>) => {
 }
 .trace__val {
   font-size: 26rpx;
-  color: #172033;
+  color: var(--text-primary);
   max-width: 60%;
   text-align: right;
 }
